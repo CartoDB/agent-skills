@@ -1,0 +1,9 @@
+# Plugin cache directories
+.mcpb-cache/
+.claude/
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/

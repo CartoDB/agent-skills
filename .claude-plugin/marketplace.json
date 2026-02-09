@@ -1,0 +1,35 @@
+{
+  "name": "carto-agent-skills",
+  "owner": {
+    "name": "CARTO",
+    "email": "support@carto.com"
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Skills for managing CARTO Geospatial Cloud resources, analyzing activity data, and building workflows"
+  },
+  "plugins": [
+    {
+      "name": "carto-cli",
+      "source": "./",
+      "description": "Manage CARTO Geospatial Cloud resources via CLI: maps, workflows, connections, authentication, and admin operations",
+      "category": "geospatial",
+      "tags": ["carto", "geospatial", "cli", "maps", "workflows", "connections"],
+      "strict": false,
+      "skills": [
+        "./carto-cli"
+      ]
+    },
+    {
+      "name": "carto-activity",
+      "source": "./",
+      "description": "Query CARTO activity logs and usage data with SQL for analyzing user behavior, map changes, API usage, and quota monitoring",
+      "category": "geospatial",
+      "tags": ["carto", "geospatial", "activity", "analytics", "usage", "sql"],
+      "strict": false,
+      "skills": [
+        "./carto-activity"
+      ]
+    }
+  ]
+}
