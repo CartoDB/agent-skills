@@ -9,6 +9,23 @@ Migrate maps, workflows, and AI agent configurations between CARTO organizations
 
 **This is a companion skill to `carto-cli`.** Use the main `carto-cli` skill for general resource management. Use this skill when the task involves moving or duplicating resources across organizations or users.
 
+## IMPORTANT: Always Ask the User First
+
+**Do NOT list all maps or workflows to discover what to migrate.** Enterprise organizations can have hundreds of resources — listing them all is slow, noisy, and unhelpful.
+
+Instead, **always ask the user to provide:**
+- The **map IDs** or **map names** they want to migrate
+- The **workflow IDs** or **workflow names** they want to migrate
+- The **source profile** and **destination profile** names
+
+If the user provides names instead of IDs, use `--search` to find the specific resource:
+```bash
+carto maps list --search "Fleet Safety" --profile source-org
+carto workflows list --search "ETL pipeline" --profile source-org
+```
+
+Only use `--all` for bulk migration when the user explicitly requests migrating everything.
+
 ## Prerequisites
 
 Before migrating, ensure:
@@ -173,7 +190,20 @@ carto maps copy <map-id> --dest-profile dest-org --skip-source-validation
 
 ## Bulk Migration
 
-### Migrate All Maps from One Org to Another
+**Only use bulk migration when the user explicitly asks to migrate everything.** For most cases, ask the user which specific maps/workflows to migrate.
+
+### Migrate Multiple Maps by Name
+
+```bash
+# Find specific maps by search term
+carto maps list --search "dashboard" --json --profile source-org
+
+# Copy each result
+carto maps copy <map-id-1> --dest-profile dest-org
+carto maps copy <map-id-2> --dest-profile dest-org
+```
+
+### Migrate All Maps (only when explicitly requested)
 
 ```bash
 # Step 1: List all map IDs in the source org
@@ -186,7 +216,7 @@ while read -r map_id; do
 done < map-ids.txt
 ```
 
-### Migrate All Workflows
+### Migrate All Workflows (only when explicitly requested)
 
 ```bash
 # Step 1: List all workflow IDs
@@ -197,16 +227,6 @@ while read -r wf_id; do
   echo "Copying workflow: $wf_id"
   carto workflows copy "$wf_id" --dest-profile dest-org
 done < workflow-ids.txt
-```
-
-### Migrate Specific Maps by Search
-
-```bash
-# Copy only maps matching a search term
-carto maps list --all --json --profile source-org --search "dashboard" | \
-  jq -r '.[].id' | while read -r map_id; do
-    carto maps copy "$map_id" --dest-profile dest-org
-  done
 ```
 
 ---
