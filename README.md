@@ -28,26 +28,24 @@ For detailed installation and usage instructions, see the [official npm package 
 
 ## Skills Included
 
-### SKILL.md
-Main skill documentation providing an overview of CARTO CLI capabilities, authentication patterns, and quick reference guides.
+### carto-cli
+Main skill for managing CARTO Geospatial Cloud resources via CLI. Covers authentication, maps, workflows, connections, credentials, and admin operations. Includes reference documents for the complete command syntax (`COMMANDS.md`) and map JSON structure (`MAPS.md`).
 
-### COMMANDS.md
-Complete command reference with all available commands, options, and usage examples.
+### carto-activity
+Skill for querying and analyzing CARTO activity logs and usage data with SQL.
 
-### MAPS.md
-Detailed guide to map JSON structure for creating and updating maps, including dataset configuration, Kepler.gl visualization settings, and AI agent integration.
-
-### activity.md
-Guide for querying and analyzing CARTO activity logs and usage data.
+### carto-migration
+Skill for migrating maps, workflows, and AI agent configurations between organizations, profiles, and users. Covers connection mapping, bulk migration, and post-migration validation.
 
 ## Usage with AI Agents
 
-These markdown files serve as context for AI agents to understand how to use the CARTO CLI effectively. When loaded as a skill, the agent can:
+These skills serve as context for AI agents to understand how to use the CARTO CLI effectively. When loaded, the agent can:
 
 - Help construct valid CLI commands
 - Generate map JSON configurations
 - Troubleshoot authentication issues
 - Query and analyze activity data
+- Migrate resources across organizations
 - Manage CARTO resources programmatically
 
 ## Learn More

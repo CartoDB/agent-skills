@@ -190,9 +190,10 @@ For querying activity logs, API usage, and user behavior analytics, use the **`c
 
 ## For Detailed Information
 
-- **[COMMANDS.md](COMMANDS.md)** - Complete command reference with all options
-- **[MAPS.md](MAPS.md)** - Map JSON structure for create/update operations
-- **[activity.md](activity.md)** - Activity data querying and analysis (separate skill)
+- **[COMMANDS.md](references/COMMANDS.md)** - Complete command reference with all options
+- **[MAPS.md](references/MAPS.md)** - Map JSON structure for create/update operations
+- **[SKILL.md](../carto-activity/SKILL.md)** - Activity data querying and analysis
+- **[SKILL.md](../carto-migration/SKILL.md)** - Cross-org migration, bulk copy, and connection mapping
 
 ## Common Workflows
 
