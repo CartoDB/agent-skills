@@ -19,11 +19,13 @@ Before migrating, ensure:
    carto auth status
 
    # Login to source org (if not already)
-   carto auth login --profile source-org
+   carto auth login source-org
 
    # Login to destination org
-   carto auth login --profile dest-org
+   carto auth login dest-org
    ```
+
+   **Note:** After re-login, `carto auth status --profile <name>` may still show a cached/stale expired token on the first call. Run `carto auth status` (without `--profile`) to see the refreshed state, or verify with a simple command like `carto maps list --profile <name>` to confirm the token is actually valid.
 
 2. **Connection availability** — The destination org must have connections that can access the same data. List connections on both sides:
    ```bash
