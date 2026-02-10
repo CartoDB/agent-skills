@@ -132,15 +132,22 @@ carto maps update <target-map-id> '{"agent": { ... }}'
 carto maps update <target-map-id> --file agent-config.json
 ```
 
-**Important caveats for agent migration:**
+**How agent migration works:**
+
+The CLI **automatically copies the agent config** when you use `maps copy`. However, there are post-copy issues that **cannot be fixed via the CLI** and require manual intervention in the CARTO Builder UI:
 
 - **Agent config location**: The agent config is nested under `.map.agent` in the JSON returned by `carto maps get --json`, not at the top level.
-- **Model references** include an account-specific prefix (`"account-id::provider::model-name"`, e.g. `"ac_cb7b9151::anthropic::claude-sonnet-4-5"`). If migrating across organizations, the account ID will differ — verify the model is available in the destination with `carto aiproxy models --profile dest-org`.
-- **Tool UUIDs are workflow IDs**: The `config.tools` array references workflow IDs that the agent can invoke. When migrating, you must:
-  1. Copy the workflow(s) first to get their new IDs in the destination
-  2. Copy the map (agent config comes along)
-  3. Update the agent's `config.tools` in the destination map to reference the new workflow IDs
+- **`UNAVAILABLE_MODEL`**: The model reference includes the source org's account ID (`"account-id::provider::model-name"`, e.g. `"ac_cb7b9151::anthropic::claude-sonnet-4-5"`). After copying to a different org, the account ID is invalid. **This must be fixed manually in Builder** — the CLI cannot update agent model references.
+- **`UNAVAILABLE_TOOL`**: The `config.tools` array references workflow IDs from the source org. Even if you copy the workflow first (getting a new ID in the destination), **the CLI cannot update the agent's tool references**. This must also be fixed manually in Builder.
+- **`issues` array**: After copying, check `.map.agent.issues` in the map JSON to see what needs fixing. Common issues: `UNAVAILABLE_MODEL`, `UNAVAILABLE_TOOL`.
 - **Instructions and introduction** (welcome message, starters) are plain text and transfer without issues.
+
+**Recommended migration sequence for maps with agents:**
+
+1. Copy the workflow(s) first with `carto workflows copy` — note the new workflow IDs
+2. Copy the map with `carto maps copy` — the agent config comes along automatically
+3. Check for issues: `carto maps get <new-map-id> --json --profile dest-org | jq '.map.agent.issues'`
+4. **Open the map in Builder** in the destination org to fix the model and tool references manually
 
 ---
 
@@ -282,7 +289,10 @@ carto workflows get <new-workflow-id> --profile dest-org --json
 
 ```bash
 # Check agent config was preserved
-carto maps get <new-map-id> --profile dest-org --json | jq '.agent'
+carto maps get <new-map-id> --profile dest-org --json | jq '.map.agent'
+
+# Check for issues that need manual fixing in Builder
+carto maps get <new-map-id> --profile dest-org --json | jq '.map.agent.issues'
 ```
 
 ### Construct Map URLs
@@ -318,9 +328,15 @@ The destination connection can't access the table/query. Solutions:
 
 ### Agent not working after migration
 
-- Check that the AI model is available in the destination org (`carto aiproxy models --profile dest-org`)
-- Verify tool UUIDs exist in the destination org
-- Re-configure tools if they are organization-specific
+The CLI copies agent config but cannot fix org-specific references. Check for issues:
+
+```bash
+carto maps get <new-map-id> --profile dest-org --json | jq '.map.agent.issues'
+```
+
+Common issues:
+- **`UNAVAILABLE_MODEL`**: Model reference contains source org's account ID. Fix in Builder by selecting an available model.
+- **`UNAVAILABLE_TOOL`**: Tool (workflow) ID references the source org. Fix in Builder by re-linking to the copied workflow in the destination org.
 
 ### Workflow schedule missing after copy
 
@@ -350,7 +366,8 @@ Use this checklist for a complete migration:
 - [ ] Copied maps with `maps copy`
 - [ ] Copied workflows with `workflows copy`
 - [ ] Re-added workflow schedules in destination
-- [ ] Verified maps load correctly (datasets, layers, agent)
+- [ ] Verified maps load correctly (datasets, layers)
 - [ ] Verified workflows execute correctly
-- [ ] Updated any agent tool references if org-specific
+- [ ] Checked `.map.agent.issues` for agent problems
+- [ ] Fixed agent model and tool references in Builder (if applicable)
 - [ ] Shared map/workflow URLs with stakeholders
