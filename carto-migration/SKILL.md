@@ -134,8 +134,12 @@ carto maps update <target-map-id> --file agent-config.json
 
 **Important caveats for agent migration:**
 
-- **Model references** may include an account-specific prefix (`"account-id::model-name"`). If migrating across organizations, verify the model is available in the destination.
-- **Tool UUIDs** are organization-specific. Tools referenced in `config.tools` must exist in the destination org or be removed.
+- **Agent config location**: The agent config is nested under `.map.agent` in the JSON returned by `carto maps get --json`, not at the top level.
+- **Model references** include an account-specific prefix (`"account-id::provider::model-name"`, e.g. `"ac_cb7b9151::anthropic::claude-sonnet-4-5"`). If migrating across organizations, the account ID will differ — verify the model is available in the destination with `carto aiproxy models --profile dest-org`.
+- **Tool UUIDs are workflow IDs**: The `config.tools` array references workflow IDs that the agent can invoke. When migrating, you must:
+  1. Copy the workflow(s) first to get their new IDs in the destination
+  2. Copy the map (agent config comes along)
+  3. Update the agent's `config.tools` in the destination map to reference the new workflow IDs
 - **Instructions and introduction** (welcome message, starters) are plain text and transfer without issues.
 
 ---
