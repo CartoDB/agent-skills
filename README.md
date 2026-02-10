@@ -1,10 +1,41 @@
 # CARTO Agent Skills
 
-This repository contains AI agent skills for interacting with the CARTO CLI.
+Skills for the Claude Code plugin marketplace that enable AI agents to manage CARTO Geospatial Cloud resources and analyze platform activity.
 
-## About
+## Quick Start
 
-These skills enable AI agents (like Claude) to help you manage CARTO Geospatial Cloud resources via the command-line interface. The skills provide structured knowledge about CARTO CLI commands, map creation, workflow management, and more.
+```bash
+# Add the marketplace (one time)
+/plugin marketplace add CartoDB/carto-agent-skills
+
+# Install skills
+/plugin install carto-cli@carto-agent-skills
+/plugin install carto-activity@carto-agent-skills
+```
+
+## Available Skills
+
+### CARTO CLI
+
+**Plugin ID**: `carto-cli@carto-agent-skills`
+
+Manage CARTO Geospatial Cloud resources via CLI: maps, workflows, connections, authentication, and admin operations.
+
+| File | Description |
+|------|-------------|
+| [`SKILL.md`](carto-cli/SKILL.md) | Main skill: overview, authentication, quick reference, and index |
+| [`commands.md`](carto-cli/commands.md) | Complete command reference with all options and examples |
+| [`maps.md`](carto-cli/maps.md) | Map JSON structure for create/update operations |
+
+### CARTO Activity
+
+**Plugin ID**: `carto-activity@carto-agent-skills`
+
+Query CARTO activity logs and usage data with SQL for analyzing user behavior, map changes, API usage, and quota monitoring.
+
+| File | Description |
+|------|-------------|
+| [`SKILL.md`](carto-activity/SKILL.md) | Activity data querying, SQL examples, and troubleshooting |
 
 ## What is the CARTO CLI?
 
@@ -16,39 +47,11 @@ The [CARTO CLI](https://docs.carto.com/carto-user-manual/carto-cli) is a command
 - Work with existing AI Agents
 - Share assets between team members
 
-## Installation
-
-Install the CARTO CLI via npm:
+Install via npm:
 
 ```bash
 npm install -g @carto/carto-cli
 ```
-
-For detailed installation and usage instructions, see the [official npm package documentation](https://www.npmjs.com/package/@carto/carto-cli).
-
-## Skills Included
-
-### SKILL.md
-Main skill documentation providing an overview of CARTO CLI capabilities, authentication patterns, and quick reference guides.
-
-### COMMANDS.md
-Complete command reference with all available commands, options, and usage examples.
-
-### MAPS.md
-Detailed guide to map JSON structure for creating and updating maps, including dataset configuration, Kepler.gl visualization settings, and AI agent integration.
-
-### activity.md
-Guide for querying and analyzing CARTO activity logs and usage data.
-
-## Usage with AI Agents
-
-These markdown files serve as context for AI agents to understand how to use the CARTO CLI effectively. When loaded as a skill, the agent can:
-
-- Help construct valid CLI commands
-- Generate map JSON configurations
-- Troubleshoot authentication issues
-- Query and analyze activity data
-- Manage CARTO resources programmatically
 
 ## Learn More
 

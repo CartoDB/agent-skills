@@ -167,11 +167,18 @@ carto profiles use <name>          # Switch default profile
 carto profiles remove <name>       # Remove profile
 ```
 
+## Detailed Reference
+
+| Document | Description |
+|----------|-------------|
+| [commands.md](commands.md) | Complete command reference with all options and examples |
+| [maps.md](maps.md) | Map JSON structure for create/update operations |
+
 ## Related Skills
 
 ### Activity Data Analysis (`carto-activity` skill)
 
-For querying activity logs, API usage, and user behavior analytics, use the **`carto-activity` skill**.
+For querying activity logs, API usage, and user behavior analytics, use the **`carto-activity` skill** (see [../carto-activity/](../carto-activity/SKILL.md)).
 
 **When to use `carto-activity` skill:**
 - "What user modified map X yesterday?"
@@ -187,12 +194,6 @@ For querying activity logs, API usage, and user behavior analytics, use the **`c
 - General CARTO platform operations
 
 **Note:** Both skills share the same authentication - authenticate once with this skill, then use either skill.
-
-## For Detailed Information
-
-- **[COMMANDS.md](COMMANDS.md)** - Complete command reference with all options
-- **[MAPS.md](MAPS.md)** - Map JSON structure for create/update operations
-- **[activity.md](activity.md)** - Activity data querying and analysis (separate skill)
 
 ## Common Workflows
 
