@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0-phase1",
+  "version": "2.1.0-phase2a",
   "skills": [
     {
       "name": "carto-basics",
@@ -28,6 +28,34 @@
       "dependencies": [],
       "description": "Discover what's in the connected warehouse: schemas, tables, columns, named sources.",
       "path": "skills/carto-explore-datawarehouse"
+    },
+    {
+      "name": "carto-import-export-data",
+      "layer": "platform",
+      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "description": "Import geospatial files into the data warehouse via CARTO, export results back out, and prepare tilesets for fast map rendering.",
+      "path": "skills/carto-import-export-data"
+    },
+    {
+      "name": "carto-create-analytics-workflow",
+      "layer": "platform",
+      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-query-datawarehouse"],
+      "description": "Build, schedule, and operate analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse.",
+      "path": "skills/carto-create-analytics-workflow"
+    },
+    {
+      "name": "carto-find-spatial-data",
+      "layer": "platform",
+      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "description": "Discover and subscribe to external spatial datasets via CARTO Data Observatory and partner catalogs.",
+      "path": "skills/carto-find-spatial-data"
+    },
+    {
+      "name": "carto-manage-platform",
+      "layer": "platform",
+      "dependencies": ["carto-basics", "carto-query-datawarehouse"],
+      "description": "Administer the CARTO org — users, roles, quotas, activity audit, and bulk resource operations.",
+      "path": "skills/carto-manage-platform"
     }
   ]
 }

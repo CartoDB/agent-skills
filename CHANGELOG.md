@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.1.0-phase2a — 2026-04-28
+
+Adds the **4 platform-tier skills** that make up the bulk of CARTO's day-to-day operational surface. No breaking changes from 2.0.0.
+
+### Added
+
+- `carto-import-export-data` — imports, tilesets, exports.
+- `carto-create-analytics-workflow` — workflow CRUD, scheduling per engine, dev→prod promotion.
+- `carto-find-spatial-data` — Data Observatory discovery and subscriptions.
+- `carto-manage-platform` — org stats, users/invitations, admin bulk ops, activity event reference.
+- `docs/deferred-skills.md` — status of `carto-create-builder-maps` and `carto-build-app` (owned by another PM).
+- 18 new reference files across the 4 skills.
+
+### Catalog
+
+Platform-tier dependencies declared and validated:
+
+- `carto-import-export-data` → `carto-basics`, `carto-connect-datawarehouse`, `carto-explore-datawarehouse`.
+- `carto-create-analytics-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
+- `carto-find-spatial-data` → `carto-basics`, `carto-connect-datawarehouse`, `carto-explore-datawarehouse`.
+- `carto-manage-platform` → `carto-basics`, `carto-query-datawarehouse`.
+
+### Deferred (no change in this release)
+
+- `carto-create-builder-maps`, `carto-build-app` — owned by Builder PM. Pre-staged content in `docs/_phase2-salvage/` is intact for that PM to pick up.
+- Codex plugin and Gemini extension distribution → Phase 2b.
+- `custom_user_agent` watermarking → Phase 2c.
+
+---
+
 ## 2.0.0-phase1 — 2026-04-28
 
 **Breaking change.** The repo has been restructured into a multi-harness skills catalog modeled on [MotherDuck's agent-skills](https://github.com/motherduckdb/agent-skills). See [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the design.
