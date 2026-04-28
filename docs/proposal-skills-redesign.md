@@ -27,6 +27,8 @@ Three architectural decisions worth copying:
 - *Workflow* skills depend only on utilities (`load-data`, `model-data`, `share-data`, `create-dive`, `ducklake`, `security-governance`, `pricing-roi`)
 - *Use-case* skills orchestrate workflows + utilities (`build-cfa-app`, `build-dashboard`, `build-data-pipeline`, `migrate`, `enable-self-serve`, `partner-delivery`)
 
+> We rename MD's middle tier from *Workflow* to **Platform** in section 3, to avoid collision with the CARTO Workflows product (which one of our platform-tier skills wraps). Same layering, different label.
+
 A validation script (`scripts/validate_skills.py`) enforces dependencies; use-case skills declare orchestration in their SKILL.md (e.g. *"orchestrates motherduck-explore, motherduck-query, and motherduck-create-dive"*).
 
 **Minimal, consistent skill anatomy.**
@@ -73,7 +75,7 @@ Sync scripts keep manifests aligned. A single change ships to all three harnesse
 | `carto-query-datawarehouse` | Write spatial SQL against the connected warehouse engine, with dialect-specific guidance and performance defaults. |
 | `carto-explore-datawarehouse` | Discover what's in the connected warehouse: schemas, tables, columns, named sources. |
 
-### Workflow (6) — depend on utilities
+### Platform (6) — depend on utilities
 
 | Skill | Description |
 |---|---|
@@ -84,7 +86,7 @@ Sync scripts keep manifests aligned. A single change ships to all three harnesse
 | `carto-find-spatial-data` | Discover external spatial datasets (Data Observatory and partners) and subscribe them into your warehouse. |
 | `carto-manage-platform` | Administer the CARTO org: users, roles, quotas, activity logs, bulk resource ops. |
 
-### Use-case (3) — orchestrate utilities + workflows
+### Use-case (3) — orchestrate utilities + platform skills
 
 | Skill | Description |
 |---|---|
@@ -153,7 +155,7 @@ carto-agents/
 1. **Spatial SQL scope.** One `carto-query-datawarehouse` skill with sub-references per dialect, or split per-warehouse (BQ GIS / Snowflake / Postgres+PostGIS)? Lean: one skill, references per dialect. Revisit if the SKILL.md grows past ~5KB.
 2. **CLI vs MCP authority.** When both are available, which does a skill prefer? Lean: MCP for read, CLI for write — but needs a documented rule.
 3. **SQL snippet validation.** MD validates DuckDB SQL by executing in-memory. CARTO can't do that without a live connection. Options: (a) skip SQL validation, (b) maintain a single canonical sandbox warehouse for CI, (c) syntactic-only validation per dialect. Lean: (c) for now, revisit.
-4. **AI map agents.** Bundled into `carto-create-builder-maps`, or its own workflow skill? Bundled today, but if map agents become a major investment, they may deserve a dedicated skill.
+4. **AI map agents.** Bundled into `carto-create-builder-maps`, or its own platform skill? Bundled today, but if map agents become a major investment, they may deserve a dedicated skill.
 5. **Customer-facing map vs app.** Use-case skill is named `carto-build-customer-facing-map`, but most external maps ship as full apps. Should it be `carto-build-customer-facing-app`?
 6. **Hyphenation.** `datawarehouse` (one word) vs `data-warehouse` (hyphenated). Pick one and apply consistently.
 7. **`carto-basics` scope.** Is this CLI-only, or does it cover platform basics too? If platform basics, the description needs tightening so it doesn't always-load.
@@ -186,8 +188,8 @@ The existing repo is a 2-skill Claude plugin (last commit 2026-02-10, dormant si
 - Ship 4 utility skills (`carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`, `carto-explore-datawarehouse`)
 - Ship Claude plugin + Skills CLI distribution
 
-**Phase 2 — Workflow surface (3 weeks)**
-- Ship 6 workflow skills
+**Phase 2 — Platform surface (3 weeks)**
+- Ship 6 platform skills
 - Add Codex + Gemini distribution
 - Wire up `custom_user_agent` watermarking
 - Internal dogfooding with CARTO solutions team
@@ -199,7 +201,7 @@ The existing repo is a 2-skill Claude plugin (last commit 2026-02-10, dormant si
 
 **Phase 4 — Iterate**
 - Add skills based on observed agent failures
-- Split any workflow skill that grows past ~5KB SKILL.md
+- Split any platform skill that grows past ~5KB SKILL.md
 - Backfill use-cases as patterns emerge from real usage
 
 ## 9. What success looks like
