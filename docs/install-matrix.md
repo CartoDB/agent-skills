@@ -12,6 +12,8 @@ Which skills ship via which harness.
 | `carto-create-analytics-workflow` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-find-spatial-data` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-manage-platform` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-copy-maps` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-copy-workflows` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-create-builder-maps` | platform | ⏳ deferred | ⏳ deferred | ⏳ deferred | ⏳ deferred |
 | `carto-build-app` | platform | ⏳ deferred | ⏳ deferred | ⏳ deferred | ⏳ deferred |
 | `carto-build-spatial-dashboard` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
@@ -29,7 +31,7 @@ Two platform skills (`carto-create-builder-maps`, `carto-build-app`) are owned b
 /plugin install carto-skills@carto-agent-skills
 ```
 
-All 8 skills (4 utility + 4 platform) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
+All 10 skills (4 utility + 6 platform) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
 
 ### Skills CLI
 

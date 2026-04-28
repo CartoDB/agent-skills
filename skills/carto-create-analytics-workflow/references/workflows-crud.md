@@ -59,19 +59,7 @@ The workflow is removed from CARTO. **Tables the workflow created in the warehou
 
 ## copy
 
-```bash
-carto workflows copy <id> --dest-profile <profile> [options]
-```
-
-Cross-profile copy. See [copy-promotion.md](copy-promotion.md) for the full lifecycle pattern.
-
-| Flag | Effect |
-|---|---|
-| `--source-profile <profile>` | Source profile. Default: current. |
-| `--dest-profile <profile>` | Destination profile. **Required.** |
-| `--connection <name>` | Destination connection. Auto-maps by name if omitted. |
-| `--title <title>` | Override workflow title in the destination. |
-| `--skip-source-validation` | Don't verify the source tables exist in the destination. |
+`carto workflows copy` is covered by the sibling skill [`carto-copy-workflows`](../../carto-copy-workflows) — cross-profile replication has its own gotchas (connection mapping, schedule re-add) that don't fit the create/author flow.
 
 ## DAG JSON shape (high level)
 

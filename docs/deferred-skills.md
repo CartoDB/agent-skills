@@ -4,9 +4,14 @@ Two skills from the original Phase 2 scope are **owned by another PM** (Builder 
 
 ## `carto-create-builder-maps` (deferred)
 
-**Scope.** Author maps in CARTO Builder: layers, basemaps, styling, sharing, and AI map agents.
+**Scope.** **Agentic creation** of maps in CARTO Builder: layers, basemaps, styling, sharing, AI map agents (as part of authoring). The agent helps a user *build* a new map.
 
-**Pre-staged content.** [`docs/_phase2-salvage/maps.md`](_phase2-salvage/maps.md) — 16KB Map JSON reference covering datasets/layers diagram, creation checklist, common mistakes, complete example. Also relevant sections of [`commands-deferred.md`](_phase2-salvage/commands-deferred.md): `Maps` and `AI Features`.
+**Explicitly NOT in scope** (handled elsewhere):
+
+- *Copying* maps across orgs / profiles → owned by `carto-copy-maps` (Phase 2c). The `UNAVAILABLE_MODEL` / `UNAVAILABLE_TOOL` agent caveats live there, not here, because they only matter when copying.
+- *Same-org cloning* (`maps clone`) → also `carto-copy-maps`.
+
+**Pre-staged content.** [`docs/_phase2-salvage/maps.md`](_phase2-salvage/maps.md) — 16KB Map JSON reference covering datasets/layers diagram, creation checklist, common mistakes, complete example. Plus the `Maps` and `AI Features` sections of [`commands-deferred.md`](_phase2-salvage/commands-deferred.md), filtered for create-side verbs (`maps update`, `aifeature aiagent`) — `maps copy` and `maps clone` are not in this skill's scope.
 
 **Open question to settle when picked up.** Should AI map agents live as a sub-topic of this skill, or be a separate sibling skill? Original proposal §6 OQ#4. The decision affects discoverability — bundling makes Builder-centric flows cleaner; splitting makes agentic-map flows easier to land on.
 

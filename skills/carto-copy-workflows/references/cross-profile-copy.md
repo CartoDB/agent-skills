@@ -1,11 +1,11 @@
-# Cross-profile promotion
+# Cross-profile workflow copy
 
-`workflows copy` lets you move a workflow definition from one CARTO profile (org / environment) to another — the typical use is **dev → prod promotion**.
+`workflows copy` moves a workflow definition from one CARTO profile (org / environment) to another. Mechanical replication — no creation, no agentic decisions.
 
 ## Lifecycle
 
 ```bash
-# 1. List source profiles
+# 1. Confirm both profiles are authenticated
 carto auth status
 
 # 2. Inspect the source workflow
@@ -22,9 +22,9 @@ carto workflows list --profile prod --search "<workflow name>"
 
 ## Connection re-mapping
 
-The single most common failure in promotion: **the dev connection name doesn't match the prod connection name.** Without remapping, the copied workflow points at a connection that doesn't exist in `prod`, and the first run fails with "connection not found".
+The single most common failure: **the dev connection name doesn't match the prod connection name.** Without remapping, the copied workflow points at a connection that doesn't exist in `prod`, and the first run fails with `connection not found`.
 
-Two ways to fix:
+Three ways to resolve:
 
 ### Auto-mapping by name
 
@@ -47,7 +47,7 @@ For workflows touching multiple connections:
 --connection-mapping "src1=dst1,src2=dst2"
 ```
 
-### Legacy single-connection (`--connection`)
+### Legacy single-connection override (`--connection`)
 
 ```bash
 carto workflows copy <wf-id> \
@@ -58,7 +58,7 @@ carto workflows copy <wf-id> \
 
 This forces *every* node onto the same destination connection — fine for single-connection workflows but loses fidelity for multi-connection ones. Prefer `--connection-mapping`.
 
-## Resolution order
+### Resolution order
 
 When CARTO copies a workflow, it picks a destination connection per node in this order:
 
@@ -89,11 +89,11 @@ Useful when the source title contains `"-dev"` you want to strip.
 
 `workflows copy` defaults to copying the source's privacy setting. Pass `--keep-privacy` to be explicit (default: true) or omit for the default.
 
-## Updating a previously-promoted workflow
+## Updating a previously-copied workflow
 
 `workflows copy` always creates a *new* workflow in the destination — there's no in-place update. The recommended pattern is:
 
-1. Promote once with `workflows copy` → gets a fresh prod workflow ID.
-2. Subsequent updates: in dev, `get` → edit → in prod, `update` (with the prod ID).
+1. Copy once with `workflows copy` → gets a fresh destination workflow ID.
+2. Subsequent updates: in source, `get` → edit → in destination, `update` (with the destination's workflow ID).
 
 The two workflow IDs are independent; CARTO doesn't track lineage between them. Maintain the mapping in your team's docs.

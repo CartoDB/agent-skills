@@ -5,7 +5,7 @@
     "email": "support@carto.com"
   },
   "metadata": {
-    "version": "2.2.0-phase2b",
+    "version": "2.3.0-phase2c",
     "description": "CARTO skills catalog — utility + platform tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources, modeled on the MotherDuck agent-skills pattern."
   },
   "plugins": [
@@ -24,7 +24,9 @@
         "./skills/carto-import-export-data",
         "./skills/carto-create-analytics-workflow",
         "./skills/carto-find-spatial-data",
-        "./skills/carto-manage-platform"
+        "./skills/carto-manage-platform",
+        "./skills/carto-copy-maps",
+        "./skills/carto-copy-workflows"
       ]
     }
   ]

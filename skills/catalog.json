@@ -1,5 +1,5 @@
 {
-  "version": "2.2.0-phase2b",
+  "version": "2.3.0-phase2c",
   "skills": [
     {
       "name": "carto-basics",
@@ -56,6 +56,20 @@
       "dependencies": ["carto-basics", "carto-query-datawarehouse"],
       "description": "Administer the CARTO org — users, roles, quotas, activity audit, and bulk resource operations.",
       "path": "skills/carto-manage-platform"
+    },
+    {
+      "name": "carto-copy-maps",
+      "layer": "platform",
+      "dependencies": ["carto-basics", "carto-explore-datawarehouse"],
+      "description": "Copy maps across CARTO organizations or profiles, with connection mapping and AI-agent reference handling.",
+      "path": "skills/carto-copy-maps"
+    },
+    {
+      "name": "carto-copy-workflows",
+      "layer": "platform",
+      "dependencies": ["carto-basics", "carto-explore-datawarehouse"],
+      "description": "Copy CARTO Workflows across organizations or profiles, with connection mapping and schedule re-add.",
+      "path": "skills/carto-copy-workflows"
     }
   ]
 }
