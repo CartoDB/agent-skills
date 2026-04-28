@@ -1,0 +1,1525 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "id": "reactflow__edge-445be534-3556-4ef0-abab-5c83f113123fmatch-7d3e52dc-16c8-416f-841f-3cf263f2cb32sourcea",
+      "source": "445be534-3556-4ef0-abab-5c83f113123f",
+      "target": "7d3e52dc-16c8-416f-841f-3cf263f2cb32",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "match",
+      "targetHandle": "sourcea"
+    },
+    {
+      "id": "reactflow__edge-7d3e52dc-16c8-416f-841f-3cf263f2cb32result-6254d86a-db76-4c0e-8f05-e2d69f6fd67fsource",
+      "source": "7d3e52dc-16c8-416f-841f-3cf263f2cb32",
+      "target": "6254d86a-db76-4c0e-8f05-e2d69f6fd67f",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "23d8643e-928e-40a1-9af3-fce1d3e293c8result-47d1aa4e-f67c-45c2-8995-49e681a41840source",
+      "source": "23d8643e-928e-40a1-9af3-fce1d3e293c8",
+      "target": "47d1aa4e-f67c-45c2-8995-49e681a41840",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-e4c9c829-6660-4713-a116-f9577dfcba0aresult-23d8643e-928e-40a1-9af3-fce1d3e293c8maintable",
+      "source": "e4c9c829-6660-4713-a116-f9577dfcba0a",
+      "target": "23d8643e-928e-40a1-9af3-fce1d3e293c8",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "maintable"
+    },
+    {
+      "id": "reactflow__edge-6254d86a-db76-4c0e-8f05-e2d69f6fd67fresult-ffde3150-224a-41db-b69a-be2a314fd4aesource",
+      "source": "6254d86a-db76-4c0e-8f05-e2d69f6fd67f",
+      "target": "ffde3150-224a-41db-b69a-be2a314fd4ae",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-ffde3150-224a-41db-b69a-be2a314fd4aeresult-23d8643e-928e-40a1-9af3-fce1d3e293c8secondarytable",
+      "source": "ffde3150-224a-41db-b69a-be2a314fd4ae",
+      "target": "23d8643e-928e-40a1-9af3-fce1d3e293c8",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "secondarytable"
+    },
+    {
+      "id": "reactflow__edge-47d1aa4e-f67c-45c2-8995-49e681a41840result-f473d9f3-a977-4535-baf2-e7aabda3a315source",
+      "source": "47d1aa4e-f67c-45c2-8995-49e681a41840",
+      "target": "f473d9f3-a977-4535-baf2-e7aabda3a315",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-e4c9c829-6660-4713-a116-f9577dfcba0aresult-3233c49c-ec36-4998-bc07-a42c3b3af7b7target",
+      "source": "e4c9c829-6660-4713-a116-f9577dfcba0a",
+      "target": "3233c49c-ec36-4998-bc07-a42c3b3af7b7",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "target"
+    },
+    {
+      "id": "reactflow__edge-f473d9f3-a977-4535-baf2-e7aabda3a315result-2f885a3f-b081-4359-9667-9c26d660c3ddmaintable",
+      "source": "f473d9f3-a977-4535-baf2-e7aabda3a315",
+      "target": "2f885a3f-b081-4359-9667-9c26d660c3dd",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "maintable"
+    },
+    {
+      "id": "reactflow__edge-3233c49c-ec36-4998-bc07-a42c3b3af7b7result-2f885a3f-b081-4359-9667-9c26d660c3ddsecondarytable",
+      "source": "3233c49c-ec36-4998-bc07-a42c3b3af7b7",
+      "target": "2f885a3f-b081-4359-9667-9c26d660c3dd",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "secondarytable"
+    },
+    {
+      "id": "reactflow__edge-81058ec3-29d2-41b0-8872-de145e9b5c37result-3233c49c-ec36-4998-bc07-a42c3b3af7b7source",
+      "source": "81058ec3-29d2-41b0-8872-de145e9b5c37",
+      "target": "3233c49c-ec36-4998-bc07-a42c3b3af7b7",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "2f885a3f-b081-4359-9667-9c26d660c3ddresult-869db82d-ecae-400f-b074-10f1ec059cf9source",
+      "source": "2f885a3f-b081-4359-9667-9c26d660c3dd",
+      "target": "869db82d-ecae-400f-b074-10f1ec059cf9",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-import_7ef67717_ffc7_4291_8ca6_dbf169672872out-445be534-3556-4ef0-abab-5c83f113123ffilter",
+      "source": "import_7ef67717_ffc7_4291_8ca6_dbf169672872",
+      "target": "445be534-3556-4ef0-abab-5c83f113123f",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "filter"
+    },
+    {
+      "id": "reactflow__edge-import_7ef67717_ffc7_4291_8ca6_dbf169672872out-e4c9c829-6660-4713-a116-f9577dfcba0asource",
+      "source": "import_7ef67717_ffc7_4291_8ca6_dbf169672872",
+      "target": "e4c9c829-6660-4713-a116-f9577dfcba0a",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-import_9f27d06f_f249_4ee7_b50e_66c65d517e90out-81058ec3-29d2-41b0-8872-de145e9b5c37source",
+      "source": "import_9f27d06f_f249_4ee7_b50e_66c65d517e90",
+      "target": "81058ec3-29d2-41b0-8872-de145e9b5c37",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "source"
+    },
+    {
+      "source": "import_4de5ef8f_49e3_4ca8_98f8_338d90588192",
+      "target": "445be534-3556-4ef0-abab-5c83f113123f",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "source",
+      "id": "reactflow__edge-import_4de5ef8f_49e3_4ca8_98f8_338d90588192out-445be534-3556-4ef0-abab-5c83f113123fsource"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "445be534-3556-4ef0-abab-5c83f113123f",
+      "data": {
+        "name": "native.spatialfilter",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "filter",
+            "type": "Table",
+            "title": "Filter table",
+            "description": "Filter table"
+          },
+          {
+            "name": "geosource",
+            "type": "Column",
+            "title": "Geo column in source table",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column in source table",
+            "value": "geom"
+          },
+          {
+            "name": "geofilter",
+            "type": "Column",
+            "title": "Geo column in filter table",
+            "parent": "filter",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column in filter table",
+            "value": "geom"
+          },
+          {
+            "name": "predicate",
+            "type": "Selection",
+            "title": "Spatial predicate",
+            "default": "intersects",
+            "optional": true,
+            "options": [
+              "intersects",
+              "contains",
+              "within",
+              "covers"
+            ],
+            "description": "Spatial predicate",
+            "value": "intersects"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "match",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom"
+          }
+        ],
+        "label": "Spatial Filter"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 848,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 848,
+        "y": 496
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "7d3e52dc-16c8-416f-841f-3cf263f2cb32",
+      "data": {
+        "name": "native.customsql",
+        "title": "Pizza Hut",
+        "version": "2.0.0",
+        "inputs": [
+          {
+            "name": "sourcea",
+            "type": "Table",
+            "title": "Source table a",
+            "optional": true,
+            "description": "Source table a"
+          },
+          {
+            "name": "sourceb",
+            "type": "Table",
+            "title": "Source table b",
+            "optional": true,
+            "description": "Source table b"
+          },
+          {
+            "name": "sourcec",
+            "type": "Table",
+            "title": "Source table c",
+            "optional": true,
+            "description": "Source table c"
+          },
+          {
+            "name": "sql",
+            "type": "StringSQL",
+            "title": "SQL SELECT statement",
+            "multiLine": true,
+            "placeholder": "SELECT ST_Centroid(geom) AS geom,\n  AVG(value) AS average_value,\n  category\nFROM $a\nGROUP BY category",
+            "allowExpressions": false,
+            "description": "SQL SELECT statement",
+            "value": "SELECT *\nFROM `$a`\nWHERE tag_value = \"Pizza Hut\" AND tag_key = 'brand'"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Custom SQL Select"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1024,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1024,
+        "y": 496
+      }
+    },
+    {
+      "id": "e4c9c829-6660-4713-a116-f9577dfcba0a",
+      "data": {
+        "name": "native.h3polyfill",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "geo",
+            "type": "Column",
+            "title": "Geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column",
+            "value": "geom"
+          },
+          {
+            "name": "resolution",
+            "type": "Number",
+            "title": "Resolution",
+            "min": 0,
+            "max": 15,
+            "default": 8,
+            "slider": true,
+            "description": "Resolution",
+            "value": 10
+          },
+          {
+            "name": "includecols",
+            "type": "Boolean",
+            "title": "Keep input table columns",
+            "default": false,
+            "description": "Keep input table columns",
+            "value": false
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "H3 Polyfill"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1296,
+        "y": 656
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1296,
+        "y": 656
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "6254d86a-db76-4c0e-8f05-e2d69f6fd67f",
+      "data": {
+        "name": "native.h3frompoint",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "pointscol",
+            "type": "Column",
+            "title": "Points column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Points column",
+            "value": "geom"
+          },
+          {
+            "name": "resolution",
+            "type": "Number",
+            "title": "Resolution",
+            "min": 0,
+            "max": 15,
+            "default": 8,
+            "slider": true,
+            "description": "Resolution",
+            "value": 10
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "H3 from GeoPoint"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1232,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1232,
+        "y": 496
+      }
+    },
+    {
+      "id": "23d8643e-928e-40a1-9af3-fce1d3e293c8",
+      "data": {
+        "name": "native.crossjoin",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "maintable",
+            "type": "Table",
+            "title": "Main table",
+            "description": "Main table"
+          },
+          {
+            "name": "secondarytable",
+            "type": "Table",
+            "title": "Secondary table",
+            "description": "Secondary table"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Cross Join"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1632,
+        "y": 560
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1632,
+        "y": 560
+      }
+    },
+    {
+      "id": "47d1aa4e-f67c-45c2-8995-49e681a41840",
+      "data": {
+        "name": "native.h3distance",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "h3_1",
+            "type": "Column",
+            "title": "First H3 index column",
+            "parent": "source",
+            "dataType": [
+              "string"
+            ],
+            "description": "First H3 index column",
+            "value": "h3"
+          },
+          {
+            "name": "h3_2",
+            "type": "Column",
+            "title": "Second H3 index column",
+            "parent": "source",
+            "dataType": [
+              "string"
+            ],
+            "description": "Second H3 index column",
+            "value": "h3_restaurant_joined"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "H3 Grid Distance"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1776,
+        "y": 560
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1776,
+        "y": 560
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "ffde3150-224a-41db-b69a-be2a314fd4ae",
+      "data": {
+        "name": "native.renamecolumn",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column to rename",
+            "parent": "source",
+            "dataType": [
+              "boolean",
+              "geography",
+              "number",
+              "string"
+            ],
+            "description": "Column to rename",
+            "value": "h3"
+          },
+          {
+            "name": "newname",
+            "type": "String",
+            "title": "New column name",
+            "validation": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+            "allowExpressions": false,
+            "description": "New column name",
+            "value": "h3_restaurant"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom"
+          }
+        ],
+        "label": "Rename Column"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1392,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1392,
+        "y": 496
+      }
+    },
+    {
+      "id": "f473d9f3-a977-4535-baf2-e7aabda3a315",
+      "data": {
+        "name": "native.groupby",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "columns",
+            "type": "ColumnAggregation",
+            "title": "Aggregation",
+            "parent": "source",
+            "placeholder": "workflows.parameterForm.selectAField",
+            "allowExpression": false,
+            "description": "Aggregation",
+            "value": "h3_distance,min"
+          },
+          {
+            "name": "groupby",
+            "type": "Column",
+            "title": "Group by",
+            "parent": "source",
+            "multiple": true,
+            "dataType": [
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "noDefault": true,
+            "noLimitSelection": true,
+            "description": "Group by",
+            "value": "h3"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Group by"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1920,
+        "y": 560
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1920,
+        "y": 560
+      }
+    },
+    {
+      "id": "3233c49c-ec36-4998-bc07-a42c3b3af7b7",
+      "data": {
+        "name": "native.h3enrich",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "target",
+            "type": "Table",
+            "title": "Target H3 table",
+            "placeholder": "FQN of the target table",
+            "description": "Target H3 table"
+          },
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source for the enrichment",
+            "placeholder": "FQN of the source table"
+          },
+          {
+            "name": "target_col",
+            "type": "Column",
+            "title": "Target H3 column",
+            "parent": "target",
+            "dataType": [
+              "string"
+            ],
+            "description": "Target H3 column",
+            "value": "h3"
+          },
+          {
+            "name": "source_col",
+            "type": "Column",
+            "title": "Source geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "optional": false,
+            "description": "Source geo column",
+            "value": "geoid_geo"
+          },
+          {
+            "name": "variables",
+            "type": "ColumnAggregation",
+            "title": "Variables",
+            "parent": "source",
+            "noDefault": true,
+            "description": "Comma-separated list of variable names and aggregation methods (e.g. population_93405ad7, sum, population_93405ad7, avg)",
+            "placeholder": "population_93405ad7, sum, population_93405ad7, avg",
+            "value": "population,sum"
+          },
+          {
+            "name": "kring",
+            "type": "Number",
+            "title": "Kring size",
+            "min": 0,
+            "default": 0,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Kring size",
+            "value": 0
+          },
+          {
+            "name": "decay",
+            "type": "Selection",
+            "title": "Decay function",
+            "options": [
+              "uniform",
+              "inverse",
+              "inverse_square",
+              "exponential"
+            ],
+            "default": "uniform",
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Decay function",
+            "value": "uniform"
+          }
+        ],
+        "label": "Enrich H3 Grid"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1776,
+        "y": 928
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1776,
+        "y": 928
+      }
+    },
+    {
+      "id": "2f885a3f-b081-4359-9667-9c26d660c3dd",
+      "data": {
+        "name": "native.join",
+        "version": "1.1",
+        "inputs": [
+          {
+            "name": "maintable",
+            "type": "Table",
+            "title": "Main table",
+            "description": "Main table"
+          },
+          {
+            "name": "secondarytable",
+            "type": "Table",
+            "title": "Secondary table",
+            "description": "Secondary table"
+          },
+          {
+            "name": "maincolumn",
+            "type": "Column",
+            "title": "Column in main table",
+            "parent": "maintable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in main table",
+            "value": "h3"
+          },
+          {
+            "name": "secondarycolumn",
+            "type": "Column",
+            "title": "Column in secondary table",
+            "parent": "secondarytable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in secondary table",
+            "value": "h3"
+          },
+          {
+            "name": "jointype",
+            "type": "Selection",
+            "title": "Join type",
+            "options": [
+              "Inner",
+              "Left",
+              "Right",
+              "Full outer"
+            ],
+            "default": "Inner",
+            "description": "Join type",
+            "value": "Inner"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Join"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 2208,
+        "y": 752
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2208,
+        "y": 752
+      }
+    },
+    {
+      "id": "ffd6d3c7-fc32-449b-8bdb-0a5e0f0d8614",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 671.9939999999999,
+        "height": 383.994,
+        "inputs": [],
+        "markdown": "---\nlabel:Retail\n---\n## Commercial Hotspot Analysis. Identifying Optimal Locations for a New Pizza Place\nIdentifying an optimal location for a new store is not always an easy task, and we often do not have enough data at our disposal to build a solid model to predict potential revenues across an entire territory. In these cases, managers rely on different business criteria in order to make a sound decision for their expansion strategy. For example, they rely on defining their target market and segmenting population groups accordingly in order to locate the store closer to where the target market lives (e.g. areas with a great presence of youngsters).\n\nIn this example, we are going to use the [Commercial Hotspots](https://docs.carto.com/carto-user-manual/workflows/components/retail#commercial-hotspots) component to explore good locations to open a new Pizza Hut restaurant in Honolulu, Hawaii. We will use H3 as our geographic support and population and distance to existing Pizza Hut stores as our criteria to identify hotspots."
+      },
+      "type": "note",
+      "width": 656,
+      "height": 422,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 368,
+        "y": -288.002
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 368,
+        "y": -288.002
+      }
+    },
+    {
+      "id": "81058ec3-29d2-41b0-8872-de145e9b5c37",
+      "data": {
+        "name": "native.h3boundary",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "h3col",
+            "type": "Column",
+            "title": "H3 column",
+            "parent": "source",
+            "placeholder": "h3",
+            "dataType": [
+              "string"
+            ],
+            "description": "H3 column",
+            "value": "geoid"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geoid_geo"
+          }
+        ],
+        "label": "H3 Boundary"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1488,
+        "y": 1008
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1488,
+        "y": 1008
+      }
+    },
+    {
+      "id": "869db82d-ecae-400f-b074-10f1ec059cf9",
+      "data": {
+        "name": "native.commercialhotspots",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "The table with the input data",
+            "optional": false
+          },
+          {
+            "name": "indexcol",
+            "type": "Column",
+            "parent": "source",
+            "title": "Column with unique geographic identifier",
+            "description": "The name of the column with the indexes",
+            "optional": false,
+            "value": "h3"
+          },
+          {
+            "name": "variablecolumns",
+            "type": "Column",
+            "parent": "source",
+            "title": "Input variables",
+            "description": "The columns containing the variables to take into account when computing the combined Gi* statistic",
+            "multiple": true,
+            "optional": false,
+            "value": [
+              "h3_distance_min",
+              "population_sum_joined"
+            ]
+          },
+          {
+            "name": "weights",
+            "type": "String",
+            "title": "Weights for the weighted average",
+            "description": "The weights associated with each of the variables. These weights can take any value but will be normalized to sum up to 1",
+            "optional": true,
+            "allowExpressions": false,
+            "placeholder": "value1, ..., valueN",
+            "default": "",
+            "value": "0.3, 0.7"
+          },
+          {
+            "name": "kring",
+            "type": "Number",
+            "title": "Size of the k-ring for the spatial weight matrix",
+            "description": "This defines the area around each cell that will be taken into account to compute its Gi* statistic",
+            "optional": true,
+            "min": 1,
+            "default": 3,
+            "value": "2"
+          },
+          {
+            "name": "pvaluethresh",
+            "type": "Number",
+            "title": "Significance level",
+            "description": "Threshold for the Gi* value significance, ranging from 0 (most significant) to 1 (least significant). Cells with a p-value above this threshold will not be returned",
+            "optional": true,
+            "min": 0,
+            "max": 1,
+            "default": 0.05,
+            "value": "0.01"
+          },
+          {
+            "name": "optimizationcol",
+            "value": "h3"
+          }
+        ],
+        "label": "Commercial Hotspots"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 2400,
+        "y": 752
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2400,
+        "y": 752
+      }
+    },
+    {
+      "id": "ca43f7e0-f404-4592-90dd-5f4a10864181",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 303.997,
+        "height": 367.997,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Points of Interest (POIs)\nThis table contains all POIs in Honolulu. This data was originally retrieved from OpenStreetMap (OSM) Planet Nodes dataset available in BQ.\n`bigquery-public-data.geo_openstreetmap.planet_nodes`"
+      },
+      "type": "note",
+      "width": 304,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 368,
+        "y": 111.987
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 368,
+        "y": 111.987
+      }
+    },
+    {
+      "id": "bd9d3e68-a39c-4f4e-acd3-4ef8cb93f12d",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 302.29268172839477,
+        "height": 307.38750220696323,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Area of Study\nThis table contains the area of study (AOS), i.e., the area where we would like to identify new potential locations for new stores."
+      },
+      "type": "note",
+      "width": 302,
+      "height": 307,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 368,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 368,
+        "y": 496
+      }
+    },
+    {
+      "id": "b6f5bb39-8110-4758-b02e-f143ff2a63bf",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 1360,
+        "height": 688,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Min distance to an existing Pizza Hut store\nThis sub-workflow computes for every H3 cell in the AOS the H3-distance to the closest Pizza Hut store. H3-distances are defined as the number of k-rings between two cells."
+      },
+      "type": "note",
+      "width": 1424,
+      "height": 688,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 688,
+        "y": 112
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 688,
+        "y": 112
+      }
+    },
+    {
+      "id": "1b680e68-524e-44a1-b525-28c930732848",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 352,
+        "height": 367.994,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Pizza Hut stores in Honolulu\nNote that OSM POI data contains several tags associated to every POI. These tags come in JSON format. This is why in addition to filtering by the AOS geometry, we need to use a custom SQL query to unnest the JSON information and apply a filter."
+      },
+      "type": "note",
+      "width": 352,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 784,
+        "y": 239.998
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 784,
+        "y": 239.998
+      }
+    },
+    {
+      "id": "9e0d1ae1-389e-4cd0-a1ba-8ded1c539b6d",
+      "data": {
+        "name": "Note",
+        "color": "#D3B484",
+        "genAi": false,
+        "label": "",
+        "width": 335.99600000000004,
+        "height": 543.9970000000001,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Gridify data using H3\nTo compute H3-distances, we first need to compute the corresponding H3 cell of every Pizza Hut store.\n\nNote we change the `h3` column name so that later when joining tables the column name is not duplicated.\n\n\n\n\n\n\n\n\n\nWe also need to polyfill the AOS."
+      },
+      "type": "note",
+      "width": 336,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1168,
+        "y": 240
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1168,
+        "y": 240
+      }
+    },
+    {
+      "id": "8ca0c7e1-d4e7-4173-bd26-ff7371bcccbc",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 479.99799999999993,
+        "height": 432,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Min H3-distance computation\nTo compute the min distance, we first compute the distance from every cell in the AOS to the Pizza Hut store cells, and later select the minimum of them by grouping by AOS cell."
+      },
+      "type": "note",
+      "width": 480,
+      "height": 432,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1532.56,
+        "y": 240
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1532.56,
+        "y": 240
+      }
+    },
+    {
+      "id": "dfa8993c-b17c-4fe7-bf60-5419397a478c",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 303.997,
+        "height": 319.99600000000004,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Spatial Features\nThis table contains a sample of the [Spatial Features](https://carto.com/spatial-data-catalog/browser/dataset/cdb_spatial_fea_ee20c7c1/) data product for Hawaii. This product contains population data among other data."
+      },
+      "type": "note",
+      "width": 304,
+      "height": 320,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 368,
+        "y": 816
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 368,
+        "y": 816
+      }
+    },
+    {
+      "id": "b7482501-1cc7-48c7-af17-f42f7514b2e7",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 1360,
+        "height": 319.997,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Enrich H3 grid with population\nHere we enrich the AOS polyfilled grid with population data."
+      },
+      "type": "note",
+      "width": 1360,
+      "height": 320,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 688,
+        "y": 816
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 688,
+        "y": 816
+      }
+    },
+    {
+      "id": "c00e60c5-f7eb-4d05-a862-d40007e60c6f",
+      "data": {
+        "name": "Note",
+        "color": "#DCB0F2",
+        "genAi": false,
+        "label": "",
+        "width": 512,
+        "height": 607.9979999999999,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Commercial Hotspot Analysis\nWe join the table with the min distance and the one with the population data and use that as the source for computing hotspots. \n\nFor hotspot analysis we use:\n - Population weight: 0.7\n - Min distance weight: 0.3\n - Significance level*: 0.01\n\n\n\\*Note that the smaller the significance level, the more strict we are to consider one location (cell) as a hotspot."
+      },
+      "type": "note",
+      "width": 512,
+      "height": 608,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 2064,
+        "y": 320
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2064,
+        "y": 320
+      }
+    },
+    {
+      "id": "import_7ef67717_ffc7_4291_8ca6_dbf169672872",
+      "data": {
+        "name": "ReadTable",
+        "label": "honolulu_pizza_aos_geom",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table",
+            "value": "cartodb-on-gcp-pm-team.workflows_temp.import_7ef67717_ffc7_4291_8ca6_dbf169672872",
+            "description": "Read Table"
+          }
+        ],
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/honolulu_pizza_aos_geom",
+        "autoguessing": true,
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "width": 192,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 416,
+        "y": 704
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 416,
+        "y": 704
+      }
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_9f27d06f_f249_4ee7_b50e_66c65d517e90",
+      "data": {
+        "name": "ReadTable",
+        "label": "honolulu_spatial_features",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table",
+            "value": "cartodb-on-gcp-pm-team.workflows_temp.import_9f27d06f_f249_4ee7_b50e_66c65d517e90",
+            "description": "Read Table"
+          }
+        ],
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/honolulu_spatial_features",
+        "autoguessing": true,
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 416,
+        "y": 1040
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 416,
+        "y": 1040
+      }
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_4de5ef8f_49e3_4ca8_98f8_338d90588192",
+      "position": {
+        "x": 416,
+        "y": 400
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "honolulu_planet_nodes.csv",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/honolulu_planet_nodes.csv",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "cartodb-on-gcp-pm-team.workflows_temp.import_4de5ef8f_49e3_4ca8_98f8_338d90588192"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 416,
+        "y": 400
+      },
+      "dragging": false
+    }
+  ],
+  "title": "Retail - Commercial Hotspot Analysis. Identifying Optimal Locations for a New Pizza Place",
+  "useCache": true,
+  "viewport": {
+    "x": 40.99312050026856,
+    "y": 57.49965704628242,
+    "zoom": 0.7090361984077734
+  },
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery"
+}

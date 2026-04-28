@@ -1,29 +1,151 @@
 ---
 name: carto-create-analytics-workflow
-description: Build, schedule, and operate analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse.
+description: Build, schedule, and operate analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Use when the user wants to author a workflow, run/edit/promote one, or schedule a DAG.
 license: MIT
 ---
 
 # carto-create-analytics-workflow
 
-CARTO Workflows is a visual DAG builder that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. The CLI exposes CRUD, copy-between-orgs, and schedule management.
+CARTO Workflows is a visual DAG builder that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file) plus operating it via the CLI (CRUD, schedules, dev → prod promotion).
 
-## When to use this skill
+For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) — workflows are for repeatable, scheduled, multi-step DAGs.
 
-- The user wants to inspect, edit, or delete an existing workflow.
-- The user wants to **promote a dev workflow into prod** (cross-profile copy with optional connection re-mapping).
-- The user wants to schedule (or unschedule) a workflow.
-- The user is debugging why a scheduled run failed.
+Component schemas, input type formats, and gotchas are served by the CLI — **never hardcode or assume them**. See [Fetching component & input information](#fetching-component--input-information).
 
-For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) (`sql query` / `sql job`) — workflows are for repeatable, scheduled, multi-step DAGs.
+References:
+- [`references/json-structure.md`](references/json-structure.md) — full workflow JSON shape (top level, nodes, edges, variables).
+- [`references/pitfalls.md`](references/pitfalls.md) — recurring authoring mistakes and customsql design tips.
+- [`references/createmap.md`](references/createmap.md) — the `native.createbuildermap` visualization component.
+- [`references/providers/`](references/providers/) — per-warehouse details (BigQuery, Snowflake, Databricks).
+- [`references/workflows-crud.md`](references/workflows-crud.md) — list, get, update, delete, copy.
+- [`references/scheduling.md`](references/scheduling.md) — schedule expression formats per warehouse engine.
+- [`references/copy-promotion.md`](references/copy-promotion.md) — cross-profile promotion (dev → prod) and connection re-mapping.
 
-## Quick reference
+---
+
+## Development process
+
+**Follow these 6 phases in order for every workflow request.** Do not skip or reorder them.
+
+### Phase 1 — Gather information
+
+1. **Identify data sources.** If the user named tables, note them. Otherwise discover what's available with `carto connections list` and `carto connections describe <connection> "<fqn>"`.
+2. **Clarify the goal.** What transformation? What output? What filters/conditions?
+3. **Determine the connection.** `carto connections list | head -n 20`.
+4. **Fetch the component catalog.** `carto workflows components list --connection <connection> --json` — your only source of truth for component names.
+
+### Phase 2 — Design the approach
+
+1. **Select components** from the catalog you fetched.
+2. **Fetch schemas for every component you plan to use.** `carto workflows components get <name1>,<name2>,<name3> --connection <connection> --json` returns `inputs`, `outputs`, and `notes`. Read the `notes` array carefully — it contains gotchas.
+3. **Fetch input type formats.** `carto workflows components get <component1>,<component2> --connection <connection> --input-formats --json` returns `format`, `examples`, and `pitfalls` for each input/output type. Pass **component names** (e.g. `native.buffer`), NOT input-type names.
+4. **Design principles:**
+   - Preserve identifier and spatial columns throughout.
+   - **Prefer native components over `native.customsql`. This is not a soft preference.** See [Native-first rule](#native-first-rule).
+   - H3/Quadbin columns work for visualization without geometry extraction.
+   - Use standard names for visualization: `geom`, `h3`, `quadbin`.
+
+### Phase 3 — Present plan and confirm
+
+Present the workflow plan (components, data flow, decisions). Ask about ambiguities. **Wait for confirmation** before building.
+
+### Phase 4 — Build the workflow
+
+1. Create the workflow file using the structure in [`references/json-structure.md`](references/json-structure.md).
+2. Build in phases, validating after each:
+   ```bash
+   # Offline structural check (fast, no auth needed)
+   carto workflows validate workflow.json --json
+   # Deep warehouse-aware check (column types, table existence, AT resolution)
+   carto workflows verify workflow.json --connection <connection-name> --json
+   ```
+3. Fix errors silently — don't expose implementation details to the user.
+4. Iterate until complete and validated.
+
+### Phase 5 — Present result
+
+Summarize what was built. Confirm validation success. Wait for user confirmation.
+
+### Phase 6 — Upload to CARTO
+
+1. Ask if the user wants to upload.
+2. Upload and provide the URL:
+   ```bash
+   carto workflows create --file workflow.json --verify
+   ```
+   The connection comes from `connectionId` inside the bundle — no `--connection` flag here.
+3. Do NOT auto-execute unless explicitly requested.
+
+---
+
+## Native-first rule
+
+`native.customsql` is the *last* tool to reach for, not the first. Before writing a customsql node, attempt the native chain. Fall back to customsql only if at least one of these is true:
+
+- The native chain would require **more than ~4-5 nodes** to express the same logic.
+- A specific operation has **no native equivalent at all** (verified via `carto workflows components list`).
+- The expression genuinely needs raw warehouse SQL (e.g., `ST_UNION_AGG`, `LOGICAL_OR`, `ML.PREDICT`, last-N windowing).
+
+Common operations and their native equivalents — try these first:
+
+| If you'd write SQL like… | Use natives |
+|---|---|
+| `WHERE x = …` / multi-condition filter | `native.simplefilter` |
+| `SELECT a, b, expr AS c FROM t` | `native.selectexpression` (per column) or `native.select` (projection) |
+| `GROUP BY k, SUM(x), AVG(y), COUNT(*)` | `native.groupby` |
+| `JOIN ... ON a.k = b.k` (any join type) | `native.joinv2` |
+| `JOIN ... ON ST_INTERSECTS / ST_CONTAINS / ST_WITHIN` | `native.spatialjoin` |
+| `MIN(ST_DISTANCE(a.geom, b.geom))` across two tables | `native.distancetonearest` |
+| `ST_BUFFER(geom, d)` | `native.buffer` |
+| H3 binning / boundary / center / polyfill | `native.h3frompoint`, `native.h3boundary`, `native.h3center`, `native.h3polyfill` |
+| `ORDER BY ... LIMIT n` | `native.orderby` + `native.limit` |
+| z-score / standardization | `native.normalize` (verify name with `components list`) |
+| weighted composite score | `native.compositescore` (verify) |
+| Getis-Ord Gi*, GWR, isolines | `native.getisord`, `native.gwr`, `native.isolines` |
+| Save final node to a table | `native.saveastable` |
+
+For signals that you're reaching for customsql too early, and for the SQL-dialect footguns when customsql really is the right call, see [`references/pitfalls.md`](references/pitfalls.md).
+
+---
+
+## Fetching component & input information
+
+**Do not rely on memorized component schemas or input formats.** Always fetch live data from the CLI.
+
+| Command | Purpose |
+|---------|---------|
+| `carto workflows components list --connection <conn> --json` | List all available components |
+| `carto workflows components get <names> --connection <conn> --json` | Component schemas with `inputs`, `outputs`, and `notes` |
+| `carto workflows components get <names> --connection <conn> --input-formats --json` | Input type `format`, `examples`, `pitfalls` for the types those components use |
+
+What to look for in the response:
+
+- **Component `notes`** — gotcha strings: non-obvious behavior, deprecated status, output column naming.
+- **Input `format`** — prose describing the expected value shape.
+- **Input `examples`** — concrete JSON snippets showing correct usage.
+- **Input `pitfalls`** — common mistakes, evaluation order, format quirks.
+
+---
+
+## Provider-specific notes
+
+Different warehouses have different SQL dialects, table-naming conventions, and column-casing rules. Always check the matching provider guide:
+
+- [`references/providers/bigquery.md`](references/providers/bigquery.md)
+- [`references/providers/snowflake.md`](references/providers/snowflake.md)
+- [`references/providers/databricks.md`](references/providers/databricks.md)
+
+Input-type formats (`Table`, `Column`, `ColumnsForJoin`, `SelectColumnAggregation`, etc.) and per-component gotchas (including the "AT components need `verify`, not `validate`" rule) are served by the CLI itself — see [Fetching component & input information](#fetching-component--input-information). Cross-cutting design guidance lives in [`references/pitfalls.md`](references/pitfalls.md).
+
+---
+
+## Operating a workflow (after it's built)
+
+Once a workflow exists in CARTO, the CLI exposes CRUD, copy-between-orgs, and schedule management. Quick reference:
 
 ```bash
-# List workflows in the current profile
+# List / inspect
 carto workflows list --json
-
-# Detailed view of one workflow (returns the DAG JSON)
 carto workflows get <id>
 
 # Update with edited JSON
@@ -32,26 +154,16 @@ carto workflows update <id> --file workflow.json
 # Promote dev → prod, auto-mapping connections by name
 carto workflows copy <id> --source-profile dev --dest-profile prod
 
-# Add a daily schedule
+# Add / remove a schedule
 carto workflows schedule add <id> --expression "every day 08:00"
-
-# Remove a schedule
 carto workflows schedule remove <id>
 ```
 
-## What's in this skill
-
-| Topic | Reference |
-|---|---|
-| `workflows` CRUD: list, get, update, delete, copy | [references/workflows-crud.md](references/workflows-crud.md) |
-| Schedules: `add` / `update` / `remove`, expression formats per engine | [references/scheduling.md](references/scheduling.md) |
-| Cross-profile promotion (dev → prod) and connection re-mapping | [references/copy-promotion.md](references/copy-promotion.md) |
-
-## Always-on guidance
+Always-on guidance:
 
 - **Workflows run on the connection's warehouse.** A workflow with a BigQuery connection cannot use Snowflake-specific SQL. When copying across profiles with different engines, expect to manually fix any dialect-specific nodes.
-- **Schedule expression syntax depends on the engine** — natural-language for BQ/CARTO DW (`"every day 08:00"`), cron for Snowflake/Postgres (`"0 8 * * *"`), Quartz cron for Databricks (`"0 0 8 * * ?"`). See [references/scheduling.md](references/scheduling.md). Picking the wrong dialect will fail at schedule-add time.
-- **`workflows copy` auto-maps connections by name across profiles.** If `dev` has connection `carto_dw_dev` and `prod` has `carto_dw_prod`, you must pass `--connection-mapping "carto_dw_dev=carto_dw_prod"` — the auto-mapping only matches identical names.
+- **Schedule expression syntax depends on the engine** — natural-language for BQ/CARTO DW (`"every day 08:00"`), cron for Snowflake/Postgres (`"0 8 * * *"`), Quartz cron for Databricks (`"0 0 8 * * ?"`). See [`references/scheduling.md`](references/scheduling.md). Picking the wrong dialect fails at schedule-add time.
+- **`workflows copy` auto-maps connections by name across profiles.** If `dev` has connection `carto_dw_dev` and `prod` has `carto_dw_prod`, you must pass `--connection-mapping "carto_dw_dev=carto_dw_prod"` — the auto-map only matches identical names.
 - **Deleting a workflow doesn't delete its outputs.** Tables/views the workflow created in the warehouse persist; clean them up with `carto sql job` if needed.
 - **`workflows update` replaces the whole DAG.** There's no per-node patch. Always `get` first, edit, then `update`.
 - **Workflow execution status** lives in the activity log (`WorkflowRun`, `WorkflowExecutionComplete` event types). For health monitoring of scheduled workflows, query that log via [`carto-query-datawarehouse`](../carto-query-datawarehouse) — see `references/activity-queries.md` in that skill.

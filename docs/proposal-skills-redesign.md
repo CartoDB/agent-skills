@@ -94,6 +94,14 @@ Sync scripts keep manifests aligned. A single change ships to all three harnesse
 | `carto-build-customer-facing-map` | Ship an embedded or public map for external users with token scoping and tenant isolation. |
 | `carto-migrate-to-carto` | Plan a migration from a legacy GIS or analytics platform onto CARTO. |
 
+### Pattern (variable) — recipe skills layered on a Platform skill
+
+Pattern skills encode a specific analytics recipe (e.g. hotspot analysis, GWR) and declare a Platform skill as prerequisite. Their value is in their description: rich trigger-keyword lists let the harness route on user intent (`"build a hotspot analysis"` → `carto-pattern-hotspot-analysis`). Burying them as references defeats automatic routing.
+
+Naming convention: `carto-pattern-<topic>` — distinct from `carto-<verb>-<object>` so they read as recipes, not new top-level verbs. The first 11 patterns (migrated from the workflows-assistant-skills repo) all attach to `carto-create-analytics-workflow`:
+
+`carto-pattern-hotspot-analysis`, `carto-pattern-spatial-autocorrelation`, `carto-pattern-gwr`, `carto-pattern-spatial-enrichment`, `carto-pattern-trade-area-analysis`, `carto-pattern-site-selection`, `carto-pattern-territory-planning`, `carto-pattern-routing-od-analysis`, `carto-pattern-geocoding`, `carto-pattern-composite-scoring`.
+
 ### Why these boundaries
 
 - **Internal vs external data** — `carto-explore-datawarehouse` covers what *you* have connected; `carto-find-spatial-data` covers external datasets you might subscribe. Different mental models, different commands.

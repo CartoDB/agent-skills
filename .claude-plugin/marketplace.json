@@ -6,15 +6,24 @@
   },
   "metadata": {
     "version": "2.2.0-phase2b",
-    "description": "CARTO skills catalog — utility + platform tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources, modeled on the MotherDuck agent-skills pattern."
+    "description": "CARTO skills catalog \u2014 utility + platform tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources, modeled on the MotherDuck agent-skills pattern."
   },
   "plugins": [
     {
       "name": "carto-skills",
       "source": "./",
-      "description": "CARTO skills bundle: utility tier (basics, connect/query/explore datawarehouse) + platform tier (import-export, workflows, find-spatial-data, manage-platform).",
+      "description": "CARTO skills bundle: utility tier (basics, connect/query/explore datawarehouse) + platform tier (import-export, workflows, find-spatial-data, manage-platform) + use-case patterns (hotspot, GWR, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment, spatial-autocorrelation).",
       "category": "geospatial",
-      "tags": ["carto", "geospatial", "cli", "spatial-sql", "data-warehouse", "workflows", "data-observatory", "admin"],
+      "tags": [
+        "carto",
+        "geospatial",
+        "cli",
+        "spatial-sql",
+        "data-warehouse",
+        "workflows",
+        "data-observatory",
+        "admin"
+      ],
       "strict": false,
       "skills": [
         "./skills/carto-basics",
@@ -24,7 +33,17 @@
         "./skills/carto-import-export-data",
         "./skills/carto-create-analytics-workflow",
         "./skills/carto-find-spatial-data",
-        "./skills/carto-manage-platform"
+        "./skills/carto-manage-platform",
+        "./skills/carto-pattern-hotspot-analysis",
+        "./skills/carto-pattern-spatial-autocorrelation",
+        "./skills/carto-pattern-gwr",
+        "./skills/carto-pattern-spatial-enrichment",
+        "./skills/carto-pattern-trade-area-analysis",
+        "./skills/carto-pattern-site-selection",
+        "./skills/carto-pattern-territory-planning",
+        "./skills/carto-pattern-routing-od-analysis",
+        "./skills/carto-pattern-geocoding",
+        "./skills/carto-pattern-composite-scoring"
       ]
     }
   ]

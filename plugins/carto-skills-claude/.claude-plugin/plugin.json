@@ -10,6 +10,16 @@
     "../../../skills/carto-import-export-data",
     "../../../skills/carto-create-analytics-workflow",
     "../../../skills/carto-find-spatial-data",
-    "../../../skills/carto-manage-platform"
+    "../../../skills/carto-manage-platform",
+    "../../../skills/carto-pattern-hotspot-analysis",
+    "../../../skills/carto-pattern-spatial-autocorrelation",
+    "../../../skills/carto-pattern-gwr",
+    "../../../skills/carto-pattern-spatial-enrichment",
+    "../../../skills/carto-pattern-trade-area-analysis",
+    "../../../skills/carto-pattern-site-selection",
+    "../../../skills/carto-pattern-territory-planning",
+    "../../../skills/carto-pattern-routing-od-analysis",
+    "../../../skills/carto-pattern-geocoding",
+    "../../../skills/carto-pattern-composite-scoring"
   ]
 }

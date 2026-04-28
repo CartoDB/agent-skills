@@ -32,30 +32,135 @@
     {
       "name": "carto-import-export-data",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-explore-datawarehouse"
+      ],
       "description": "Import geospatial files into the data warehouse via CARTO, export results back out, and prepare tilesets for fast map rendering.",
       "path": "skills/carto-import-export-data"
     },
     {
       "name": "carto-create-analytics-workflow",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-query-datawarehouse"],
-      "description": "Build, schedule, and operate analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse.",
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-query-datawarehouse"
+      ],
+      "description": "Build, schedule, and operate analytics DAGs in CARTO Workflows \u2014 the no-code/low-code orchestration layer over the data warehouse.",
       "path": "skills/carto-create-analytics-workflow"
     },
     {
       "name": "carto-find-spatial-data",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-explore-datawarehouse"
+      ],
       "description": "Discover and subscribe to external spatial datasets via CARTO Data Observatory and partner catalogs.",
       "path": "skills/carto-find-spatial-data"
     },
     {
       "name": "carto-manage-platform",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-query-datawarehouse"],
-      "description": "Administer the CARTO org — users, roles, quotas, activity audit, and bulk resource operations.",
+      "dependencies": [
+        "carto-basics",
+        "carto-query-datawarehouse"
+      ],
+      "description": "Administer the CARTO org \u2014 users, roles, quotas, activity audit, and bulk resource operations.",
       "path": "skills/carto-manage-platform"
+    },
+    {
+      "name": "carto-pattern-hotspot-analysis",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds Getis-Ord Gi* hotspot analysis workflows in CARTO. Triggers when the user mentions hotspots, coldspots, spatial clusters, Getis-Ord, Gi*, cluster detection, concentration areas, spacetime hotspot, temporal clusters, time-varying patterns, hotspot trends, emerging hotspots, Mann-Kendall, or wants to find statistically significant spatial or spatiotemporal patterns in point or grid data.",
+      "path": "skills/carto-pattern-hotspot-analysis"
+    },
+    {
+      "name": "carto-pattern-spatial-autocorrelation",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds Moran's I spatial autocorrelation workflows in CARTO. Triggers on spatial autocorrelation, Moran's I, spatial dependency, HH/HL/LH/LL quadrants, LISA, spatial weight matrix, or classifying locations into cluster types.",
+      "path": "skills/carto-pattern-spatial-autocorrelation"
+    },
+    {
+      "name": "carto-pattern-gwr",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds Geographically Weighted Regression (GWR) workflows in CARTO. Triggers when the user mentions GWR, geographically weighted regression, spatially varying relationships, local regression, local coefficients, spatial non-stationarity, or wants to model how predictor importance shifts across geography.",
+      "path": "skills/carto-pattern-gwr"
+    },
+    {
+      "name": "carto-pattern-spatial-enrichment",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Guides the user through spatial enrichment workflows \u2014 triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, or trade-area enrichment.",
+      "path": "skills/carto-pattern-spatial-enrichment"
+    },
+    {
+      "name": "carto-pattern-trade-area-analysis",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds trade area and catchment analysis workflows in CARTO. Triggers on trade area, catchment area, isochrone, drive time, walk time, billboard placement, OOH audience targeting, or scoring candidate locations.",
+      "path": "skills/carto-pattern-trade-area-analysis"
+    },
+    {
+      "name": "carto-pattern-site-selection",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds site selection and cannibalization analysis workflows in CARTO. Triggers on site selection, cannibalization, new store location, optimal location, twin areas, look-alike areas, or revenue impact of a new store.",
+      "path": "skills/carto-pattern-site-selection"
+    },
+    {
+      "name": "carto-pattern-territory-planning",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds territory planning workflows in CARTO combining territory balancing and location allocation. Triggers on sales territories, service zones, balanced territories, location allocation, depot/hub placement, response-time optimization, or demand coverage.",
+      "path": "skills/carto-pattern-territory-planning"
+    },
+    {
+      "name": "carto-pattern-routing-od-analysis",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds routing and origin-destination analysis workflows in CARTO. Triggers on routing, travel time, OD matrix, isoline, isochrone, catchment area, drive-time polygon, accessibility analysis, commute patterns, OD flow, or shortest-path computation.",
+      "path": "skills/carto-pattern-routing-od-analysis"
+    },
+    {
+      "name": "carto-pattern-geocoding",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Builds geocoding workflows in CARTO that convert street addresses or place names into geographic coordinates. Triggers when the user has tabular data with addresses but no geometry column and needs to create one.",
+      "path": "skills/carto-pattern-geocoding"
+    },
+    {
+      "name": "carto-pattern-composite-scoring",
+      "layer": "use-case",
+      "dependencies": [
+        "carto-create-analytics-workflow"
+      ],
+      "description": "Guides the user through building composite-score workflows when they ask about composite scores, indexes, multi-variable rankings, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring.",
+      "path": "skills/carto-pattern-composite-scoring"
     }
   ]
 }

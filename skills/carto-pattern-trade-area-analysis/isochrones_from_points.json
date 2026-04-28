@@ -1,0 +1,392 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "id": "reactflow__edge-887cd04b-0285-49c7-9cb0-eaf731273035match-a40160e9-4940-4a76-a52e-25079b168317source",
+      "source": "887cd04b-0285-49c7-9cb0-eaf731273035",
+      "target": "a40160e9-4940-4a76-a52e-25079b168317",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "match",
+      "targetHandle": "source"
+    },
+    {
+      "source": "import_cbb0b5c2_3be6_46e9_8782_200bfe15b78f",
+      "sourceHandle": "out",
+      "target": "887cd04b-0285-49c7-9cb0-eaf731273035",
+      "targetHandle": "source",
+      "id": "reactflow__edge-import_cbb0b5c2_3be6_46e9_8782_200bfe15b78fout-887cd04b-0285-49c7-9cb0-eaf731273035source",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "a40160e9-4940-4a76-a52e-25079b168317",
+      "sourceHandle": "result",
+      "target": "1e80067d-4ee3-4ef7-83d2-8e87f7f500a4",
+      "targetHandle": "source",
+      "id": "reactflow__edge-a40160e9-4940-4a76-a52e-25079b168317result-1e80067d-4ee3-4ef7-83d2-8e87f7f500a4source"
+    }
+  ],
+  "nodes": [
+    {
+      "width": 64,
+      "height": 64,
+      "id": "887cd04b-0285-49c7-9cb0-eaf731273035",
+      "data": {
+        "name": "native.wheresimplified",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "description": "Column",
+            "value": "city"
+          },
+          {
+            "name": "operator",
+            "type": "Selection",
+            "title": "Operator",
+            "options": [
+              "equal to",
+              "not equal",
+              "less than",
+              "greater than",
+              "equal or less than",
+              "equal or greater than"
+            ],
+            "description": "Operator",
+            "value": "equal to"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "title": "Value",
+            "description": "Value",
+            "value": "BOSTON"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "match",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom"
+          }
+        ],
+        "label": "Simple Filter"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 544,
+        "y": 112
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 544,
+        "y": 112
+      }
+    },
+    {
+      "width": 304,
+      "height": 320,
+      "id": "3ee9dff9-d066-44e6-86f3-8c537c2f99db",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "label": "",
+        "width": 287.99699999999996,
+        "height": 319.99899999999997,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Retail stores\nThis dataset contains points representing the location of retail stores across the United States."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 192,
+        "y": -96
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 192,
+        "y": -96
+      }
+    },
+    {
+      "width": 512,
+      "height": 320,
+      "id": "ce7935b2-16b0-40ad-8377-aef950f1f483",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "label": "",
+        "width": 319.991,
+        "height": 319.991,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Isochrones\nGenerating 5min walk time isochrones from the stores in Boston, leveraging CARTO's Location Data Services (LDS) APIs."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 496,
+        "y": -96
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 496,
+        "y": -96
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "a40160e9-4940-4a76-a52e-25079b168317",
+      "data": {
+        "name": "native.isolines",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "geo",
+            "type": "Column",
+            "title": "Geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column",
+            "value": "geom"
+          },
+          {
+            "name": "mode",
+            "type": "Selection",
+            "title": "Mode",
+            "options": [
+              "walk",
+              "car"
+            ],
+            "description": "Mode",
+            "value": "walk"
+          },
+          {
+            "name": "type",
+            "type": "Selection",
+            "title": "Type of range",
+            "options": [
+              "time",
+              "distance"
+            ],
+            "description": "Type of range",
+            "value": "time"
+          },
+          {
+            "name": "range",
+            "type": "Number",
+            "title": "Range value (seconds/meters)",
+            "min": 0,
+            "description": "Range value (seconds/meters)",
+            "value": 300
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom"
+          }
+        ],
+        "label": "Create Isolines"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 688,
+        "y": 112
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 688,
+        "y": 112
+      }
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_cbb0b5c2_3be6_46e9_8782_200bfe15b78f",
+      "position": {
+        "x": 240,
+        "y": 112
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "retail_stores",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/retail_stores",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "carto-dw-ac-2z63m9l4.workflows_temp_ernesto_exampleworkflows_38118196.import_cbb0b5c2_3be6_46e9_8782_200bfe15b78f"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 240,
+        "y": 112
+      },
+      "dragging": false
+    },
+    {
+      "id": "32bf02c6-d940-45f0-8dd4-ffae2687e718",
+      "position": {
+        "x": 192,
+        "y": -304
+      },
+      "data": {
+        "name": "Note",
+        "label": "",
+        "inputs": [],
+        "width": 447.99100000000004,
+        "height": 191.994,
+        "color": "#FE88B1",
+        "markdown": "---\nlabel: Generating new spatial data\n---\n## Generate isochrones from point data\nThis example demonstrates how to use Workflows to generate isochrones from a set of points.",
+        "genAi": false
+      },
+      "type": "note",
+      "zIndex": -1,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 192,
+        "y": -304
+      }
+    },
+    {
+      "id": "1e80067d-4ee3-4ef7-83d2-8e87f7f500a4",
+      "position": {
+        "x": 880,
+        "y": 112
+      },
+      "data": {
+        "name": "native.saveastable",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "destination",
+            "type": "OutputTable",
+            "title": "Table details",
+            "placeholder": "Rename and select destination",
+            "description": "Table details"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Save as Table"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "selected": false
+    }
+  ],
+  "title": "Generate isochrones from point data",
+  "viewport": {
+    "x": 269.9495060794138,
+    "y": 301.0452924582057,
+    "zoom": 0.6538117401722524
+  },
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery"
+}

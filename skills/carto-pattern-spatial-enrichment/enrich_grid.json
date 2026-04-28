@@ -1,0 +1,483 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "source": "d67ebe9b-c8f1-4abd-9772-89ccb87c2692",
+      "sourceHandle": "result",
+      "target": "2abb002e-5ff9-4302-b801-31e58fe0121b",
+      "targetHandle": "source",
+      "id": "reactflow__edge-d67ebe9b-c8f1-4abd-9772-89ccb87c2692result-2abb002e-5ff9-4302-b801-31e58fe0121bsource",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "2abb002e-5ff9-4302-b801-31e58fe0121b",
+      "sourceHandle": "result",
+      "target": "6f37ebae-cef2-4735-bfc0-1686d015069a",
+      "targetHandle": "target",
+      "id": "reactflow__edge-2abb002e-5ff9-4302-b801-31e58fe0121bresult-6f37ebae-cef2-4735-bfc0-1686d015069atarget",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "import_2933074a_77e8_4291_8d5e_f0be3b84079c",
+      "sourceHandle": "out",
+      "target": "6f37ebae-cef2-4735-bfc0-1686d015069a",
+      "targetHandle": "source",
+      "id": "reactflow__edge-import_2933074a_77e8_4291_8d5e_f0be3b84079cout-6f37ebae-cef2-4735-bfc0-1686d015069asource",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "6f37ebae-cef2-4735-bfc0-1686d015069a",
+      "sourceHandle": "result",
+      "target": "7e5f9be0-7dcc-4369-ba86-e1617ce6c863",
+      "targetHandle": "source",
+      "id": "reactflow__edge-6f37ebae-cef2-4735-bfc0-1686d015069aresult-7e5f9be0-7dcc-4369-ba86-e1617ce6c863source",
+      "selected": false
+    }
+  ],
+  "nodes": [
+    {
+      "width": 464,
+      "height": 192,
+      "id": "9c4ca4fd-607f-4c76-8bd2-6cf94ff713e2",
+      "position": {
+        "x": 240,
+        "y": 144
+      },
+      "data": {
+        "name": "Note",
+        "label": "",
+        "inputs": [],
+        "width": 464,
+        "height": 192,
+        "color": "#FE88B1",
+        "markdown": "---\nlabel: Data Enrichment\n---\n## Enrich grid data with a custom source\nThis example demonstrate how to use Workflows to enrich a spatial index grid with a custom data source.",
+        "genAi": false
+      },
+      "type": "note",
+      "zIndex": -1,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 240,
+        "y": 144
+      }
+    },
+    {
+      "width": 368,
+      "height": 384,
+      "id": "8eec5964-1c5b-470d-9cd8-08b51f0b8f6a",
+      "position": {
+        "x": 240,
+        "y": 352
+      },
+      "data": {
+        "name": "Note",
+        "label": "",
+        "inputs": [],
+        "width": 367.991,
+        "height": 383.99199999999996,
+        "color": "#F6CF71",
+        "markdown": "---\nlabel: Data source\n---\n## CARTO Spatial features\nThis dataset contains socio-demographic data for Spain, aggregated to an H3 grid at resolution 8. ",
+        "genAi": false
+      },
+      "type": "note",
+      "zIndex": -1,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 240,
+        "y": 352
+      }
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_2933074a_77e8_4291_8d5e_f0be3b84079c",
+      "position": {
+        "x": 320,
+        "y": 640
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "derived_spatialfeatures_esp_h3res8",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/derived_spatialfeatures_esp_h3res8",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "carto-dw-ac-2z63m9l4.workflows_temp_ernesto_exampleworkflows_38118196.import_2933074a_77e8_4291_8d5e_f0be3b84079c"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 320,
+        "y": 640
+      },
+      "dragging": false
+    },
+    {
+      "width": 448,
+      "height": 384,
+      "id": "d0a58622-b7e5-4321-8ddc-7185902cc1fe",
+      "position": {
+        "x": 624,
+        "y": 352
+      },
+      "data": {
+        "name": "Note",
+        "label": "",
+        "inputs": [],
+        "width": 495.996,
+        "height": 383.99199999999996,
+        "color": "#8BE0A4",
+        "markdown": "---\nlabel:\n---\n## Define an area of interest and create a grid\nUse the _Draw custom geo_  component to define a target area of interest. It will be converted to an H3 grid of the same resolution as the source data.",
+        "genAi": false
+      },
+      "type": "note",
+      "zIndex": -1,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 624,
+        "y": 352
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "d67ebe9b-c8f1-4abd-9772-89ccb87c2692",
+      "position": {
+        "x": 704,
+        "y": 544
+      },
+      "data": {
+        "name": "native.tablefromgeojson",
+        "version": "1.1",
+        "inputs": [
+          {
+            "name": "geojson",
+            "type": "GeoJSON",
+            "title": "GeoJSON string",
+            "placeholder": "E.g.:\n      {\n      \"type\": \"FeatureCollection\",\n      \"features\": [\n        {\n          \"type\": \"Feature\",\n          \"properties\": {},\n          \"geometry\": {\n            \"coordinates\":\n                [\n                  -9.90157740958361,\n                  43.97667987529289\n                ],\n            \"type\": \"Point\"\n          }\n        }\n      ]\n    }",
+            "description": "GeoJSON string",
+            "value": "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n    {\n      \"type\": \"Feature\",\n      \"properties\": {\n        \"name\": \"Polygon 1\"\n      },\n      \"geometry\": {\n        \"type\": \"Polygon\",\n        \"coordinates\": [\n          [\n            [\n              -4.14275747143223,\n              40.526684883800286\n            ],\n            [\n              -4.14275747143223,\n              40.14915667403192\n            ],\n            [\n              -3.022264020841626,\n              40.14915667403192\n            ],\n            [\n              -3.022264020841626,\n              40.526684883800286\n            ],\n            [\n              -4.14275747143223,\n              40.526684883800286\n            ]\n          ]\n        ]\n      }\n    }\n  ]\n}"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Table from GeoJSON"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 704,
+        "y": 544
+      },
+      "dragging": false
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "2abb002e-5ff9-4302-b801-31e58fe0121b",
+      "position": {
+        "x": 880,
+        "y": 544
+      },
+      "data": {
+        "name": "native.h3polyfill",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "geo",
+            "type": "Column",
+            "title": "Geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column",
+            "value": "geometry"
+          },
+          {
+            "name": "resolution",
+            "type": "Number",
+            "title": "Resolution",
+            "min": 0,
+            "max": 15,
+            "default": 8,
+            "slider": true,
+            "description": "Resolution",
+            "value": 8
+          },
+          {
+            "name": "includecols",
+            "type": "Boolean",
+            "title": "Keep input table columns",
+            "default": false,
+            "description": "Keep input table columns",
+            "value": false
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "H3 Polyfill"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 880,
+        "y": 544
+      }
+    },
+    {
+      "width": 368,
+      "height": 384,
+      "id": "8cde4d4d-612f-4716-9cdd-2f413a605c09",
+      "position": {
+        "x": 1088,
+        "y": 352
+      },
+      "data": {
+        "name": "Note",
+        "label": "",
+        "inputs": [],
+        "width": 223.995,
+        "height": 383.99399999999997,
+        "color": "#8BE0A4",
+        "markdown": "---\nlabel:\n---\n## Enrichment\nDefine the variables and aggregation method that should be used for the enrichment",
+        "genAi": false
+      },
+      "type": "note",
+      "zIndex": -1,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1088,
+        "y": 352
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "6f37ebae-cef2-4735-bfc0-1686d015069a",
+      "position": {
+        "x": 1168,
+        "y": 624
+      },
+      "data": {
+        "name": "native.h3enrich",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "target",
+            "type": "Table",
+            "title": "Target H3 table",
+            "placeholder": "FQN of the target table",
+            "description": "Target H3 table"
+          },
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source for the enrichment",
+            "placeholder": "FQN of the source table"
+          },
+          {
+            "name": "target_col",
+            "type": "Column",
+            "title": "Target H3 column",
+            "parent": "target",
+            "dataType": [
+              "string"
+            ],
+            "description": "Target H3 column",
+            "value": "h3"
+          },
+          {
+            "name": "source_col",
+            "type": "Column",
+            "title": "Source geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Source geo column"
+          },
+          {
+            "name": "variables",
+            "type": "ColumnAggregation",
+            "title": "Variables",
+            "parent": "source",
+            "noDefault": true,
+            "description": "Comma-separated list of variable names and aggregation methods (e.g. population_93405ad7, sum, population_93405ad7, avg)",
+            "placeholder": "population_93405ad7, sum, population_93405ad7, avg",
+            "value": "population,sum,female,sum,male,sum"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Enrich H3 Grid"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1168,
+        "y": 624
+      },
+      "dragging": false
+    },
+    {
+      "id": "7e5f9be0-7dcc-4369-ba86-e1617ce6c863",
+      "position": {
+        "x": 1376,
+        "y": 624
+      },
+      "data": {
+        "name": "native.saveastable",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "destination",
+            "type": "OutputTable",
+            "title": "Table details",
+            "placeholder": "Rename and select destination",
+            "description": "Table details"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Save as Table"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1376,
+        "y": 624
+      },
+      "dragging": false
+    }
+  ],
+  "title": "Enrich grid data with a custom source",
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery",
+  "viewport": {
+    "x": -51.95637753810183,
+    "y": -95.873883050926,
+    "zoom": 0.7474246243174691
+  }
+}

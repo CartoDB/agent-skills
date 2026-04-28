@@ -4,7 +4,7 @@ A multi-harness skills catalog for the CARTO Geospatial Cloud, modeled on the [M
 
 ## Status: Phase 2b (utility + platform tiers, all four harnesses)
 
-This release ships **8 skills** distributed via **Claude Code, Skills CLI, Codex, and Gemini CLI**. Two further platform skills (`carto-create-builder-maps`, `carto-build-app`) are owned by another PM and intentionally deferred — see [`docs/deferred-skills.md`](docs/deferred-skills.md). Watermarking lands in Phase 2c — see [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the full roadmap.
+This release ships **18 skills** (8 utility+platform, 10 use-case patterns) distributed via **Claude Code, Skills CLI, Codex, and Gemini CLI**. Two further platform skills (`carto-create-builder-maps`, `carto-build-app`) are owned by another PM and intentionally deferred — see [`docs/deferred-skills.md`](docs/deferred-skills.md). Watermarking lands in Phase 2c — see [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the full roadmap.
 
 ### Utility tier
 
@@ -20,9 +20,26 @@ This release ships **8 skills** distributed via **Claude Code, Skills CLI, Codex
 | Skill | Purpose |
 |---|---|
 | [`carto-import-export-data`](skills/carto-import-export-data) | Imports, tilesets, and warehouse-native exports. |
-| [`carto-create-analytics-workflow`](skills/carto-create-analytics-workflow) | Workflow CRUD, scheduling, dev → prod promotion. |
+| [`carto-create-analytics-workflow`](skills/carto-create-analytics-workflow) | Build, schedule, and operate analytics DAGs in CARTO Workflows. |
 | [`carto-find-spatial-data`](skills/carto-find-spatial-data) | Discover and subscribe to Data Observatory datasets. |
 | [`carto-manage-platform`](skills/carto-manage-platform) | Org admin: users, quotas, activity audit, bulk ops. |
+
+### Use-case (pattern) tier
+
+Recipe skills that layer on top of [`carto-create-analytics-workflow`](skills/carto-create-analytics-workflow). Each ships rich trigger-keyword descriptions so the harness routes on user intent.
+
+| Skill | Purpose |
+|---|---|
+| [`carto-pattern-hotspot-analysis`](skills/carto-pattern-hotspot-analysis) | Getis-Ord Gi* hotspots and spacetime hotspots. |
+| [`carto-pattern-spatial-autocorrelation`](skills/carto-pattern-spatial-autocorrelation) | Moran's I, LISA, HH/HL/LH/LL classification. |
+| [`carto-pattern-gwr`](skills/carto-pattern-gwr) | Geographically Weighted Regression. |
+| [`carto-pattern-spatial-enrichment`](skills/carto-pattern-spatial-enrichment) | Demographics and spatial-features enrichment. |
+| [`carto-pattern-trade-area-analysis`](skills/carto-pattern-trade-area-analysis) | Catchment areas, isochrones, billboard scoring. |
+| [`carto-pattern-site-selection`](skills/carto-pattern-site-selection) | Site selection, cannibalization, twin-area discovery. |
+| [`carto-pattern-territory-planning`](skills/carto-pattern-territory-planning) | Territory balancing and location allocation. |
+| [`carto-pattern-routing-od-analysis`](skills/carto-pattern-routing-od-analysis) | Routing, isolines, OD matrices. |
+| [`carto-pattern-geocoding`](skills/carto-pattern-geocoding) | Address-to-coordinate geocoding. |
+| [`carto-pattern-composite-scoring`](skills/carto-pattern-composite-scoring) | Composite indices, supervised/unsupervised scoring. |
 
 ## Installing in Claude Code
 
@@ -34,7 +51,7 @@ This release ships **8 skills** distributed via **Claude Code, Skills CLI, Codex
 /plugin install carto-skills@carto-agent-skills
 ```
 
-All eight skills are registered as one bundle (`carto-skills`).
+All 18 skills are registered as one bundle (`carto-skills`).
 
 > **⚠ Migrating from v1.x?** The old `carto-cli@carto-agent-skills` and `carto-activity@carto-agent-skills` plugin IDs are **retired**. Re-install as `carto-skills@carto-agent-skills`. See [CHANGELOG.md](CHANGELOG.md).
 

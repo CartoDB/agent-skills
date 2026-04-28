@@ -1,0 +1,839 @@
+{
+  "title": "space_time_hotspot",
+  "description": "",
+  "nodes": [
+    {
+      "id": "2c81d3d4-331b-41e4-887a-c1561613248d",
+      "data": {
+        "name": "native.selectexpression",
+        "label": "Create Column",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "String",
+            "title": "Name for new column",
+            "placeholder": "E.g.: distance_in_meters",
+            "validation": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+            "allowExpressions": false,
+            "description": "Name for new column",
+            "value": "week"
+          },
+          {
+            "name": "expression",
+            "type": "StringSQL",
+            "title": "Expression",
+            "placeholder": "E.g.: distance_in_km * 1000",
+            "description": "Expression",
+            "value": "CAST(DATETIME_TRUNC(CAST(datetime AS TIMESTAMP), WEEK) AS DATETIME)"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "value": "geometry",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "result"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 688,
+        "y": 256
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 688,
+        "y": 256
+      }
+    },
+    {
+      "id": "eb596e28-13e9-46b2-9c2f-55c7d7ead490",
+      "data": {
+        "name": "native.h3frompoint",
+        "label": "H3 from GeoPoint",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "pointscol",
+            "type": "Column",
+            "title": "Points column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Points column",
+            "value": "geom"
+          },
+          {
+            "name": "resolution",
+            "type": "Number",
+            "title": "Resolution",
+            "min": 0,
+            "max": 15,
+            "default": 8,
+            "mode": "slider",
+            "description": "Resolution",
+            "value": 9,
+            "slider": true
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "value": "h3",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "result"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 528,
+        "y": 256
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 528,
+        "y": 256
+      }
+    },
+    {
+      "id": "42142cb7-f249-4038-8d70-4e85b268d847",
+      "data": {
+        "name": "native.wheresimplified",
+        "label": "Simple Filter",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "description": "Column",
+            "value": "p_value"
+          },
+          {
+            "name": "operator",
+            "type": "Selection",
+            "title": "Operator",
+            "options": [
+              "equal to",
+              "not equal",
+              "less than",
+              "greater than",
+              "equal or less than",
+              "equal or greater than"
+            ],
+            "description": "Operator",
+            "value": "less than"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "title": "Value",
+            "description": "Value",
+            "value": "0.05"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "value": "",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "match"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1360,
+        "y": 272
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1360,
+        "y": 272
+      }
+    },
+    {
+      "id": "326be944-8761-4525-a548-da81c7cf0dba",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 656,
+        "height": 256,
+        "inputs": [],
+        "markdown": "---\nlabel: Statistics\n---\n## Spacetime Hotspot Analysis\nThis example shows how to identify spacetime clusters. In particular, we will perform space temporal analysis to identify traffic accident hotspots using the location and time of accidents in the city of Barcelona in 2018.\n\nSpacetime hotspots are computed using an extension of the Getis Ord Gi* statistics that measures the degree to which data values are clustered together in space and time."
+      },
+      "type": "note",
+      "width": 608,
+      "height": 256,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 192,
+        "y": -256
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 192,
+        "y": -256
+      }
+    },
+    {
+      "id": "f63812ff-5fb9-413a-a83c-6c91eee927e7",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 255.994,
+        "height": 368,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Accident data\nThis table contains traffic accident data in the city of Barcelona in 2018."
+      },
+      "type": "note",
+      "width": 256,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 192,
+        "y": 16
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 192,
+        "y": 16
+      }
+    },
+    {
+      "id": "01d9f2d9-6ebe-49ee-9f92-fef8aca580fc",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 479.995,
+        "height": 367.99399999999997,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Data aggregation\nThe Getis Ord Spacetime component requires the data to be aggregated using some spatial index and [time unit](https://cloud.google.com/bigquery/docs/reference/standard-sql/datetime_functions#datetime_trunc). \n\nIn this case, we get every accident's H3 cell (resolution 9) and their corresponding week, and later aggregate to obtain number of accidents per H3 cell and week."
+      },
+      "type": "note",
+      "width": 336,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 464,
+        "y": 16
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 464,
+        "y": 16
+      }
+    },
+    {
+      "id": "94ef79fe-04d0-4c20-9254-f0cb03f3cb5c",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 335.997,
+        "height": 511.995,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Compute the Getis Ord Spacetime statistic\nNow we're ready to compute the Gi* statistic for all H3 cells and weeks. We'll need to input:\n- The name of the column containing the H3 ids (space) and week (time)\n- The name of the column for which we'd like to compute the Gi*\n- The [kernels](https://en.wikipedia.org/wiki/Kernel_(statistics)) to be used for the space and the time dimensions\n- The k-ring size and temporal bandwidth"
+      },
+      "type": "note",
+      "width": 336,
+      "height": 512,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 960,
+        "y": -128
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 960,
+        "y": -128
+      }
+    },
+    {
+      "id": "3cc14eb9-e62e-46ee-a6c5-ce498cc79405",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 287.997,
+        "height": 511.999,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Filter Hostpots\nFinally, hotspots are defined as the cells and weeks for which their Gi* value is significantly high.\n\nTherefore, we select the H3 cells and weeks with a positive Gi* value and a p-value smaller than 0.05."
+      },
+      "type": "note",
+      "width": 288,
+      "height": 512,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1312,
+        "y": -128
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1312,
+        "y": -128
+      }
+    },
+    {
+      "id": "f2bf6201-2ebc-418e-b0a5-32511d6eeb5e",
+      "data": {
+        "name": "native.wheresimplified",
+        "label": "Simple Filter",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "description": "Column",
+            "value": "gi"
+          },
+          {
+            "name": "operator",
+            "type": "Selection",
+            "title": "Operator",
+            "options": [
+              "equal to",
+              "not equal",
+              "less than",
+              "greater than",
+              "equal or less than",
+              "equal or greater than"
+            ],
+            "description": "Operator",
+            "value": "greater than"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "title": "Value",
+            "description": "Value",
+            "value": "0"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "value": "",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "match"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1488,
+        "y": 272
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1488,
+        "y": 272
+      }
+    },
+    {
+      "id": "import_b5641cb4_4b46_42d7_aa0c_0debfd2f432c",
+      "data": {
+        "name": "ReadTable",
+        "label": "bcn_accidents",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table",
+            "value": "cartodb-on-gcp-datascience.workflows_temp.import_b5641cb4_4b46_42d7_aa0c_0debfd2f432c",
+            "description": "Read Table"
+          }
+        ],
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/bcn_accidents",
+        "autoguessing": true,
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "width": 192,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 224,
+        "y": 272
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 224,
+        "y": 272
+      }
+    },
+    {
+      "id": "e97315e0-3db5-4132-8115-a25103a23ad0",
+      "data": {
+        "name": "native.getisordspacetime",
+        "label": "Getis Ord Spacetime",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "indexcol",
+            "type": "Column",
+            "title": "Index column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number"
+            ],
+            "description": "Index column",
+            "value": "h3"
+          },
+          {
+            "name": "datecol",
+            "type": "Column",
+            "title": "Date column",
+            "parent": "source",
+            "dataType": [
+              "datetime"
+            ],
+            "description": "Date column",
+            "value": "week"
+          },
+          {
+            "name": "valuecol",
+            "type": "Column",
+            "title": "Value column",
+            "parent": "source",
+            "dataType": [
+              "number"
+            ],
+            "description": "Value column",
+            "value": "h3_count"
+          },
+          {
+            "name": "kernel",
+            "type": "Selection",
+            "title": "Kernel function for spatial weights",
+            "options": [
+              "uniform",
+              "triangular",
+              "quadratic",
+              "quartic",
+              "gaussian"
+            ],
+            "description": "Kernel function for spatial weights",
+            "value": "uniform"
+          },
+          {
+            "name": "kerneltime",
+            "type": "Selection",
+            "title": "Kernel function for temporal weights",
+            "options": [
+              "uniform",
+              "triangular",
+              "quadratic",
+              "quartic",
+              "gaussian"
+            ],
+            "description": "Kernel function for temporal weights",
+            "value": "uniform"
+          },
+          {
+            "name": "size",
+            "type": "Number",
+            "title": "Size",
+            "default": 3,
+            "min": 1,
+            "max": 10,
+            "description": "Size",
+            "value": 3
+          },
+          {
+            "name": "bandwidth",
+            "type": "Number",
+            "title": "Temporal bandwidth",
+            "default": 3,
+            "min": 1,
+            "max": 10,
+            "description": "Temporal bandwidth",
+            "value": 3
+          },
+          {
+            "name": "timeinterval",
+            "type": "Selection",
+            "title": "Time interval",
+            "options": [
+              "year",
+              "quarter",
+              "month",
+              "week",
+              "day",
+              "hour",
+              "minute",
+              "second"
+            ],
+            "description": "Time interval",
+            "value": "week"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "value": "h3",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "result"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1072,
+        "y": 256
+      },
+      "selected": false
+    },
+    {
+      "id": "33fabb6a-a68b-400c-b5e2-6d331d3e5774",
+      "data": {
+        "name": "native.saveastable",
+        "label": "Save as Table",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "destination",
+            "type": "OutputTable",
+            "title": "Table details",
+            "placeholder": "Rename and select destination",
+            "description": "Table details"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "parentOutput": "result"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "position": {
+        "x": 1680,
+        "y": 272
+      },
+      "selected": false
+    },
+    {
+      "id": "fe3fbd83-da18-4381-acf0-4cfa0fd59c87",
+      "type": "generic",
+      "data": {
+        "type": "generic",
+        "label": "Group by",
+        "name": "native.groupby",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "columns",
+            "type": "SelectColumnAggregation",
+            "title": "Aggregation",
+            "parent": "source",
+            "placeholder": "workflows.parameterForm.selectAField",
+            "allowExpression": false,
+            "description": "Aggregation",
+            "value": "h3,count"
+          },
+          {
+            "name": "groupby",
+            "type": "Column",
+            "title": "Group by",
+            "parent": "source",
+            "mode": "multiple",
+            "dataType": [
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "noDefault": true,
+            "maxSelectionsCount": null,
+            "description": "Group by",
+            "value": [
+              "h3",
+              "week"
+            ]
+          }
+        ],
+        "version": "1"
+      },
+      "position": {
+        "x": 864,
+        "y": 256
+      },
+      "zIndex": 2,
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "42142cb7-f249-4038-8d70-4e85b268d847match-f2bf6201-2ebc-418e-b0a5-32511d6eeb5esource",
+      "source": "42142cb7-f249-4038-8d70-4e85b268d847",
+      "target": "f2bf6201-2ebc-418e-b0a5-32511d6eeb5e",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "match",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-eb596e28-13e9-46b2-9c2f-55c7d7ead490result-2c81d3d4-331b-41e4-887a-c1561613248dsource",
+      "source": "eb596e28-13e9-46b2-9c2f-55c7d7ead490",
+      "target": "2c81d3d4-331b-41e4-887a-c1561613248d",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-e97315e0-3db5-4132-8115-a25103a23ad0result-42142cb7-f249-4038-8d70-4e85b268d847source",
+      "source": "e97315e0-3db5-4132-8115-a25103a23ad0",
+      "target": "42142cb7-f249-4038-8d70-4e85b268d847",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-import_b5641cb4_4b46_42d7_aa0c_0debfd2f432cout-eb596e28-13e9-46b2-9c2f-55c7d7ead490source",
+      "source": "import_b5641cb4_4b46_42d7_aa0c_0debfd2f432c",
+      "target": "eb596e28-13e9-46b2-9c2f-55c7d7ead490",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-f2bf6201-2ebc-418e-b0a5-32511d6eeb5ematch-33fabb6a-a68b-400c-b5e2-6d331d3e5774source",
+      "source": "f2bf6201-2ebc-418e-b0a5-32511d6eeb5e",
+      "target": "33fabb6a-a68b-400c-b5e2-6d331d3e5774",
+      "sourceHandle": "match",
+      "targetHandle": "source",
+      "animated": false
+    },
+    {
+      "id": "254bb14c-5a82-4542-9798-40f66b61e22b",
+      "source": "2c81d3d4-331b-41e4-887a-c1561613248d",
+      "sourceHandle": "result",
+      "target": "fe3fbd83-da18-4381-acf0-4cfa0fd59c87",
+      "targetHandle": "source",
+      "type": "default",
+      "animated": false
+    },
+    {
+      "id": "c2cff2d1-029a-40b6-9e17-8fab18ddaacd",
+      "source": "fe3fbd83-da18-4381-acf0-4cfa0fd59c87",
+      "sourceHandle": "result",
+      "target": "e97315e0-3db5-4132-8115-a25103a23ad0",
+      "targetHandle": "source",
+      "type": "default",
+      "animated": false
+    }
+  ],
+  "variables": null,
+  "procedure": {},
+  "schedule": null,
+  "viewport": {
+    "x": -10.576606582444128,
+    "y": 262.4304149416077,
+    "zoom": 0.7848103448528634
+  },
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery",
+  "useCache": false
+}

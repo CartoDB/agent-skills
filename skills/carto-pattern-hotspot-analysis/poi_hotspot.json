@@ -1,0 +1,614 @@
+{
+  "title": "poi_hotspot",
+  "description": "",
+  "nodes": [
+    {
+      "id": "cf9ebd99-f2b2-4f7e-9768-9e058d40c079",
+      "data": {
+        "name": "native.wheresimplified",
+        "label": "Simple Filter",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "boolean"
+            ],
+            "description": "Column",
+            "value": "amenity"
+          },
+          {
+            "name": "operator",
+            "type": "Selection",
+            "title": "Operator",
+            "options": [
+              "equal to",
+              "not equal",
+              "less than",
+              "greater than",
+              "equal or less than",
+              "equal or greater than"
+            ],
+            "description": "Operator",
+            "value": "not equal"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "title": "Value",
+            "description": "Value",
+            "value": "NULL"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "value": "geom",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "match"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 608,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 608,
+        "y": 432
+      }
+    },
+    {
+      "id": "c066bb93-6ed2-4c3b-b71e-3f6440fe0227",
+      "data": {
+        "name": "native.h3frompoint",
+        "label": "H3 from GeoPoint",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "pointscol",
+            "type": "Column",
+            "title": "Points column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Points column",
+            "value": "geom"
+          },
+          {
+            "name": "resolution",
+            "type": "Number",
+            "title": "Resolution",
+            "min": 0,
+            "max": 15,
+            "default": 8,
+            "mode": "slider",
+            "description": "Resolution",
+            "value": 9,
+            "slider": true
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "value": "h3",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "result"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 832,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 832,
+        "y": 432
+      }
+    },
+    {
+      "id": "7a5e664d-305a-48aa-aeff-3e969df6ec5a",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 543.998,
+        "height": 207.991,
+        "inputs": [],
+        "markdown": "---\nlabel: Statistics\n---\n## Identify hotspots of specific POI types\nThis example demonstrates how to identify hotspots using Getis Ors Gi* statistic. We use OpenStreetMap amenity POIs in Stockholm.\n\nRead [this full guide](https://docs.carto.com/data-and-analysis/analytics-toolbox-for-bigquery/examples/identifying-amenity-hotspots-in-stockholm) to learn more."
+      },
+      "type": "note",
+      "width": 544,
+      "height": 208,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 208,
+        "y": -16
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 208,
+        "y": -16
+      }
+    },
+    {
+      "id": "0dca6bd4-1f61-4c7c-8c65-75bffd9fbe40",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 287.988,
+        "height": 351.98400000000004,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## POIs in Stockholm\nThis dataset contains all OSM POIs in Stockholm."
+      },
+      "type": "note",
+      "width": 288,
+      "height": 352,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 208,
+        "y": 208
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 208,
+        "y": 208
+      }
+    },
+    {
+      "id": "44f1e8a1-10bc-4fb0-b236-91cbf8d1e453",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 239.998,
+        "height": 351.995,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Amenity POIs in Stockholm\nWe apply a filter so we only work with amenities."
+      },
+      "type": "note",
+      "width": 240,
+      "height": 352,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 512,
+        "y": 208
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 512,
+        "y": 208
+      }
+    },
+    {
+      "id": "c7d53210-29d5-4e0d-a66e-d474b66ccaae",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 336,
+        "height": 351.99600000000004,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Aggregate data using spatial indexes\nThe Getis Ord component requires data to be aggregated using some spatial index. In this case, we get every POI's H3 cell (resolution 9) and later aggregate to know how many POIs per cell we have."
+      },
+      "type": "note",
+      "width": 336,
+      "height": 352,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 768,
+        "y": 208
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 768,
+        "y": 208
+      }
+    },
+    {
+      "id": "71b61321-217c-4de1-b971-85c4ce0efa4e",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 495.994,
+        "height": 351.998,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Compute the Getis Ord Gi* statistic\nNow we're ready to compute the Gi* statistic to identify hotspots. We'll need to input:\n- The name of the column containing the H3 ids\n- The name of the column for which we'd like to compute the Gi*\n- The [kernel](https://en.wikipedia.org/wiki/Kernel_(statistics)) to be used\n- The k-ring size"
+      },
+      "type": "note",
+      "width": 496,
+      "height": 352,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1120,
+        "y": 208
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1120,
+        "y": 208
+      }
+    },
+    {
+      "id": "import_465015ef_8b53_4ee5_a0a8_c956f48f1114",
+      "data": {
+        "name": "ReadTable",
+        "label": "osm_pois_stockholm",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table",
+            "value": "cartodb-on-gcp-datascience.workflows_temp.import_465015ef_8b53_4ee5_a0a8_c956f48f1114",
+            "description": "Read Table"
+          }
+        ],
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/osm_pois_stockholm",
+        "autoguessing": true,
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "width": 192,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 256,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 256,
+        "y": 432
+      }
+    },
+    {
+      "id": "e1ee76d2-6e6f-4141-a335-5eeb6e7cf8a0",
+      "data": {
+        "name": "native.saveastable",
+        "label": "Save as Table",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "destination",
+            "type": "OutputTable",
+            "title": "Table details",
+            "placeholder": "Rename and select destination",
+            "description": "Table details"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "parentOutput": "result"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1744,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1744,
+        "y": 432
+      }
+    },
+    {
+      "id": "56bec4bc-d213-4f7b-8444-17ac33dfb95a",
+      "data": {
+        "name": "native.getisord",
+        "label": "Getis Ord",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "indexcol",
+            "type": "Column",
+            "title": "Index column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number"
+            ],
+            "description": "Index column",
+            "value": "h3"
+          },
+          {
+            "name": "valuecol",
+            "type": "Column",
+            "title": "Value column",
+            "parent": "source",
+            "dataType": [
+              "number"
+            ],
+            "description": "Value column",
+            "value": "h3_count"
+          },
+          {
+            "name": "kernel",
+            "type": "Selection",
+            "title": "Kernel function for spatial weights",
+            "options": [
+              "uniform",
+              "triangular",
+              "quadratic",
+              "quartic",
+              "gaussian"
+            ],
+            "description": "Kernel function for spatial weights",
+            "value": "uniform"
+          },
+          {
+            "name": "size",
+            "type": "Number",
+            "title": "Size",
+            "default": 3,
+            "min": 1,
+            "max": 10,
+            "description": "Size",
+            "value": 3
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "advanced": true,
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "optional": true,
+            "providers": [
+              "bigquery"
+            ],
+            "description": "Cluster by",
+            "parentOutput": "result"
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1328,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1328,
+        "y": 432
+      }
+    },
+    {
+      "id": "5f47dbd8-4d0d-405c-8087-7621b0af1912",
+      "data": {
+        "name": "native.groupby",
+        "type": "generic",
+        "label": "Group by",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "columns",
+            "type": "SelectColumnAggregation",
+            "title": "Aggregation",
+            "parent": "source",
+            "placeholder": "workflows.parameterForm.selectAField",
+            "allowExpression": false,
+            "description": "Aggregation",
+            "value": "h3,count"
+          },
+          {
+            "name": "groupby",
+            "type": "Column",
+            "title": "Group by",
+            "parent": "source",
+            "mode": "multiple",
+            "dataType": [
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "noDefault": true,
+            "maxSelectionsCount": null,
+            "description": "Group by",
+            "value": [
+              "h3"
+            ]
+          }
+        ],
+        "version": "1"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "position": {
+        "x": 992,
+        "y": 432
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "reactflow__edge-import_465015ef_8b53_4ee5_a0a8_c956f48f1114out-cf9ebd99-f2b2-4f7e-9768-9e058d40c079source",
+      "source": "import_465015ef_8b53_4ee5_a0a8_c956f48f1114",
+      "target": "cf9ebd99-f2b2-4f7e-9768-9e058d40c079",
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "source",
+      "animated": false
+    },
+    {
+      "id": "reactflow__edge-cf9ebd99-f2b2-4f7e-9768-9e058d40c079match-c066bb93-6ed2-4c3b-b71e-3f6440fe0227source",
+      "source": "cf9ebd99-f2b2-4f7e-9768-9e058d40c079",
+      "target": "c066bb93-6ed2-4c3b-b71e-3f6440fe0227",
+      "selected": false,
+      "sourceHandle": "match",
+      "targetHandle": "source",
+      "animated": false
+    },
+    {
+      "id": "reactflow__edge-56bec4bc-d213-4f7b-8444-17ac33dfb95aresult-e1ee76d2-6e6f-4141-a335-5eeb6e7cf8a0source",
+      "source": "56bec4bc-d213-4f7b-8444-17ac33dfb95a",
+      "target": "e1ee76d2-6e6f-4141-a335-5eeb6e7cf8a0",
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source",
+      "animated": false
+    },
+    {
+      "id": "cfad3dd8-64dd-4867-b777-e5e4e7b96690",
+      "type": "default",
+      "source": "c066bb93-6ed2-4c3b-b71e-3f6440fe0227",
+      "target": "5f47dbd8-4d0d-405c-8087-7621b0af1912",
+      "sourceHandle": "result",
+      "targetHandle": "source",
+      "animated": false
+    },
+    {
+      "id": "85024d5c-d636-4c49-96f9-e065dc072d06",
+      "type": "default",
+      "source": "5f47dbd8-4d0d-405c-8087-7621b0af1912",
+      "target": "56bec4bc-d213-4f7b-8444-17ac33dfb95a",
+      "sourceHandle": "result",
+      "targetHandle": "source",
+      "animated": false
+    }
+  ],
+  "variables": null,
+  "procedure": {},
+  "schedule": {},
+  "viewport": {
+    "x": 52.559745892206365,
+    "y": 83.47394811219533,
+    "zoom": 0.7294579812401604
+  },
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery",
+  "useCache": false
+}
