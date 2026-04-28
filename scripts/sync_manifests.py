@@ -27,7 +27,7 @@ def write_claude_plugin() -> None:
     cat = load_catalog()
     manifest = {
         "name": "carto-skills",
-        "description": "CARTO skills for Claude Code — utility tier (Phase 1).",
+        "description": "CARTO skills bundle for Claude Code — see skills/catalog.json for the layered tier breakdown.",
         "version": cat.version,
         "skills": [relative_skill_path(CLAUDE_PLUGIN_DIR, s.path) for s in cat.skills],
     }

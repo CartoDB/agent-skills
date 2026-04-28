@@ -48,7 +48,7 @@ def validate_python(code: str) -> str | None:
     return None
 
 
-_BASH_PLACEHOLDER_RE = re.compile(r"<([a-zA-Z][\w\-]*)>")
+_BASH_PLACEHOLDER_RE = re.compile(r"<([a-zA-Z][\w\-|]*)>")
 
 
 def _strip_bash_placeholders(code: str) -> str:
@@ -77,9 +77,10 @@ def validate_bash(code: str) -> str | None:
 
 
 def validate_json(code: str) -> str | None:
-    # Documentation JSON often contains `...` to indicate truncation, or `//`
-    # comments that aren't strict JSON. Skip those blocks rather than fail.
-    if re.search(r"^\s*\.\.\.\s*$", code, re.MULTILINE) or "// " in code:
+    # Documentation JSON often contains `...` to indicate truncation (either on
+    # its own line or inline as `{ ... }` placeholder), or `//` comments that
+    # aren't strict JSON. Skip those blocks rather than fail.
+    if "..." in code or "// " in code:
         return None
     try:
         json.loads(code)
