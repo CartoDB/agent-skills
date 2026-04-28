@@ -1,0 +1,11 @@
+description = "Discover and subscribe to external spatial datasets via CARTO Data Observatory and partner catalogs (carto-skills)"
+
+prompt = """
+Apply the `carto-find-spatial-data` skill from the carto-skills catalog to the user's request.
+
+Required behavior:
+- Read the skill's main guidance at `skills/carto-find-spatial-data/SKILL.md` first.
+- Follow the skill's reference files (under `skills/carto-find-spatial-data/references/`) for depth on specific topics.
+- Stay within the skill's stated scope; if the request belongs to a different skill, say which one and stop.
+- For machine-parseable CLI output, always pass `--json`.
+"""

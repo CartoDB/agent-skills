@@ -25,6 +25,9 @@ CLAUDE_PLUGIN_PATH = (
     REPO_ROOT / "plugins" / "carto-skills-claude" / ".claude-plugin" / "plugin.json"
 )
 MARKETPLACE_PATH = REPO_ROOT / ".claude-plugin" / "marketplace.json"
+CODEX_PLUGIN_PATH = REPO_ROOT / ".codex-plugin" / "plugin.json"
+GEMINI_EXTENSION_PATH = REPO_ROOT / "gemini-extension.json"
+GEMINI_COMMANDS_DIR = REPO_ROOT / "commands" / "carto"
 
 
 def _err(errors: list[str], msg: str) -> None:
@@ -145,6 +148,59 @@ def check_marketplace(cat: Catalog, errors: list[str]) -> None:
             _err(errors, f"marketplace.json has unexpected skills: {sorted(extra)}")
 
 
+def check_codex_plugin(cat: Catalog, errors: list[str]) -> None:
+    if not CODEX_PLUGIN_PATH.exists():
+        _err(errors, f"missing Codex plugin at {CODEX_PLUGIN_PATH.relative_to(REPO_ROOT)}")
+        return
+    with CODEX_PLUGIN_PATH.open() as f:
+        manifest = json.load(f)
+    for required in ("name", "version", "description", "skills", "interface"):
+        if required not in manifest:
+            _err(errors, f"codex plugin missing field '{required}'")
+    if manifest.get("version") != cat.version:
+        _err(
+            errors,
+            f"codex plugin version '{manifest.get('version')}' != catalog version '{cat.version}'",
+        )
+    skills_field = manifest.get("skills")
+    # MotherDuck pattern: a directory string pointing at the skills root.
+    if not isinstance(skills_field, str):
+        _err(errors, f"codex plugin 'skills' must be a directory string, got {type(skills_field).__name__}")
+    elif not (REPO_ROOT / skills_field.lstrip("./")).is_dir():
+        _err(errors, f"codex plugin 'skills' points at non-existent directory: {skills_field}")
+
+
+def check_gemini_extension(cat: Catalog, errors: list[str]) -> None:
+    if not GEMINI_EXTENSION_PATH.exists():
+        _err(errors, f"missing Gemini extension at {GEMINI_EXTENSION_PATH.relative_to(REPO_ROOT)}")
+        return
+    with GEMINI_EXTENSION_PATH.open() as f:
+        manifest = json.load(f)
+    for required in ("name", "version", "description", "contextFileName"):
+        if required not in manifest:
+            _err(errors, f"gemini-extension.json missing field '{required}'")
+    if manifest.get("version") != cat.version:
+        _err(
+            errors,
+            f"gemini-extension version '{manifest.get('version')}' != catalog version '{cat.version}'",
+        )
+    ctx = manifest.get("contextFileName")
+    if ctx and not (REPO_ROOT / ctx).exists():
+        _err(errors, f"gemini-extension contextFileName points at missing file: {ctx}")
+
+
+def check_gemini_commands(cat: Catalog, errors: list[str]) -> None:
+    if not GEMINI_COMMANDS_DIR.is_dir():
+        _err(errors, f"missing Gemini commands dir at {GEMINI_COMMANDS_DIR.relative_to(REPO_ROOT)}")
+        return
+    expected = {f"{s.name}.toml" for s in cat.skills}
+    actual = {p.name for p in GEMINI_COMMANDS_DIR.glob("*.toml")}
+    for missing in expected - actual:
+        _err(errors, f"gemini commands missing TOML for skill: {missing}")
+    for extra in actual - expected:
+        _err(errors, f"gemini commands has unexpected TOML: {extra}")
+
+
 def check_reference_integrity(cat: Catalog, errors: list[str]) -> None:
     for s in cat.skills:
         if not s.skill_md.exists():
@@ -177,6 +233,9 @@ def main() -> int:
     check_layer_rules(cat, errors)
     check_plugin_manifest(cat, errors)
     check_marketplace(cat, errors)
+    check_codex_plugin(cat, errors)
+    check_gemini_extension(cat, errors)
+    check_gemini_commands(cat, errors)
     check_reference_integrity(cat, errors)
 
     if errors:

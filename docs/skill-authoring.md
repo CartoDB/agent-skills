@@ -63,13 +63,17 @@ Keep SKILL.md under ~5KB. If it grows past that, split content into `references/
 
 Each `references/*.md` file covers one focused topic — a single warehouse engine, a single SQL dialect, a single subcommand family. Reference files are loaded on demand, so they can be deeper.
 
-## 5. Generate the plugin manifest
+## 5. Generate the harness manifests
 
 ```bash
-make sync          # regenerates plugins/carto-skills-claude/.claude-plugin/plugin.json
+make sync          # regenerates all four harness manifests:
+                   #  - plugins/carto-skills-claude/.claude-plugin/plugin.json
+                   #  - .codex-plugin/plugin.json
+                   #  - gemini-extension.json
+                   #  - commands/carto/<skill>.toml (one per skill)
 ```
 
-For the marketplace.json, **manually** add the new skill path to the `skills` array of the `carto-skills` plugin entry. (Marketplace entries carry per-plugin metadata that we don't auto-generate.)
+For the **marketplace.json** specifically, **manually** add the new skill path to the `skills` array of the `carto-skills` plugin entry. (Marketplace entries carry per-plugin metadata that we don't auto-generate.) The other three manifests are fully sync-driven.
 
 ## 6. Run validation locally
 

@@ -2,9 +2,9 @@
 
 A multi-harness skills catalog for the CARTO Geospatial Cloud, modeled on the [MotherDuck agent-skills](https://github.com/motherduckdb/agent-skills) pattern. Wraps the CARTO CLI (and complementary surfaces) so AI agents ship correct, idiomatic CARTO work without re-discovering the platform every session.
 
-## Status: Phase 2a (utility + platform tiers)
+## Status: Phase 2b (utility + platform tiers, all four harnesses)
 
-This release ships **8 skills** distributed via Claude Code and the Skills CLI. Two further platform skills (`carto-create-builder-maps`, `carto-build-app`) are owned by another PM and intentionally deferred — see [`docs/deferred-skills.md`](docs/deferred-skills.md). Codex/Gemini distribution and watermarking land in subsequent phases — see [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the full roadmap.
+This release ships **8 skills** distributed via **Claude Code, Skills CLI, Codex, and Gemini CLI**. Two further platform skills (`carto-create-builder-maps`, `carto-build-app`) are owned by another PM and intentionally deferred — see [`docs/deferred-skills.md`](docs/deferred-skills.md). Watermarking lands in Phase 2c — see [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the full roadmap.
 
 ### Utility tier
 
@@ -46,6 +46,16 @@ npx skills add CartoDB/carto-agent-skills
 
 The Skills CLI reads [`skills/catalog.json`](skills/catalog.json) and registers each skill independently — useful when you want a subset.
 
+## Installing in Codex
+
+The Codex plugin manifest is [`.codex-plugin/plugin.json`](.codex-plugin/plugin.json) at the repo root. Install via Codex's per-client extension command (refer to Codex docs for the verb on your version).
+
+## Installing in Gemini CLI
+
+The Gemini extension manifest is [`gemini-extension.json`](gemini-extension.json) at the repo root, with one command per skill under [`commands/carto/`](commands/carto/). After install, invoke a skill via `/carto:<skill-name>` — for example `/carto:carto-basics` or `/carto:carto-query-datawarehouse`.
+
+See [`docs/install-matrix.md`](docs/install-matrix.md) for the full per-harness picture.
+
 ## CARTO CLI prerequisite
 
 All skills assume the [CARTO CLI](https://docs.carto.com/carto-user-manual/carto-cli) (`@carto/carto-cli`) is installed:
@@ -61,12 +71,17 @@ The `carto-basics` skill walks the user through this on first invocation.
 
 ```
 skills/                    # one directory per skill; catalog.json registers them
-plugins/                   # harness-specific manifests (Claude only — Codex/Gemini in Phase 2b)
 .claude-plugin/            # Claude marketplace registration
+plugins/carto-skills-claude/.claude-plugin/plugin.json   # Claude plugin manifest
+.codex-plugin/plugin.json  # Codex plugin manifest
+gemini-extension.json      # Gemini extension manifest
+commands/carto/            # one TOML per skill (Gemini)
 scripts/                   # validate_skills.py, sync_manifests.py
 tests/                     # validate_snippets.py
 docs/                      # design + authoring docs
 ```
+
+All four harness manifests are generated from `skills/catalog.json` by `scripts/sync_manifests.py`.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the three-tier layering rationale.
 

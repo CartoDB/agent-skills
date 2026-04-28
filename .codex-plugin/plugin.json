@@ -1,0 +1,41 @@
+{
+  "name": "carto-skills",
+  "version": "2.2.0-phase2b",
+  "description": "CARTO skills for agents and developers: connect to a data warehouse, explore schemas, write spatial SQL, build analytics workflows, subscribe to Data Observatory data, and administer the platform.",
+  "author": {
+    "name": "CARTO",
+    "url": "https://carto.com"
+  },
+  "homepage": "https://github.com/CartoDB/carto-agent-skills",
+  "repository": "https://github.com/CartoDB/carto-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "carto",
+    "geospatial",
+    "spatial-sql",
+    "data-warehouse",
+    "bigquery",
+    "snowflake",
+    "redshift",
+    "postgres",
+    "databricks",
+    "data-observatory",
+    "cli"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CARTO Skills",
+    "shortDescription": "Connect, explore, query, and operate the CARTO Geospatial Cloud.",
+    "longDescription": "A packaged CARTO skill catalog for managing CARTO Geospatial Cloud resources via the carto-cli — installing and authenticating, connecting BigQuery / Snowflake / Redshift / Postgres / Databricks, exploring schemas, writing spatial SQL with dialect-specific guidance, importing and exporting data, building analytics workflows, discovering Data Observatory datasets, and administering the org.",
+    "developerName": "CARTO",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://carto.com",
+    "defaultPrompt": [
+      "Use CARTO Skills to inspect my data warehouse schemas and recommend a spatial SQL approach.",
+      "Use CARTO Skills to plan a workflow that imports a file, builds a tileset, and schedules a refresh."
+    ]
+  }
+}
