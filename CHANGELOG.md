@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.2.0-phase2b — 2026-04-28
+
+Adds **Codex** and **Gemini CLI** distribution alongside the existing Claude Code + Skills CLI surfaces. Same skills, three more harnesses.
+
+### Added
+
+- `.codex-plugin/plugin.json` at repo root — Codex plugin manifest, modeled on MotherDuck's pattern (single-source, `skills` as directory pointer, `interface` block with display metadata and default prompts).
+- `gemini-extension.json` at repo root — Gemini CLI extension manifest pointing at `GEMINI.md` for context.
+- `commands/carto/<skill>.toml` — one Gemini command per skill (8 total). Invoked as `/carto:<skill-name>`. Each TOML's prompt reads the skill's SKILL.md and references on demand.
+- `GEMINI.md` — Gemini-specific context with reading order and per-skill command reference.
+
+### Validator additions
+
+`scripts/validate_skills.py` gained three new checks:
+
+- **Codex plugin sync** — required fields present, version matches catalog, `skills` directory exists.
+- **Gemini extension sync** — required fields, version, `contextFileName` resolves.
+- **Gemini commands sync** — exactly one TOML per catalog skill; no orphans, no missing.
+
+### Sync logic
+
+`scripts/sync_manifests.py` now generates all four manifests from `skills/catalog.json`: Claude plugin, Codex plugin, Gemini extension, per-skill Gemini TOMLs. Stale TOMLs (skills removed from the catalog) are pruned automatically.
+
+### Deferred
+
+- `custom_user_agent` watermarking → Phase 2c.
+- TypeScript snippet validator promoted from warning-only to blocking → Phase 2c.
+- `carto-create-builder-maps`, `carto-build-app` (still owned by Builder PM).
+
+---
+
 ## 2.1.0-phase2a — 2026-04-28
 
 Adds the **4 platform-tier skills** that make up the bulk of CARTO's day-to-day operational surface. No breaking changes from 2.0.0.

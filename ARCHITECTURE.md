@@ -57,12 +57,12 @@ license: MIT
 
 | Harness | Status | Manifest |
 |---|---|---|
-| **Claude Code** | ✅ Phase 1 | `.claude-plugin/marketplace.json` + `plugins/carto-skills-claude/.claude-plugin/plugin.json` |
-| **Skills CLI** | ✅ Phase 1 | reads `skills/catalog.json` directly |
-| **Codex** | ⏳ Phase 2 | `plugins/carto-skills/.codex-plugin/plugin.json` |
-| **Gemini** | ⏳ Phase 2 | `gemini-extension.json` + `commands/carto/*.toml` |
+| **Claude Code** | ✅ | `.claude-plugin/marketplace.json` + `plugins/carto-skills-claude/.claude-plugin/plugin.json` |
+| **Skills CLI** | ✅ | reads `skills/catalog.json` directly |
+| **Codex** | ✅ | `.codex-plugin/plugin.json` (repo root, MotherDuck pattern) |
+| **Gemini** | ✅ | `gemini-extension.json` + `commands/carto/*.toml` (one TOML per skill) |
 
-`scripts/sync_manifests.py` regenerates the Claude plugin manifest from `catalog.json`. CI runs `validate_skills.py` (read-only) to catch drift.
+`scripts/sync_manifests.py` regenerates **all four** harness manifests from `catalog.json`. CI runs `validate_skills.py` (read-only) to catch drift, with sync checks for each harness.
 
 ## Validation
 
@@ -75,7 +75,7 @@ SQL snippet validation is **syntactic only** (per-dialect parse via `sqlglot`). 
 
 ## Deferred: watermarking
 
-Per proposal §5, agent-driven CARTO API traffic should be measurable via `custom_user_agent` watermarking using `CARTO_AGENT_HARNESS` and `CARTO_AGENT_LLM` env vars. **This is Phase 2 work** — utility skills currently emit no watermark.
+Per proposal §5, agent-driven CARTO API traffic should be measurable via `custom_user_agent` watermarking using `CARTO_AGENT_HARNESS` and `CARTO_AGENT_LLM` env vars. **This is Phase 2c work** — skills currently emit no watermark.
 
 ## Phase 2 / 3 holding
 
