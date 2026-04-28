@@ -1,68 +1,73 @@
 # CARTO Agent Skills
 
-Skills for the Claude Code plugin marketplace that enable AI agents to manage CARTO Geospatial Cloud resources and analyze platform activity.
+A multi-harness skills catalog for the CARTO Geospatial Cloud, modeled on the [MotherDuck agent-skills](https://github.com/motherduckdb/agent-skills) pattern. Wraps the CARTO CLI (and complementary surfaces) so AI agents ship correct, idiomatic CARTO work without re-discovering the platform every session.
 
-## Quick Start
+## Status: Phase 1 (utility tier)
+
+This release ships **4 utility skills** distributed via Claude Code. Platform/use-case skills and Codex/Gemini distribution land in subsequent phases — see [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the full roadmap.
+
+| Skill | Purpose |
+|---|---|
+| [`carto-basics`](skills/carto-basics) | First-time setup: install, auth, profiles, global flags. |
+| [`carto-connect-datawarehouse`](skills/carto-connect-datawarehouse) | Connect BigQuery / Snowflake / Redshift / Postgres / Databricks. |
+| [`carto-query-datawarehouse`](skills/carto-query-datawarehouse) | Spatial SQL with dialect-specific guidance and execution model. |
+| [`carto-explore-datawarehouse`](skills/carto-explore-datawarehouse) | Discover schemas, tables, columns, named sources. |
+
+## Installing in Claude Code
 
 ```bash
-# Add the marketplace (one time)
+# 1. Add the marketplace (one-time)
 /plugin marketplace add CartoDB/carto-agent-skills
 
-# Install skills
-/plugin install carto-cli@carto-agent-skills
-/plugin install carto-activity@carto-agent-skills
+# 2. Install the skills bundle
+/plugin install carto-skills@carto-agent-skills
 ```
 
-## Available Skills
+All four utility skills are registered as one bundle (`carto-skills`).
 
-### CARTO CLI
+> **⚠ Migrating from v1.x?** The old `carto-cli@carto-agent-skills` and `carto-activity@carto-agent-skills` plugin IDs are **retired**. Re-install as `carto-skills@carto-agent-skills`. See [CHANGELOG.md](CHANGELOG.md).
 
-**Plugin ID**: `carto-cli@carto-agent-skills`
+## Installing via the Skills CLI
 
-Manage CARTO Geospatial Cloud resources via CLI: maps, workflows, connections, authentication, and admin operations.
+```bash
+npx skills add CartoDB/carto-agent-skills
+```
 
-| File | Description |
-|------|-------------|
-| [`SKILL.md`](carto-cli/SKILL.md) | Main skill: overview, authentication, quick reference, and index |
-| [`commands.md`](carto-cli/commands.md) | Complete command reference with all options and examples |
-| [`maps.md`](carto-cli/maps.md) | Map JSON structure for create/update operations |
+The Skills CLI reads [`skills/catalog.json`](skills/catalog.json) and registers each utility skill independently — useful when you want a subset.
 
-### CARTO Activity
+## CARTO CLI prerequisite
 
-**Plugin ID**: `carto-activity@carto-agent-skills`
-
-Query CARTO activity logs and usage data with SQL for analyzing user behavior, map changes, API usage, and quota monitoring.
-
-| File | Description |
-|------|-------------|
-| [`SKILL.md`](carto-activity/SKILL.md) | Activity data querying, SQL examples, and troubleshooting |
-
-## What is the CARTO CLI?
-
-The [CARTO CLI](https://docs.carto.com/carto-user-manual/carto-cli) is a command-line tool that enables direct interaction with CARTO from your terminal. With it, you can:
-
-- Find and manage Maps, Workflows, connections, and developer credentials
-- Move Maps and Workflows across different organizations
-- Monitor organizational quotas and activity
-- Work with existing AI Agents
-- Share assets between team members
-
-Install via npm:
+All skills assume the [CARTO CLI](https://docs.carto.com/carto-user-manual/carto-cli) (`@carto/carto-cli`) is installed:
 
 ```bash
 npm install -g @carto/carto-cli
+carto --version
 ```
 
-## Learn More
+The `carto-basics` skill walks the user through this on first invocation.
 
-- [CARTO CLI Documentation](https://docs.carto.com/carto-user-manual/carto-cli)
-- [CARTO Platform Documentation](https://docs.carto.com/)
-- [CARTO CLI on npm](https://www.npmjs.com/package/@carto/carto-cli)
+## Repo layout
+
+```
+skills/                    # one directory per skill; catalog.json registers them
+plugins/                   # harness-specific manifests (Claude only in Phase 1)
+.claude-plugin/            # Claude marketplace registration
+scripts/                   # validate_skills.py, sync_manifests.py
+tests/                     # validate_snippets.py
+docs/                      # design + authoring docs
+```
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the three-tier layering rationale.
 
 ## Contributing
 
-To update or improve these skills, submit a pull request with your changes. Ensure that:
+1. Read [`docs/skill-authoring.md`](docs/skill-authoring.md).
+2. Run `make validate` locally before pushing — CI runs the same checks.
+3. Open a PR; review focuses on whether the skill description is targeted enough that agents route correctly to it.
 
-- Documentation is clear and accurate
-- Examples are tested and working
-- Markdown formatting is consistent
+## Resources
+
+- [CARTO CLI documentation](https://docs.carto.com/carto-user-manual/carto-cli)
+- [CARTO Platform documentation](https://docs.carto.com/)
+- [Redesign proposal](docs/proposal-skills-redesign.md) — design record for the multi-harness restructure
+- [MotherDuck agent-skills](https://github.com/motherduckdb/agent-skills) — reference architecture

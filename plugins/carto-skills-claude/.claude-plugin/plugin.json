@@ -1,0 +1,11 @@
+{
+  "name": "carto-skills",
+  "description": "CARTO skills for Claude Code — utility tier (Phase 1).",
+  "version": "2.0.0-phase1",
+  "skills": [
+    "../../../skills/carto-basics",
+    "../../../skills/carto-connect-datawarehouse",
+    "../../../skills/carto-query-datawarehouse",
+    "../../../skills/carto-explore-datawarehouse"
+  ]
+}
