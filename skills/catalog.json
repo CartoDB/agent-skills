@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0-phase1",
+  "skills": [
+    {
+      "name": "carto-basics",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Start here for first-time CARTO CLI use: install, authenticate, switch profiles, understand JSON output and async job patterns.",
+      "path": "skills/carto-basics"
+    },
+    {
+      "name": "carto-connect-datawarehouse",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Choose and configure the data warehouse engine connection (BigQuery, Snowflake, Redshift, Postgres, Databricks).",
+      "path": "skills/carto-connect-datawarehouse"
+    },
+    {
+      "name": "carto-query-datawarehouse",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Write spatial SQL against the connected warehouse engine, with dialect-specific guidance and performance defaults.",
+      "path": "skills/carto-query-datawarehouse"
+    },
+    {
+      "name": "carto-explore-datawarehouse",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Discover what's in the connected warehouse: schemas, tables, columns, named sources.",
+      "path": "skills/carto-explore-datawarehouse"
+    }
+  ]
+}

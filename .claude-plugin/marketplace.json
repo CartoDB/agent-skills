@@ -5,30 +5,22 @@
     "email": "support@carto.com"
   },
   "metadata": {
-    "version": "1.0.0",
-    "description": "Skills for managing CARTO Geospatial Cloud resources, analyzing activity data, and building workflows"
+    "version": "2.0.0-phase1",
+    "description": "CARTO skills catalog — utility tier (Phase 1). Three-tier layered skills for managing CARTO Geospatial Cloud resources, modeled on the MotherDuck agent-skills pattern."
   },
   "plugins": [
     {
-      "name": "carto-cli",
+      "name": "carto-skills",
       "source": "./",
-      "description": "Manage CARTO Geospatial Cloud resources via CLI: maps, workflows, connections, authentication, and admin operations",
+      "description": "CARTO utility-tier skills: install/auth (carto-basics), connect/explore/query the data warehouse.",
       "category": "geospatial",
-      "tags": ["carto", "geospatial", "cli", "maps", "workflows", "connections"],
+      "tags": ["carto", "geospatial", "cli", "spatial-sql", "data-warehouse"],
       "strict": false,
       "skills": [
-        "./carto-cli"
-      ]
-    },
-    {
-      "name": "carto-activity",
-      "source": "./",
-      "description": "Query CARTO activity logs and usage data with SQL for analyzing user behavior, map changes, API usage, and quota monitoring",
-      "category": "geospatial",
-      "tags": ["carto", "geospatial", "activity", "analytics", "usage", "sql"],
-      "strict": false,
-      "skills": [
-        "./carto-activity"
+        "./skills/carto-basics",
+        "./skills/carto-connect-datawarehouse",
+        "./skills/carto-query-datawarehouse",
+        "./skills/carto-explore-datawarehouse"
       ]
     }
   ]
