@@ -611,7 +611,7 @@ More than 12 categories is unreadable with any palette. **Collapse to top-N by f
 
 **Live failure example.** Map of 265k rooftop-PV installations coloured by `num_modules` (a column populated on only 9% of rows). Result: ~242k of 265k features rendered grey — the visible map looked empty even though the data was intact. Fix was two-part in the source SQL:
 
-```sql
+```
 -- Filter out the NULL-rendered-grey rows AND switch to a populated column
 WHERE area_sqm IS NOT NULL AND area_sqm > 0
 -- and then bind colorField: { name: "area_sqm" } instead of "num_modules"
@@ -631,7 +631,7 @@ SELECT
   COUNT(*) AS total_rows,
   COUNT(col) AS populated_rows,
   COUNT(col) / COUNT(*) AS populated_ratio
-FROM <source>
+FROM your_table
 ```
 
 `populated_ratio < 0.75` means the column is a poor `colorField` candidate as-is — apply one of the two fixes above before authoring.
