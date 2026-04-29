@@ -8,6 +8,7 @@
 - [§B — H3 aggregation map (from a query)](#b-h3-aggregation-map-from-a-query)
 - [§C — Parameterized query (SQL parameters)](#c-parameterized-query-sql-parameters--let-users-filter-live)
 - [§D — Widgets gallery — one of each kind](#d-widgets-gallery--one-of-each-kind)
+- [§E — Split-map mode (side-by-side comparison)](#e-split-map-mode-side-by-side-comparison)
 
 ---
 
@@ -264,3 +265,81 @@ All seven widget kinds in one map (formula × 2, histogram, category, pie, times
   }
 }
 ```
+
+## E. Split-map mode (side-by-side comparison)
+
+A two-layer map in **split view** — left side shows 2020 collisions, right side shows 2024. Same dataset, two `query`-typed sub-selections wired to two layers, with `splitMaps` toggling visibility per side. See `references/configuration-shape.md` *§ Split-map mode* for the validation rules.
+
+```json
+{
+  "title": "NYC Collisions: 2020 vs 2024",
+  "datasets": [
+    {
+      "$ref": "col-2020",
+      "type": "query",
+      "source": "SELECT geom FROM `carto-demo-data.demo_tables.nyc_collisions` WHERE EXTRACT(YEAR FROM crash_datetime) = 2020",
+      "connectionId": "<connection-id>",
+      "geoColumn": "geom",
+      "columns": ["geom"],
+      "format": "tilejson",
+      "label": "Collisions 2020"
+    },
+    {
+      "$ref": "col-2024",
+      "type": "query",
+      "source": "SELECT geom FROM `carto-demo-data.demo_tables.nyc_collisions` WHERE EXTRACT(YEAR FROM crash_datetime) = 2024",
+      "connectionId": "<connection-id>",
+      "geoColumn": "geom",
+      "columns": ["geom"],
+      "format": "tilejson",
+      "label": "Collisions 2024"
+    }
+  ],
+  "keplerMapConfig": {
+    "version": "v1",
+    "config": {
+      "mapState": {
+        "latitude": 40.7128, "longitude": -74.006, "zoom": 11, "pitch": 0, "bearing": 0,
+        "isSplit": true
+      },
+      "basemapConfig": {"styleId": "positron"},
+      "mapStyle": {"styleType": "positron"},
+      "visState": {
+        "layers": [
+          {
+            "id": "L_2020", "type": "tileset",
+            "config": {
+              "dataId": "$ref:col-2020", "label": "2020",
+              "color": [25, 118, 210], "isVisible": true, "hidden": false, "columns": {},
+              "textLabel": [{"size":12,"color":[44,48,50],"field":null,"anchor":"start","offset":[0,0],"alignment":"center","outlineColor":[255,255,255]}],
+              "visConfig": {"filled": true, "stroked": false, "opacity": 0.8, "radius": 4, "radiusRange": [0,50], "thickness": 1}
+            },
+            "visualChannels": {"colorField":null,"colorScale":"quantize","sizeField":null,"sizeScale":"linear","radiusField":null,"radiusScale":"linear"}
+          },
+          {
+            "id": "L_2024", "type": "tileset",
+            "config": {
+              "dataId": "$ref:col-2024", "label": "2024",
+              "color": [216, 27, 96], "isVisible": true, "hidden": false, "columns": {},
+              "textLabel": [{"size":12,"color":[44,48,50],"field":null,"anchor":"start","offset":[0,0],"alignment":"center","outlineColor":[255,255,255]}],
+              "visConfig": {"filled": true, "stroked": false, "opacity": 0.8, "radius": 4, "radiusRange": [0,50], "thickness": 1}
+            },
+            "visualChannels": {"colorField":null,"colorScale":"quantize","sizeField":null,"sizeScale":"linear","radiusField":null,"radiusScale":"linear"}
+          }
+        ],
+        "filters": [],
+        "splitMaps": [
+          { "layers": { "L_2020": true,  "L_2024": false } },
+          { "layers": { "L_2020": false, "L_2024": true  } }
+        ]
+      }
+    }
+  }
+}
+```
+
+**What this demonstrates:**
+- `splitMaps.length === 2` and `mapState.isSplit: true` agree (single source of truth = `splitMaps.length`; the boolean is its required mirror).
+- Every layer id (`L_2020`, `L_2024`) appears as a key in **both** side entries — Builder hides the layer entirely on a side if its id is absent.
+- The two layers use distinct hues (blue vs magenta) — split view is for comparison, so the two sides need readable separation, not a shared ramp.
+- Both datasets share the same source table; the per-side filter happens in SQL upstream, not via spatial filters or post-fetch row filters.

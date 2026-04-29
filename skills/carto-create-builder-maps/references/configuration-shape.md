@@ -53,9 +53,9 @@ The annotated tree below shows every top-level field the CLI accepts, plus per-d
       // (`references/sql-parameters.md`); they re-run the query rather than filtering
       // already-fetched rows.
       "spatialFilter": null
-      // Split-map mode (optional, rarely authored from scratch):
-      //   mapState.isSplit: true  +  visState.splitMaps: [ { layers: { "<id>": true } }, { layers: { "<id>": false } } ]
-      // Two side-by-side viewports; each entry in splitMaps maps layer ids → per-panel visibility.
+      // Split-map mode (optional). See *"Split-map mode"* section below — both
+      // `mapState.isSplit` and `visState.splitMaps` must agree, and every layer
+      // id in `visState.layers[]` must appear in BOTH side-entries' layer maps.
     }
   },
 
@@ -74,6 +74,47 @@ The annotated tree below shows every top-level field the CLI accepts, plus per-d
 ```
 
 Fields that are **server-computed and auto-stripped** by `maps get --json` so the output can be piped straight back into `create` / `update`: `accountId, ownerId, createdAt, thumbnailUrl, token, views, policies, publishedWithPassword, agent.token, agent.issues`, etc.
+
+---
+
+### Split-map mode
+
+Builder's **split-map** view shows the same map in two side-by-side viewports with different per-side layer visibility — useful for before/after comparisons (year vs year, scenario vs scenario) where filtering rebinds the data and you want both states visible simultaneously.
+
+State lives in **two coordinated places** under `keplerMapConfig.config`:
+
+```jsonc
+{
+  "mapState": {
+    "isSplit": true                    // viewport flag — must mirror splitMaps.length > 1
+  },
+  "visState": {
+    "layers": [
+      { "id": "L_2020", /* ... */ },
+      { "id": "L_2024", /* ... */ }
+    ],
+    "splitMaps": [
+      { "layers": { "L_2020": true,  "L_2024": false } },   // [0] = left  — shows 2020 only
+      { "layers": { "L_2020": false, "L_2024": true  } }    // [1] = right — shows 2024 only
+    ]
+  }
+}
+```
+
+**Authoring rules** — the CLI surfaces validation issues for each:
+
+1. **`splitMaps.length === 2` ⇒ split active.** Length 0 / 1 / absent ⇒ single-pane.
+2. **Every `visState.layers[].id` MUST appear in BOTH side-entries** as a key. Layers not listed render on neither side (silently hidden).
+3. **All keys in `splitMaps[i].layers` MUST match an existing layer id.** Unknown ids are dropped by Builder; the side renders without that toggle.
+4. **Values are booleans.** `true` ⇒ visible on this side. Strings / numbers fail validation.
+5. **`mapState.isSplit` MUST equal `splitMaps.length > 1`.** Desyncs put the toolbar and the layout in disagreement (toolbar says split, layout single-pane, or vice versa).
+
+**Round-trip behaviour.** `carto maps get <id> --json` preserves `splitMaps` faithfully. `carto maps create` / `update` accept it as long as the rules above hold; the CLI's pre-flight validation flags drift before the API call.
+
+**When NOT to author split-map mode:**
+- Single-layer maps (split with one layer is a UI no-op).
+- Cases where toggling layers in the legend already does what you want (split is for *side-by-side simultaneous* viewing, not alternating).
+- Pre-built tileset maps where left/right layers reference *different* tilesets — Builder's split sub-tree assumes both sides share the same source dataset; mixing sources tends to render only one side.
 
 ---
 
