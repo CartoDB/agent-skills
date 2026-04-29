@@ -6,7 +6,7 @@ license: MIT
 
 Use this skill whenever the user wants to create a composite score, index, or multi-variable ranking in a CARTO Workflow.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process.
+**Prerequisites**: Load `carto-create-workflow` for the development process.
 
 ## Instructions
 

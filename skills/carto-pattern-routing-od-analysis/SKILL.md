@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that compute routes, travel time/distance matrices, and isoline catchment areas. Supports driving and walking modes. Also covers OD flow pattern analysis using spatial indexing.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
 
 ---
 

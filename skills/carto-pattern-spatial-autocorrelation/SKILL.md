@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that measure spatial autocorrelation using Moran's I, determining whether a variable exhibits clustering, dispersion, or randomness, and classifying each location into HH/HL/LH/LL quadrants.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
 
 **When to use Moran's I vs Getis-Ord Gi***:
 - **Moran's I**: "Is there clustering?" + classify into cluster types (HH, HL, LH, LL) + identify spatial outliers (HL, LH)

@@ -74,6 +74,6 @@ For one-off, small datasets, you can skip the tileset step and let the map read 
 
 ## Refreshing a tileset
 
-There's no in-place refresh. Re-run the `sql job` with the same `output_table` after the source data changes (or use a Workflow on a schedule — see [`carto-create-analytics-workflow`](../../carto-create-analytics-workflow)).
+There's no in-place refresh. Re-run the `sql job` with the same `output_table` after the source data changes (or use a Workflow on a schedule — see [`carto-create-workflow`](../../carto-create-workflow)).
 
 The new run drops and recreates the tileset table. If maps consume it, plan a brief render gap or build the new tileset under a `_v2` name and swap.

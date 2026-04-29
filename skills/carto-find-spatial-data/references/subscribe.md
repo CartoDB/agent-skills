@@ -62,7 +62,7 @@ carto do subscribe <dataset-id> \
   --refresh-schedule "0 0 1 * *"
 ```
 
-CARTO drives the refresh server-side. The schedule expression follows the warehouse's dialect (see [`../carto-create-analytics-workflow/references/scheduling.md`](../../carto-create-analytics-workflow/references/scheduling.md)).
+CARTO drives the refresh server-side. The schedule expression follows the warehouse's dialect (see [`../carto-create-workflow/references/scheduling.md`](../../carto-create-workflow/references/scheduling.md)).
 
 ### Manual
 

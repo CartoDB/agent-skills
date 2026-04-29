@@ -1,10 +1,10 @@
 ---
-name: carto-create-analytics-workflow
+name: carto-create-workflow
 description: Build, schedule, and operate analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Use when the user wants to author a workflow, run/edit/promote one, or schedule a DAG.
 license: MIT
 ---
 
-# carto-create-analytics-workflow
+# carto-create-workflow
 
 CARTO Workflows is a visual DAG builder that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file) plus operating it via the CLI (CRUD, schedules, dev → prod promotion).
 

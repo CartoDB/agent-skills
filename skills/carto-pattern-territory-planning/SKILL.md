@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that solve two related spatial optimization problems: dividing areas into balanced territories (e.g. sales regions, service zones) and finding optimal facility locations that maximize coverage or minimize cost.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands. Both components require the **Territory Planning Extension Package** installed on the connection.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands. Both components require the **Territory Planning Extension Package** installed on the connection.
 
 ---
 

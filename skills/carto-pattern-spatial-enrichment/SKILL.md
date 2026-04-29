@@ -6,7 +6,7 @@ license: MIT
 
 # Spatial Enrichment in CARTO Workflows
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process.
+**Prerequisites**: Load `carto-create-workflow` for the development process.
 
 This skill covers the universal pattern for enriching spatial data with demographics, risk scores, or any variable from a spatial features dataset.
 

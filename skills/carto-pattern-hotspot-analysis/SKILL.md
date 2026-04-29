@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that identify statistically significant spatial clusters (hotspots and coldspots) using the Getis-Ord Gi* statistic.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
 
 ---
 

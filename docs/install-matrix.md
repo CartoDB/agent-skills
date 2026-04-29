@@ -9,7 +9,7 @@ Which skills ship via which harness.
 | `carto-query-datawarehouse` | utility | ✅ | ✅ | ✅ | ✅ |
 | `carto-explore-datawarehouse` | utility | ✅ | ✅ | ✅ | ✅ |
 | `carto-import-export-data` | platform | ✅ | ✅ | ✅ | ✅ |
-| `carto-create-analytics-workflow` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-create-workflow` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-find-spatial-data` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-manage-platform` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-create-builder-maps` | platform | ⏳ deferred | ⏳ deferred | ⏳ deferred | ⏳ deferred |

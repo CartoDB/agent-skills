@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that model spatially varying relationships between a dependent variable and one or more independent variables using GWR. Unlike global regression (one set of coefficients for the entire study area), GWR produces **local coefficients per spatial unit**, revealing how relationships change across space. Example: "bedrooms add $50k to price in downtown but only $20k in suburbs."
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
 
 ---
 

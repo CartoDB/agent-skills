@@ -20,13 +20,13 @@ This release ships **18 skills** (8 utility+platform, 10 use-case patterns) dist
 | Skill | Purpose |
 |---|---|
 | [`carto-import-export-data`](skills/carto-import-export-data) | Imports, tilesets, and warehouse-native exports. |
-| [`carto-create-analytics-workflow`](skills/carto-create-analytics-workflow) | Build, schedule, and operate analytics DAGs in CARTO Workflows. |
+| [`carto-create-workflow`](skills/carto-create-workflow) | Build, schedule, and operate analytics DAGs in CARTO Workflows. |
 | [`carto-find-spatial-data`](skills/carto-find-spatial-data) | Discover and subscribe to Data Observatory datasets. |
 | [`carto-manage-platform`](skills/carto-manage-platform) | Org admin: users, quotas, activity audit, bulk ops. |
 
 ### Use-case (pattern) tier
 
-Recipe skills that layer on top of [`carto-create-analytics-workflow`](skills/carto-create-analytics-workflow). Each ships rich trigger-keyword descriptions so the harness routes on user intent.
+Recipe skills that layer on top of [`carto-create-workflow`](skills/carto-create-workflow). Each ships rich trigger-keyword descriptions so the harness routes on user intent.
 
 | Skill | Purpose |
 |---|---|

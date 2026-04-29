@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that identify optimal locations for new facilities (stores, stations, offices) by combining spatial criteria, and that quantify cannibalization risk from overlapping catchment areas. Also covers twin-area and similar-location discovery.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands. Load `carto-pattern-trade-area-analysis` if the workflow involves isochrones, buffers, or catchment enrichment — that skill covers the catchment pipeline in detail.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands. Load `carto-pattern-trade-area-analysis` if the workflow involves isochrones, buffers, or catchment enrichment — that skill covers the catchment pipeline in detail.
 
 ---
 

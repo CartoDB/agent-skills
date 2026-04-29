@@ -8,7 +8,7 @@ license: MIT
 
 Converts street addresses or place names into geographic coordinates (point geometries). This is an essential first step when working with tabular data that has an address column but no spatial column.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
 
 ---
 

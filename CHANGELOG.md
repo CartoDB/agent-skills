@@ -38,7 +38,7 @@ Adds the **4 platform-tier skills** that make up the bulk of CARTO's day-to-day 
 ### Added
 
 - `carto-import-export-data` — imports, tilesets, exports.
-- `carto-create-analytics-workflow` — workflow CRUD, scheduling per engine, dev→prod promotion.
+- `carto-create-workflow` — workflow CRUD, scheduling per engine, dev→prod promotion.
 - `carto-find-spatial-data` — Data Observatory discovery and subscriptions.
 - `carto-manage-platform` — org stats, users/invitations, admin bulk ops, activity event reference.
 - `docs/deferred-skills.md` — status of `carto-create-builder-maps` and `carto-build-app` (owned by another PM).
@@ -49,7 +49,7 @@ Adds the **4 platform-tier skills** that make up the bulk of CARTO's day-to-day 
 Platform-tier dependencies declared and validated:
 
 - `carto-import-export-data` → `carto-basics`, `carto-connect-datawarehouse`, `carto-explore-datawarehouse`.
-- `carto-create-analytics-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
+- `carto-create-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
 - `carto-find-spatial-data` → `carto-basics`, `carto-connect-datawarehouse`, `carto-explore-datawarehouse`.
 - `carto-manage-platform` → `carto-basics`, `carto-query-datawarehouse`.
 
@@ -99,7 +99,7 @@ The new bundle ships **4 utility skills** that together cover the install/auth/c
 
 ### Deferred to Phase 2 / 3
 
-- 6 platform skills (Phase 2): `carto-import-export-data`, `carto-create-builder-maps`, `carto-build-app`, `carto-create-analytics-workflow`, `carto-find-spatial-data`, `carto-manage-platform`.
+- 6 platform skills (Phase 2): `carto-import-export-data`, `carto-create-builder-maps`, `carto-build-app`, `carto-create-workflow`, `carto-find-spatial-data`, `carto-manage-platform`.
 - 3 use-case skills (Phase 3): `carto-build-spatial-dashboard`, `carto-build-customer-facing-map`, `carto-migrate-to-carto`.
 - Codex plugin and Gemini extension distribution.
 - `custom_user_agent` watermarking.

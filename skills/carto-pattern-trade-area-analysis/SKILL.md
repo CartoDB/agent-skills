@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that define catchment areas around candidate locations, enrich them with data, and score/rank locations for site selection, billboard placement, or coverage analysis.
 
-**Prerequisites**: Load `carto-create-analytics-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
 
 ---
 
