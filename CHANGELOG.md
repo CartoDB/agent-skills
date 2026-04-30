@@ -1,5 +1,59 @@
 # Changelog
 
+## 2.4.0-phase2d — 2026-04-30
+
+Migrates the workflow-builder skill set from the standalone `workflows-assistant-skills` repo into this catalog and adds the use-case (pattern) tier.
+
+### Added
+
+- `carto-create-workflow` — full DAG authoring lifecycle (6-phase process, native-first rule, live CLI fetching, JSON structure, provider notes, pitfalls) plus operating CRUD/scheduling. Replaces the prior `carto-create-analytics-workflow` skill.
+- 10 use-case `carto-pattern-*` skills (hotspot, GWR, Moran's I, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment). Each ships rich trigger-keyword descriptions and bundled `.json` examples.
+- Provider-specific customsql footguns and the Snowflake uppercase rule live in `references/providers/*.md` under `carto-create-workflow`.
+
+### Changed
+
+- `carto-create-analytics-workflow` renamed to `carto-create-workflow`. Cross-profile copy content stays owned by `carto-copy-workflows` (introduced in 2.3.0-phase2c).
+- `carto workflows verify` references updated to `carto workflows verify-remote` to match the CLI.
+
+### Catalog dependencies for new skills
+
+- `carto-create-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
+- All `carto-pattern-*` → `carto-create-workflow`.
+
+### Note
+
+This release pairs with the matching `carto` CLI version in https://github.com/CartoDB/cloud-native/pull/24203.
+
+---
+
+## 2.3.0-phase2c — 2026-04-28
+
+Splits **create** and **copy** activities into separate platform skills. Cross-org / cross-profile artifact replication now has its own home, distinct from agentic creation. Lays the groundwork for absorbing PR #2's migration content cleanly.
+
+### Added
+
+- `carto-copy-maps` — cross-org / cross-profile map copy, AI-agent reference caveats (`UNAVAILABLE_MODEL`, `UNAVAILABLE_TOOL`), post-copy validation.
+- `carto-copy-workflows` — cross-org / cross-profile workflow copy + schedule re-add (schedules don't transfer).
+- 5 new reference files; salvages map-copy content from PR #2 (carto-migration, Feb 2026, by @anamanvil) directly into the copy skills.
+
+### Changed
+
+- `carto-create-analytics-workflow` no longer carries cross-profile-copy content. The `references/copy-promotion.md` file moved to `carto-copy-workflows/references/cross-profile-copy.md`. SKILL.md gains a "see also" pointer.
+- `docs/deferred-skills.md` clarifies that copy / agent-migration caveats are *not* the Builder PM's scope — they live in `carto-copy-maps`. The Builder PM only owns map authoring.
+
+### Catalog dependencies for new skills
+
+- `carto-copy-maps` → `carto-basics`, `carto-explore-datawarehouse`.
+- `carto-copy-workflows` → `carto-basics`, `carto-explore-datawarehouse`.
+
+### Deferred (no change in this release)
+
+- `carto-promote-between-orgs` use-case skill (multi-resource cross-org orchestration) — revisit when usage signals demand it.
+- `carto-create-builder-maps`, `carto-build-app` (still owned by Builder PM).
+- Watermarking docs and TS validator hardening — still gated on the CLI-team RFC.
+
+---
+
 ## 2.2.0-phase2b — 2026-04-28
 
 Adds **Codex** and **Gemini CLI** distribution alongside the existing Claude Code + Skills CLI surfaces. Same skills, three more harnesses.

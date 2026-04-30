@@ -54,7 +54,7 @@ In `native.customsql`, the `$a` / `$b` / `$c` placeholders expand to the upstrea
 
 **Always wrap the placeholders in backticks** in BigQuery customsql bodies:
 
-```sql
+```
 SELECT a.id, b.value
 FROM `$a` a
 JOIN `$b` b ON a.id = b.id
