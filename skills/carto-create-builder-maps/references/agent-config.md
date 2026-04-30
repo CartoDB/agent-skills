@@ -1,16 +1,16 @@
 # Agent on the map — `agent` block
 
-Enables the Agent in Builder's side panel. **Opt-in** — only include this block when the user explicitly asks for an Agent on the map. Tenant must have CARTO AI enabled.
+Enables the Agent on the map. **Opt-in** — only include this block when the user explicitly asks for an Agent on the map. Organization must have CARTO AI enabled.
 
-**Check tenant AI enablement before emitting an agent block:**
+**Check organization AI enablement before emitting an agent block:**
 
 ```sh
 carto maps agents status      # → { enabled, defaultModel, provider config }
 ```
 
-If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this tenant and skip. The CLI will also soft-strip an `agent` block and warn if it's present in a create/update on an AI-disabled tenant, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
+If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this organization and skip. The CLI will also soft-strip an `agent` block and warn if it's present in a create/update on an AI-disabled organization, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
 
-**You don't have to pick the model.** Omit `agent.config.model` and the CLI auto-fills it with the tenant's `defaultModel` from `/settings/carto-ai` (emits a `→ Using tenant default model for agent: …` log). Only set `agent.config.model` explicitly when the user asks for a specific provider or model — then `maps agents models` is the catalogue to pick from. If the tenant has neither AI enabled nor a `defaultModel`, the CLI surfaces the missing-model error at Tier-1 so you can act.
+**You don't have to pick the model.** Omit `agent.config.model` and the CLI auto-fills it with the organization's `defaultModel` from `/settings/carto-ai` (emits a `→ Using organization default model for agent: …` log). Only set `agent.config.model` explicitly when the user asks for a specific provider or model — then `maps agents models` is the catalogue to pick from. If the organization has neither AI enabled nor a `defaultModel`, the CLI surfaces the missing-model error at Tier-1 so you can act.
 
 Full tree required if `config` is included — Kepler's validator is strict.
 
@@ -40,7 +40,7 @@ Full tree required if `config` is included — Kepler's validator is strict.
 
 ### Model string grammar
 
-`<source>::<provider>::<model>`. `source` is `carto` for CARTO-managed models or `ac_xxxxxxxx` (tenant account id) for "bring your own key" entries. `provider` is `anthropic` / `openai` / `gemini` / `vertex` / `bedrock` / `azure` / etc. Discover what's enabled on this tenant: `carto maps agents models` (pretty) or `--json` (structured). Only strings from that list pass server-side validation — anything else silently falls back to the tenant default and surfaces as `agent.issues[]`.
+`<source>::<provider>::<model>`. `source` is `carto` for CARTO-managed models or `ac_xxxxxxxx` (organization account id) for "bring your own key" entries. `provider` is `anthropic` / `openai` / `gemini` / `vertex` / `bedrock` / `azure` / etc. Discover what's enabled on this organization: `carto maps agents models` (pretty) or `--json` (structured). Only strings from that list pass server-side validation — anything else silently falls back to the organization default and surfaces as `agent.issues[]`.
 
 ### Tools — `config.tools[]` is **MCP UUIDs only**
 
@@ -48,7 +48,7 @@ Full tree required if `config` is included — Kepler's validator is strict.
 
 | Command | Purpose |
 |---|---|
-| `carto maps agents mcp-tools [--json]` | List MCP tool UUIDs available on the tenant. Empty list ⇒ user must flip the MCP toggle on a workflow first. |
+| `carto maps agents mcp-tools [--json]` | List MCP tool UUIDs available on the organization. Empty list ⇒ user must flip the MCP toggle on a workflow first. |
 | `carto maps agents core-tools [--json]` | List built-in tools + activation rules + JSON-Schema `parameters` blocks (enough for an external caller to validate arguments). |
 
 **Core-tool activation rules (the agent sees these automatically — no config needed):**

@@ -18,7 +18,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 **Decision / orientation — read first**
 - [`references/cartography.md`](references/cartography.md) — cartographic decisions ahead of styling: palette family, scale type, basemap pairing, multi-layer hue separation, anti-patterns. Mandatory reading before writing JSON when styling decisions are in scope.
 - [`references/configuration-shape.md`](references/configuration-shape.md) — the JSON skeleton, annotated. `keplerMapConfig` top-level structure + `datasets[]` entries (table / query / tileset / raster) + `mapSettings` rules.
-- [`references/examples.md`](references/examples.md) — working templates validated against a live tenant: minimal map, H3 aggregation, SQL parameters, widgets gallery. Load when you need a JSON template to start from.
+- [`references/examples.md`](references/examples.md) — working templates validated against a live organization: minimal map, H3 aggregation, SQL parameters, widgets gallery. Load when you need a JSON template to start from.
 
 **Per-component — consult on demand while authoring**
 - [`references/layers.md`](references/layers.md) — per-layer-type authoring: `tileset` (point / line / polygon / 3D), `h3`, `quadbin`, `heatmapTile`, `clusterTile`, `raster`. Plus colour ranges (palettes / scales / `/stats`) and basemap-aware contrast.
@@ -26,7 +26,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 - [`references/popups.md`](references/popups.md) — `popupSettings` covers two interaction surfaces: tooltip popups (hover / click) AND info panels (docked side panel, click-only). 5-field hover cap, custom HTML templates with inline CSS, what the renderer sanitises out.
 - [`references/sql-parameters.md`](references/sql-parameters.md) — `Category`, `DateRange`, `Numeric`, `NumericRange`. `{{paramName}}` placeholder authoring + provider-native dialect translation.
 - [`references/basemap.md`](references/basemap.md) — write BOTH `basemapConfig.styleId` AND `mapStyle.styleType` to the same value (the screenshot engine + viewer SSR still read `mapStyle` today). CARTO basemaps / Google Maps / custom basemap catalogue.
-- [`references/agent-config.md`](references/agent-config.md) — Agent on a map (opt-in). Tenant-status check, model selection, MCP / core tool catalogues, capability-driven activation.
+- [`references/agent-config.md`](references/agent-config.md) — Agent on a map (opt-in). Organization-status check, model selection, MCP / core tool catalogues, capability-driven activation.
 
 **Operate / unstick**
 - [`references/updates.md`](references/updates.md) — CRUD lifecycle: recipes, the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), `--datasets-mode`, publish chaining, validation levers.
@@ -68,7 +68,7 @@ This phase is a **gate, not a suggestion**. But the order matters: **the data is
 #### Technical preconditions (silent — don't surface unless they fail)
 
 - **Auth status.** Run `carto auth status`. If unauthenticated, ask the user to run `carto auth login` and stop.
-- **Tenant AI status** (only if the user mentions an Agent on the map). `carto maps agents status` — if `enabled: false`, drop agent plans and tell the user.
+- **Organization AI status** (only if the user mentions an Agent on the map). `carto maps agents status` — if `enabled: false`, drop agent plans and tell the user.
 
 #### Time budget
 
@@ -96,7 +96,7 @@ Reference [`references/configuration-shape.md`](references/configuration-shape.m
 - `keplerMapConfig.config.popupSettings.layers` — emit by default for feature-identifying datasets (consult [`popups.md`](references/popups.md)).
 - `keplerMapConfig.config.sqlParameters[]` if filterable (consult [`sql-parameters.md`](references/sql-parameters.md)).
 - `keplerMapConfig.config.basemapConfig` + `mapStyle` — write both, same value (consult [`basemap.md`](references/basemap.md)).
-- `agent` block only if the user explicitly asked AND tenant AI is enabled (consult [`agent-config.md`](references/agent-config.md)).
+- `agent` block only if the user explicitly asked AND organization AI is enabled (consult [`agent-config.md`](references/agent-config.md)).
 
 ### Phase 4 — Validate offline
 
@@ -178,7 +178,7 @@ When you've assembled a map configuration and want an offline sanity check befor
 
 ### Reload Builder after a write
 
-Every write returns as soon as the server accepts the change. Builder loads the map into its in-memory client state once and does not subscribe to server events, so an open `https://<tenant>/builder/<id>` tab keeps showing stale state until the tab reloads. For remote / external agents (Claude in claude.ai, ChatGPT, MCP clients, anything without local browser access): tell the user. *"Map updated. Reload the Builder tab (Cmd/Ctrl+R) to see changes."*
+Every write returns as soon as the server accepts the change. Builder loads the map into its in-memory client state once and does not subscribe to server events, so an open `https://<org>/builder/<id>` tab keeps showing stale state until the tab reloads. For remote / external agents (Claude in claude.ai, ChatGPT, MCP clients, anything without local browser access): tell the user. *"Map updated. Reload the Builder tab (Cmd/Ctrl+R) to see changes."*
 
 ### Visual verification — `carto maps screenshot`, decided by map shape (no need to ask)
 
@@ -248,7 +248,7 @@ carto maps create [map.json]                      # new map from a configuration
 carto maps update <id> [patch.json] [--publish]   # partial update, optional auto-publish
 carto maps publish <id>                           # freeze a snapshot for shared/public viewers
 carto maps schema [section]                       # JSON Schema reference
-carto maps agents status                          # is CARTO AI enabled on this tenant?
+carto maps agents status                          # is CARTO AI enabled on this organization?
 carto maps markers upload <file.svg|file.png>     # upload a custom marker icon, returns URL
 carto maps screenshot <id>                        # PNG render for visual verification
 carto --commands --json                           # full CLI command catalogue (machine-readable)

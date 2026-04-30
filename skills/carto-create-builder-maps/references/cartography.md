@@ -55,7 +55,7 @@ If the user's prompt names the measure but not the column (*"map population dens
 
 ## 1. Pick the layer type
 
-**Most of this is not your call.** The layer type is almost entirely determined by the **source** — the dataset's type / indexing / geometry, resolved from the tenant's connection metadata. The agent doesn't *decide* that an h3-indexed table renders as an `h3` layer or that a raster band store renders as a `raster` layer. Those are fixed by the data.
+**Most of this is not your call.** The layer type is almost entirely determined by the **source** — the dataset's type / indexing / geometry, resolved from the organization's connection metadata. The agent doesn't *decide* that an h3-indexed table renders as an `h3` layer or that a raster band store renders as a `raster` layer. Those are fixed by the data.
 
 **Source → layer type:**
 
@@ -728,7 +728,7 @@ Data is a photo-real raster (satellite imagery, NDVI composite)
 
 Data is about real-world features that need high-zoom context
 (delivery routes, indoor plans, detailed ops)
-└── Use Google `satellite` or `hybrid` — requires tenant Google Maps key
+└── Use Google `satellite` or `hybrid` — requires organization Google Maps key
 ```
 
 **Default, when in doubt: `positron`.** It's neutral, doesn't fight the data, and works with every palette family.

@@ -1,6 +1,6 @@
 # CARTO map configuration examples — full bundles ready for `carto maps create`
 
-> Companion reference for the `carto-maps` skill. Each example is a complete map configuration validated end-to-end against a live CARTO tenant and ready to pipe into `carto maps create`. Replace `<connection-id>` with a real one from `carto connections list`. For when to use what, see the parent `SKILL.md`; for cartographic decisions, see the sibling `cartography.md` in this `references/` directory.
+> Companion reference for the `carto-maps` skill. Each example is a complete map configuration validated end-to-end against a live CARTO organization and ready to pipe into `carto maps create`. Replace `<connection-id>` with a real one from `carto connections list`. For when to use what, see the parent `SKILL.md`; for cartographic decisions, see the sibling `cartography.md` in this `references/` directory.
 
 ## Index
 

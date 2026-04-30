@@ -78,7 +78,7 @@ Each aggregatable channel has its own `<channel>Aggregation` knob in `visConfig`
 For icon-per-category rendering on point tilesets, you need **four things**, all required:
 
 1. **`visConfig.customMarkers: true`** — toggle the channel on.
-2. **`visConfig.customMarkersUrl`** — fallback icon URL for any feature whose value isn't in the markerMap. Without it, those features render iconless. Use a tenant-served Maki URL (`<tenant>.app.carto.com/markers/maki/<icon>.svg`) or a URL from your own upload (see below).
+2. **`visConfig.customMarkersUrl`** — fallback icon URL for any feature whose value isn't in the markerMap. Without it, those features render iconless. Use an organization-served Maki URL (`<org>.app.carto.com/markers/maki/<icon>.svg`) or a URL from your own upload (see below).
 3. **`visConfig.customMarkersRange.markerMap[]`** — array of `{ value, markerId | markerUrl }` per category. **Each entry sets EITHER `markerId` OR `markerUrl`, never both** — `markerId` references the Maki icon catalogue (`"restaurant"`, `"lodging"`, `"airport"`, etc.); `markerUrl` accepts any custom SVG / PNG URL. Tier-1 rejects entries that set both.
 4. **`visualChannels.customMarkersField`** + **`customMarkersScale: "ordinal"`** — the binding that says "use this column to look up which icon goes on each feature". Without the field, the markerMap is dead config and every feature renders the fallback. Tier-1 rejects `customMarkers: true` + populated markerMap with no `customMarkersField`.
 
@@ -89,7 +89,7 @@ $ carto maps markers upload restaurant.svg --json | jq -r .url
 https://example.carto.com/assets/<asset-id>
 ```
 
-Constraints (mirrored from Builder): file size ≤ 200 KB, format `.svg` or `.png` only, PNG resolution ≤ 120 × 120 px (SVGs unconstrained). Pass `--public` for markers on `privacy: "public"` maps so viewers without a tenant session can load the icon (uses the GCS signed-URL path).
+Constraints (mirrored from Builder): file size ≤ 200 KB, format `.svg` or `.png` only, PNG resolution ≤ 120 × 120 px (SVGs unconstrained). Pass `--public` for markers on `privacy: "public"` maps so viewers without an organization session can load the icon (uses the GCS signed-URL path).
 
 Once uploaded, drop the URL into either `customMarkersUrl` (single-icon use) or `customMarkersRange.markerMap[].markerUrl` (per-category). Run `carto maps schema layer.tileset` for the full visConfig schema.
 
@@ -610,7 +610,7 @@ For every active visual channel with `Field` + a non-identity `Scale`, the CLI h
 
 ## Contrast — basemap-aware colour picking
 
-White-on-light or dark-on-dark renders invisible. The CLI does not auto-adjust for basemap tone — agents must pick right the first time. The full basemap × palette × narrative decision tree (light/dark fill picks, sequential ramp ends, qualitative palettes, diverging midpoints, opacity defaults) lives in [`references/cartography.md`](cartography.md) §4.4 (dark-basemap considerations) and §5 (basemap pairing). Default when basemap is ambiguous: `positron` + a light-basemap palette (CARTO default, no tenant dependency). See [`references/basemap.md`](basemap.md) for the basemap catalogue (CARTO basemaps, Google Maps, custom).
+White-on-light or dark-on-dark renders invisible. The CLI does not auto-adjust for basemap tone — agents must pick right the first time. The full basemap × palette × narrative decision tree (light/dark fill picks, sequential ramp ends, qualitative palettes, diverging midpoints, opacity defaults) lives in [`references/cartography.md`](cartography.md) §4.4 (dark-basemap considerations) and §5 (basemap pairing). Default when basemap is ambiguous: `positron` + a light-basemap palette (CARTO default, no organization dependency). See [`references/basemap.md`](basemap.md) for the basemap catalogue (CARTO basemaps, Google Maps, custom).
 
 ---
 
