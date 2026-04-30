@@ -17,7 +17,7 @@ Live introspection commands (use these before reaching for any reference file):
 | Command | What it serves |
 |---|---|
 | `carto workflows schema` | Index of all bundle/DAG schema sections |
-| `carto workflows schema bundle` | Top-level bundle shape (id, title, connectionId, config, privacy, tags) |
+| `carto workflows schema bundle` | Top-level bundle shape (id, title, connectionId, config, privacy, tags). `privacy` is a `$ref` — fetch its shape with `carto workflows schema privacy`. Minimal valid form: `"privacy": { "privacy": "private" }` (the inner string is *not* a bare `"private"` — `enums` lists the allowed values for that inner field). |
 | `carto workflows schema config` | Full DAG config (schemaVersion, connectionProvider enum, nodes, edges, variables, viewport, useCache, executionSettings, schedule) |
 | `carto workflows schema node` | Generic node shape, including `data.version` requirement and `data.title` vs `data.label` |
 | `carto workflows schema node.source` | Source/`ReadTable` node shape and the `data.id == data.inputs[0].value` invariant |
@@ -50,8 +50,17 @@ References (only for what the CLI doesn't serve):
 
 1. **Identify data sources.** If the user named tables, note them. Otherwise discover what's available with `carto connections list` and `carto connections describe <connection> "<fqn>"`.
 2. **Clarify the goal.** What transformation? What output? What filters/conditions?
-3. **Determine the connection.** `carto connections list | head -n 20`.
-4. **Fetch the component catalog.** `carto workflows components list --connection <connection> --json` — your only source of truth for component names.
+3. **Determine the connection.** `carto connections list | head -n 20`. Note its `provider` (`bigquery` / `snowflake` / `databricks`) — you will need it for the next step.
+4. **Read the provider reference.**
+
+   <critical-rule id="read-provider-reference">
+   Before writing any node, you MUST open `references/providers/<provider>.md` (e.g. `references/providers/bigquery.md`) and read it end-to-end. This is non-negotiable.
+
+   <why>It contains identifier-quoting rules, column-casing behaviour, Analytics Toolbox path, schedule-expression dialect, and customsql `$a`/`$b` placeholder requirements that `validate` cannot catch. These only surface later as `verify-remote` failures or runtime SQL errors, and are the single most common cause of late-stage rework.</why>
+
+   <do-not>Do not skip this step because the next phases look concrete. Do not rely on memory of a previous run — provider files change.</do-not>
+   </critical-rule>
+5. **Fetch the component catalog.** `carto workflows components list --connection <connection> --json` — your only source of truth for component names.
 
 ### Phase 2 — Design the approach
 
@@ -77,11 +86,15 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
 ### Phase 4 — Build the workflow
 
 1. Create the workflow file. Get the bundle/node/edge/variable shapes from `carto workflows schema [section]` (start with `bundle`, then `node`, `node.source`, `node.customsql`, `edge`, `handles`). For customsql nodes, copy the template from `carto workflows schema customsql`.
+
+   If you set the optional top-level `privacy`, it must be an **object**, not a string: `"privacy": { "privacy": "private" }` (the field name nests). Omit the field entirely if you don't need it — `"privacy": "private"` will fail `validate`.
 2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately:
    ```bash
    carto workflows validate workflow.json --json
    ```
    Treat any save without a passing `validate` as broken — fix before continuing to the next node/edge.
+
+   **`validate` is authoritative.** If a component schema from `components get` disagrees with what `validate` accepts, trust `validate` and adjust the bundle to satisfy it. Do not "fix" the bundle to match the schema if it's already passing validation.
 3. **Run `verify` at branch boundaries**, not on every save. It hits the warehouse (slower, requires auth), so reserve it for whole sub-DAGs once their structure validates clean, and once at the end before presenting:
    ```bash
    carto workflows verify-remote workflow.json --connection <connection-name> --json
@@ -119,7 +132,8 @@ Common operations and their native equivalents — try these first:
 | If you'd write SQL like… | Use natives |
 |---|---|
 | `WHERE x = …` / multi-condition filter | `native.simplefilter` |
-| `SELECT a, b, expr AS c FROM t` | `native.selectexpression` (per column) or `native.select` (projection) |
+| `SELECT a, b, c FROM t` (multi-column projection / rename / multi-expression) | `native.select` (one node, free-form SELECT body) |
+| `SELECT ..., expr AS c FROM t` (add **one** computed column) | `native.selectexpression` (one column + one expression per node) |
 | `GROUP BY k, SUM(x), AVG(y), COUNT(*)` | `native.groupby` |
 | `JOIN ... ON a.k = b.k` (any join type) | `native.joinv2` |
 | `JOIN ... ON ST_INTERSECTS / ST_CONTAINS / ST_WITHIN` | `native.spatialjoin` |
@@ -136,7 +150,7 @@ Signals you're reaching for customsql too early — stop and look for a native c
 
 - The customsql is just a `WHERE` clause, a single `JOIN`, a `GROUP BY` with one or two aggregates, or a column projection.
 - It wraps a single warehouse function (`ST_BUFFER`, `H3_FROMGEOGPOINT`, etc.) for which a dedicated native exists.
-- Its only purpose is to rename or re-cast columns — use `native.selectexpression`.
+- Its only purpose is to project/rename/re-cast columns — use `native.select` (free-form SELECT body, one node) for multiple columns; `native.selectexpression` is for adding a single computed column.
 - You're chaining customsql outputs through more customsql nodes — chain natives instead.
 
 When customsql is genuinely the right call, the per-warehouse SQL-dialect footguns live in the matching `references/providers/*.md` (BigQuery backticks, Snowflake casing, Databricks identifiers).
