@@ -1,0 +1,2158 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "id": "reactflow__edge-18073c41-9eff-4a39-9ce0-318094adfe61match-c86aade0-7939-4e59-aac4-f5161d4a129ctable",
+      "source": "18073c41-9eff-4a39-9ce0-318094adfe61",
+      "target": "c86aade0-7939-4e59-aac4-f5161d4a129c",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "match",
+      "targetHandle": "table"
+    },
+    {
+      "id": "c86aade0-7939-4e59-aac4-f5161d4a129cresult-11e0a9e1-7bfb-4143-bebc-89c097f0a1e0source",
+      "source": "c86aade0-7939-4e59-aac4-f5161d4a129c",
+      "target": "11e0a9e1-7bfb-4143-bebc-89c097f0a1e0",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-2537e5e8-23c1-4767-9c88-94e6626e79d5result-9644d8b2-6e0a-468e-8f2d-e6c1d5794441maintable",
+      "source": "2537e5e8-23c1-4767-9c88-94e6626e79d5",
+      "target": "9644d8b2-6e0a-468e-8f2d-e6c1d5794441",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "maintable"
+    },
+    {
+      "id": "11e0a9e1-7bfb-4143-bebc-89c097f0a1e0result-a03d37a9-67a3-492e-af5e-a750c315eb39source",
+      "source": "11e0a9e1-7bfb-4143-bebc-89c097f0a1e0",
+      "target": "a03d37a9-67a3-492e-af5e-a750c315eb39",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "a03d37a9-67a3-492e-af5e-a750c315eb39result-2537e5e8-23c1-4767-9c88-94e6626e79d5source",
+      "source": "a03d37a9-67a3-492e-af5e-a750c315eb39",
+      "target": "2537e5e8-23c1-4767-9c88-94e6626e79d5",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-import_7fafa6a4_12d8_454c_9ced_7854de115889out-9644d8b2-6e0a-468e-8f2d-e6c1d5794441secondarytable",
+      "source": "import_7fafa6a4_12d8_454c_9ced_7854de115889",
+      "target": "9644d8b2-6e0a-468e-8f2d-e6c1d5794441",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "secondarytable"
+    },
+    {
+      "id": "reactflow__edge-import_6903d720_52df_4612_9939_1a8731743cb6out-18073c41-9eff-4a39-9ce0-318094adfe61source",
+      "source": "import_6903d720_52df_4612_9939_1a8731743cb6",
+      "target": "18073c41-9eff-4a39-9ce0-318094adfe61",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "source"
+    },
+    {
+      "id": "da032bd9-c18d-45f4-b65a-77a97a36763c",
+      "source": "9905cf1a-e54d-4a7b-9dcf-855562013354",
+      "target": "010ef399-60bb-4a2b-9a0e-bd05dc924528",
+      "animated": false,
+      "sourceHandle": "result",
+      "targetHandle": "secondarytable"
+    },
+    {
+      "source": "9644d8b2-6e0a-468e-8f2d-e6c1d5794441",
+      "sourceHandle": "result",
+      "target": "9905cf1a-e54d-4a7b-9dcf-855562013354",
+      "targetHandle": "source",
+      "id": "0347bcda-e25b-4ae7-9d5b-c3876b297ce5",
+      "animated": false
+    },
+    {
+      "source": "a03d37a9-67a3-492e-af5e-a750c315eb39",
+      "sourceHandle": "result",
+      "target": "010ef399-60bb-4a2b-9a0e-bd05dc924528",
+      "targetHandle": "maintable",
+      "id": "042d876a-dfe6-476b-a282-de6fff12afb4",
+      "animated": false
+    }
+  ],
+  "nodes": [
+    {
+      "id": "18073c41-9eff-4a39-9ce0-318094adfe61",
+      "data": {
+        "name": "native.wheresimplified",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "boolean"
+            ],
+            "description": "Column",
+            "value": "storetype"
+          },
+          {
+            "name": "operator",
+            "type": "Selection",
+            "title": "Operator",
+            "options": [
+              "equal to",
+              "not equal",
+              "less than",
+              "greater than",
+              "equal or less than",
+              "equal or greater than"
+            ],
+            "description": "Operator",
+            "value": "equal to"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "title": "Value",
+            "description": "Value",
+            "value": "Supermarket"
+          },
+          {
+            "name": "optimizationcol",
+            "value": "geom"
+          }
+        ],
+        "version": "1",
+        "label": "Simple Filter"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 544,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 544,
+        "y": 432
+      }
+    },
+    {
+      "id": "c86aade0-7939-4e59-aac4-f5161d4a129c",
+      "data": {
+        "name": "native.orderby",
+        "inputs": [
+          {
+            "name": "table",
+            "type": "Table",
+            "title": "Table to order",
+            "description": "Table to order"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column to order by",
+            "dataType": [
+              "number",
+              "string",
+              "date",
+              "time",
+              "datetime",
+              "timestamp"
+            ],
+            "parent": "table",
+            "description": "Column to order by",
+            "value": "revenue"
+          },
+          {
+            "name": "desc",
+            "type": "Boolean",
+            "title": "Use descending order",
+            "default": false,
+            "description": "Use descending order",
+            "value": true
+          },
+          {
+            "name": "columnb",
+            "type": "Column",
+            "title": "Optional secondary column to order by",
+            "parent": "table",
+            "dataType": [
+              "number",
+              "string",
+              "date",
+              "time",
+              "datetime",
+              "timestamp"
+            ],
+            "default": null,
+            "optional": true,
+            "description": "Optional secondary column to order by",
+            "value": null
+          },
+          {
+            "name": "descb",
+            "type": "Boolean",
+            "title": "Use descending order in secondary column",
+            "default": false,
+            "description": "Use descending order in secondary column",
+            "value": false
+          },
+          {
+            "name": "optimizationcol"
+          }
+        ],
+        "version": "1",
+        "label": "Order by"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 672,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 672,
+        "y": 432
+      }
+    },
+    {
+      "id": "11e0a9e1-7bfb-4143-bebc-89c097f0a1e0",
+      "data": {
+        "name": "native.limit",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "limit",
+            "type": "Number",
+            "title": "Number of rows",
+            "min": 1,
+            "default": 10,
+            "description": "Number of rows",
+            "value": "100"
+          },
+          {
+            "name": "optimizationcol",
+            "value": "geom"
+          }
+        ],
+        "version": "1",
+        "label": "Limit"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 800,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 800,
+        "y": 432
+      }
+    },
+    {
+      "id": "2537e5e8-23c1-4767-9c88-94e6626e79d5",
+      "data": {
+        "name": "native.h3polyfill",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "geo",
+            "type": "Column",
+            "title": "Geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column",
+            "value": "geom"
+          },
+          {
+            "name": "resolution",
+            "type": "Number",
+            "title": "Resolution",
+            "helper": "Hexagon edge length: 2=182km | 6=4km | 10=76m | 14=1.5m",
+            "min": 0,
+            "max": 15,
+            "default": 8,
+            "mode": "slider",
+            "description": "Resolution",
+            "value": 8
+          },
+          {
+            "name": "includecols",
+            "type": "Boolean",
+            "title": "Keep input table columns",
+            "default": false,
+            "description": "Keep input table columns",
+            "value": true
+          },
+          {
+            "name": "optimizationcol",
+            "value": "h3"
+          }
+        ],
+        "version": "1",
+        "label": "H3 Polyfill"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1328,
+        "y": 480
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1328,
+        "y": 480
+      }
+    },
+    {
+      "id": "9644d8b2-6e0a-468e-8f2d-e6c1d5794441",
+      "data": {
+        "name": "native.join",
+        "inputs": [
+          {
+            "name": "maintable",
+            "type": "Table",
+            "title": "Main table",
+            "description": "Main table"
+          },
+          {
+            "name": "secondarytable",
+            "type": "Table",
+            "title": "Secondary table",
+            "description": "Secondary table"
+          },
+          {
+            "name": "maincolumn",
+            "type": "Column",
+            "title": "Column in main table",
+            "parent": "maintable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in main table",
+            "value": "h3"
+          },
+          {
+            "name": "secondarycolumn",
+            "type": "Column",
+            "title": "Column in secondary table",
+            "parent": "secondarytable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in secondary table",
+            "value": "h3"
+          },
+          {
+            "name": "jointype",
+            "type": "Selection",
+            "title": "Join type",
+            "options": [
+              "Inner",
+              "Left",
+              "Right",
+              "Full outer"
+            ],
+            "default": "Inner",
+            "description": "Join type",
+            "value": "Inner"
+          },
+          {
+            "name": "optimizationcol"
+          }
+        ],
+        "version": "1.1",
+        "label": "Join"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1488,
+        "y": 528
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1488,
+        "y": 528
+      }
+    },
+    {
+      "id": "a03d37a9-67a3-492e-af5e-a750c315eb39",
+      "data": {
+        "name": "native.isolines",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "geo",
+            "type": "Column",
+            "title": "Geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column",
+            "value": "geom"
+          },
+          {
+            "name": "mode",
+            "type": "Selection",
+            "title": "Mode",
+            "options": [
+              "Walk",
+              "Car",
+              "Bike",
+              "Public transport",
+              "Coach",
+              "Bus",
+              "Train",
+              "Ferry"
+            ],
+            "description": "Mode",
+            "value": "car"
+          },
+          {
+            "name": "type",
+            "type": "Selection",
+            "title": "Type of range",
+            "options": [
+              "time",
+              "distance"
+            ],
+            "description": "Type of range",
+            "value": "time"
+          },
+          {
+            "name": "range",
+            "type": "Number",
+            "title": "Range value (seconds/meters)",
+            "min": 0,
+            "description": "Range value (seconds/meters)",
+            "value": "600"
+          },
+          {
+            "name": "customoptions",
+            "type": "String",
+            "title": "Isolines options",
+            "default": "",
+            "optional": true,
+            "mode": "multiline",
+            "allowExpressions": false,
+            "advanced": true,
+            "description": "Isolines options",
+            "value": "{ }"
+          },
+          {
+            "name": "traveltime_departure_time",
+            "type": "String",
+            "title": "Departure time",
+            "optional": true,
+            "placeholder": "YYYY-MM-DDThh:mm:ss"
+          },
+          {
+            "name": "traveltime_single_shape",
+            "type": "Boolean",
+            "title": "Single Shape",
+            "default": true
+          }
+        ],
+        "version": "2",
+        "label": "Create Isolines"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1040,
+        "y": 448
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1040,
+        "y": 448
+      }
+    },
+    {
+      "id": "010ef399-60bb-4a2b-9a0e-bd05dc924528",
+      "data": {
+        "name": "native.join",
+        "inputs": [
+          {
+            "name": "maintable",
+            "type": "Table",
+            "title": "Main table",
+            "description": "Main table"
+          },
+          {
+            "name": "secondarytable",
+            "type": "Table",
+            "title": "Secondary table",
+            "description": "Secondary table"
+          },
+          {
+            "name": "maincolumn",
+            "type": "Column",
+            "title": "Column in main table",
+            "parent": "maintable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in main table",
+            "value": "store_id"
+          },
+          {
+            "name": "secondarycolumn",
+            "type": "Column",
+            "title": "Column in secondary table",
+            "parent": "secondarytable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in secondary table",
+            "value": "store_id"
+          },
+          {
+            "name": "jointype",
+            "type": "Selection",
+            "title": "Join type",
+            "options": [
+              "Inner",
+              "Left",
+              "Right",
+              "Full outer"
+            ],
+            "default": "Inner",
+            "description": "Join type",
+            "value": "Inner"
+          },
+          {
+            "name": "optimizationcol"
+          }
+        ],
+        "version": "1.1",
+        "label": "Join"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1760,
+        "y": 400
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1760,
+        "y": 400
+      }
+    },
+    {
+      "id": "edc26a44-32d3-4c4f-8a10-9a732dfa7cf2",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 480,
+        "height": 224,
+        "inputs": [],
+        "markdown": "---\nlabel: Retail\n---\n## Estimate population around top performant retail stores \ud83d\uded2\n \nThis workflow example filters out the top retail stores that belong to a specific category and computes the population living around them."
+      },
+      "type": "note",
+      "width": 480,
+      "height": 224,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 176,
+        "y": -48
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 176,
+        "y": -48
+      }
+    },
+    {
+      "id": "095a5e71-b26f-47e9-b2c8-4c8bd7555fbf",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 255.991,
+        "height": 367.993,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Store locations in Colorado\n"
+      },
+      "type": "note",
+      "width": 256,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 176,
+        "y": 192
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 176,
+        "y": 192
+      }
+    },
+    {
+      "id": "095a5e71-b26f-47e9-b2c8-4c8bd7555fbf-1697204190336",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 479.991,
+        "height": 367.993,
+        "inputs": [],
+        "markdown": "---\nlabel: Data preparation\n---\n## Filtering the top 100 Supermarkets generating more revenue\n\nOut of the different store types, we will filter out and keep only the Supermarkets. Then, we will rank the different supermarkets based on their revenue and keep only the top 100."
+      },
+      "type": "note",
+      "width": 480,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 448,
+        "y": 192
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 448,
+        "y": 192
+      }
+    },
+    {
+      "id": "b53391c8-ac56-4cc9-b665-1037e7553c27",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 271.98699999999997,
+        "height": 368,
+        "inputs": [],
+        "markdown": "---\nlabel: Analysis\n---\n## Computing trade areas\nIn this step we compute the 10-min car driving isolines around each store. We will consider those as their trade areas."
+      },
+      "type": "note",
+      "width": 272,
+      "height": 368,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 944,
+        "y": 192
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 944,
+        "y": 192
+      }
+    },
+    {
+      "id": "68851ea4-efb6-44f1-a21b-f43d9901e182",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 511.99899999999997,
+        "height": 287.995,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## CARTO Spatial Features - Colorado\nIn this step we load CARTO Spatial Features that contain information such as population, urbanity, etc. for the whole USA in H3 spatial index format, filtered for the state of Colorado."
+      },
+      "type": "note",
+      "width": 512,
+      "height": 288,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 176,
+        "y": 576
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 176,
+        "y": 576
+      }
+    },
+    {
+      "id": "d7afd6b6-b7d1-4da6-9f6b-37763a946e33",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 639.9870000000001,
+        "height": 447.99899999999997,
+        "inputs": [],
+        "markdown": "---\nlabel: Analysis\n---\n## Aggregating population around each store\nIn these steps we first polyfill the trade areas based on H3 spatial index. We use the H3 id to join the cells with the Spatial Features data and we aggregate the population at each store with the Group By component. Finally, we join again the data about the different stores."
+      },
+      "type": "note",
+      "width": 640,
+      "height": 448,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1232,
+        "y": 192
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1232,
+        "y": 192
+      }
+    },
+    {
+      "id": "import_7fafa6a4_12d8_454c_9ced_7854de115889",
+      "data": {
+        "id": "carto-dw-ac-jfjjof5m.workflows_temp_ernesto_pmadmin_aa2de528.import_7fafa6a4_12d8_454c_9ced_7854de115889",
+        "name": "ReadTable",
+        "size": 1370186374,
+        "type": "table",
+        "label": "derived_spatialfeatures_colorado_h3res8",
+        "nrows": 335435,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table",
+            "value": "carto-dw-ac-jfjjof5m.workflows_temp_ernesto_pmadmin_aa2de528.import_7fafa6a4_12d8_454c_9ced_7854de115889",
+            "description": "Read Table"
+          }
+        ],
+        "schema": [
+          {
+            "name": "h3",
+            "type": "string"
+          },
+          {
+            "name": "do_date",
+            "type": "timestamp"
+          },
+          {
+            "name": "country_iso",
+            "type": "string"
+          },
+          {
+            "name": "country_iso_a3",
+            "type": "string"
+          },
+          {
+            "name": "population",
+            "type": "number"
+          },
+          {
+            "name": "female",
+            "type": "number"
+          },
+          {
+            "name": "male",
+            "type": "number"
+          },
+          {
+            "name": "female_under_1",
+            "type": "number"
+          },
+          {
+            "name": "female_1_to_4",
+            "type": "number"
+          },
+          {
+            "name": "female_5_to_9",
+            "type": "number"
+          },
+          {
+            "name": "female_10_to_14",
+            "type": "number"
+          },
+          {
+            "name": "female_15_to_19",
+            "type": "number"
+          },
+          {
+            "name": "female_20_to_24",
+            "type": "number"
+          },
+          {
+            "name": "female_25_to_29",
+            "type": "number"
+          },
+          {
+            "name": "female_30_to_34",
+            "type": "number"
+          },
+          {
+            "name": "female_35_to_39",
+            "type": "number"
+          },
+          {
+            "name": "female_40_to_44",
+            "type": "number"
+          },
+          {
+            "name": "female_45_to_49",
+            "type": "number"
+          },
+          {
+            "name": "female_50_to_54",
+            "type": "number"
+          },
+          {
+            "name": "female_55_to_59",
+            "type": "number"
+          },
+          {
+            "name": "female_60_to_64",
+            "type": "number"
+          },
+          {
+            "name": "female_65_to_69",
+            "type": "number"
+          },
+          {
+            "name": "female_70_to_74",
+            "type": "number"
+          },
+          {
+            "name": "female_75_to_79",
+            "type": "number"
+          },
+          {
+            "name": "female_80_and_over",
+            "type": "number"
+          },
+          {
+            "name": "male_under_1",
+            "type": "number"
+          },
+          {
+            "name": "male_1_to_4",
+            "type": "number"
+          },
+          {
+            "name": "male_5_to_9",
+            "type": "number"
+          },
+          {
+            "name": "male_10_to_14",
+            "type": "number"
+          },
+          {
+            "name": "male_15_to_19",
+            "type": "number"
+          },
+          {
+            "name": "male_20_to_24",
+            "type": "number"
+          },
+          {
+            "name": "male_25_to_29",
+            "type": "number"
+          },
+          {
+            "name": "male_30_to_34",
+            "type": "number"
+          },
+          {
+            "name": "male_35_to_39",
+            "type": "number"
+          },
+          {
+            "name": "male_40_to_44",
+            "type": "number"
+          },
+          {
+            "name": "male_45_to_49",
+            "type": "number"
+          },
+          {
+            "name": "male_50_to_54",
+            "type": "number"
+          },
+          {
+            "name": "male_55_to_59",
+            "type": "number"
+          },
+          {
+            "name": "male_60_to_64",
+            "type": "number"
+          },
+          {
+            "name": "male_65_to_69",
+            "type": "number"
+          },
+          {
+            "name": "male_70_to_74",
+            "type": "number"
+          },
+          {
+            "name": "male_75_to_79",
+            "type": "number"
+          },
+          {
+            "name": "male_80_and_over",
+            "type": "number"
+          },
+          {
+            "name": "retail",
+            "type": "number"
+          },
+          {
+            "name": "education",
+            "type": "number"
+          },
+          {
+            "name": "financial",
+            "type": "number"
+          },
+          {
+            "name": "food_drink",
+            "type": "number"
+          },
+          {
+            "name": "healthcare",
+            "type": "number"
+          },
+          {
+            "name": "leisure",
+            "type": "number"
+          },
+          {
+            "name": "tourism",
+            "type": "number"
+          },
+          {
+            "name": "transportation",
+            "type": "number"
+          },
+          {
+            "name": "elevation",
+            "type": "number"
+          },
+          {
+            "name": "urbanity",
+            "type": "string"
+          },
+          {
+            "name": "tmin_jan",
+            "type": "number"
+          },
+          {
+            "name": "tmin_feb",
+            "type": "number"
+          },
+          {
+            "name": "tmin_mar",
+            "type": "number"
+          },
+          {
+            "name": "tmin_apr",
+            "type": "number"
+          },
+          {
+            "name": "tmin_may",
+            "type": "number"
+          },
+          {
+            "name": "tmin_jun",
+            "type": "number"
+          },
+          {
+            "name": "tmin_jul",
+            "type": "number"
+          },
+          {
+            "name": "tmin_aug",
+            "type": "number"
+          },
+          {
+            "name": "tmin_sep",
+            "type": "number"
+          },
+          {
+            "name": "tmin_oct",
+            "type": "number"
+          },
+          {
+            "name": "tmin_nov",
+            "type": "number"
+          },
+          {
+            "name": "tmin_dec",
+            "type": "number"
+          },
+          {
+            "name": "tmax_jan",
+            "type": "number"
+          },
+          {
+            "name": "tmax_feb",
+            "type": "number"
+          },
+          {
+            "name": "tmax_mar",
+            "type": "number"
+          },
+          {
+            "name": "tmax_apr",
+            "type": "number"
+          },
+          {
+            "name": "tmax_may",
+            "type": "number"
+          },
+          {
+            "name": "tmax_jun",
+            "type": "number"
+          },
+          {
+            "name": "tmax_jul",
+            "type": "number"
+          },
+          {
+            "name": "tmax_aug",
+            "type": "number"
+          },
+          {
+            "name": "tmax_sep",
+            "type": "number"
+          },
+          {
+            "name": "tmax_oct",
+            "type": "number"
+          },
+          {
+            "name": "tmax_nov",
+            "type": "number"
+          },
+          {
+            "name": "tmax_dec",
+            "type": "number"
+          },
+          {
+            "name": "tavg_jan",
+            "type": "number"
+          },
+          {
+            "name": "tavg_feb",
+            "type": "number"
+          },
+          {
+            "name": "tavg_mar",
+            "type": "number"
+          },
+          {
+            "name": "tavg_apr",
+            "type": "number"
+          },
+          {
+            "name": "tavg_may",
+            "type": "number"
+          },
+          {
+            "name": "tavg_jun",
+            "type": "number"
+          },
+          {
+            "name": "tavg_jul",
+            "type": "number"
+          },
+          {
+            "name": "tavg_aug",
+            "type": "number"
+          },
+          {
+            "name": "tavg_sep",
+            "type": "number"
+          },
+          {
+            "name": "tavg_oct",
+            "type": "number"
+          },
+          {
+            "name": "tavg_nov",
+            "type": "number"
+          },
+          {
+            "name": "tavg_dec",
+            "type": "number"
+          },
+          {
+            "name": "prec_jan",
+            "type": "number"
+          },
+          {
+            "name": "prec_feb",
+            "type": "number"
+          },
+          {
+            "name": "prec_mar",
+            "type": "number"
+          },
+          {
+            "name": "prec_apr",
+            "type": "number"
+          },
+          {
+            "name": "prec_may",
+            "type": "number"
+          },
+          {
+            "name": "prec_jun",
+            "type": "number"
+          },
+          {
+            "name": "prec_jul",
+            "type": "number"
+          },
+          {
+            "name": "prec_aug",
+            "type": "number"
+          },
+          {
+            "name": "prec_sep",
+            "type": "number"
+          },
+          {
+            "name": "prec_oct",
+            "type": "number"
+          },
+          {
+            "name": "prec_nov",
+            "type": "number"
+          },
+          {
+            "name": "prec_dec",
+            "type": "number"
+          },
+          {
+            "name": "srad_jan",
+            "type": "number"
+          },
+          {
+            "name": "srad_feb",
+            "type": "number"
+          },
+          {
+            "name": "srad_mar",
+            "type": "number"
+          },
+          {
+            "name": "srad_apr",
+            "type": "number"
+          },
+          {
+            "name": "srad_may",
+            "type": "number"
+          },
+          {
+            "name": "srad_jun",
+            "type": "number"
+          },
+          {
+            "name": "srad_jul",
+            "type": "number"
+          },
+          {
+            "name": "srad_aug",
+            "type": "number"
+          },
+          {
+            "name": "srad_sep",
+            "type": "number"
+          },
+          {
+            "name": "srad_oct",
+            "type": "number"
+          },
+          {
+            "name": "srad_nov",
+            "type": "number"
+          },
+          {
+            "name": "srad_dec",
+            "type": "number"
+          },
+          {
+            "name": "wind_jan",
+            "type": "number"
+          },
+          {
+            "name": "wind_feb",
+            "type": "number"
+          },
+          {
+            "name": "wind_mar",
+            "type": "number"
+          },
+          {
+            "name": "wind_apr",
+            "type": "number"
+          },
+          {
+            "name": "wind_may",
+            "type": "number"
+          },
+          {
+            "name": "wind_jun",
+            "type": "number"
+          },
+          {
+            "name": "wind_jul",
+            "type": "number"
+          },
+          {
+            "name": "wind_aug",
+            "type": "number"
+          },
+          {
+            "name": "wind_sep",
+            "type": "number"
+          },
+          {
+            "name": "wind_oct",
+            "type": "number"
+          },
+          {
+            "name": "wind_nov",
+            "type": "number"
+          },
+          {
+            "name": "wind_dec",
+            "type": "number"
+          },
+          {
+            "name": "vapr_jan",
+            "type": "number"
+          },
+          {
+            "name": "vapr_feb",
+            "type": "number"
+          },
+          {
+            "name": "vapr_mar",
+            "type": "number"
+          },
+          {
+            "name": "vapr_apr",
+            "type": "number"
+          },
+          {
+            "name": "vapr_may",
+            "type": "number"
+          },
+          {
+            "name": "vapr_jun",
+            "type": "number"
+          },
+          {
+            "name": "vapr_jul",
+            "type": "number"
+          },
+          {
+            "name": "vapr_aug",
+            "type": "number"
+          },
+          {
+            "name": "vapr_sep",
+            "type": "number"
+          },
+          {
+            "name": "vapr_oct",
+            "type": "number"
+          },
+          {
+            "name": "vapr_nov",
+            "type": "number"
+          },
+          {
+            "name": "vapr_dec",
+            "type": "number"
+          }
+        ],
+        "enriched": true,
+        "provider": "bigquery",
+        "geomField": "h3:h3",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/derived_spatialfeatures_colorado_h3res8",
+        "tableRegion": "US",
+        "autoguessing": true,
+        "lastModified": 1735904485832,
+        "optimization": {
+          "actions": [
+            {
+              "type": "cluster",
+              "enabled": false
+            }
+          ],
+          "actionAvailable": {
+            "msg": "<b>This table isn't optimized.</b> Creating a cluster based on geospatial data may improve performance.",
+            "type": "createTable",
+            "query": "CREATE TABLE {newTableName} CLUSTER BY h3 AS SELECT * FROM `carto-dw-ac-jfjjof5m.workflows_temp_ernesto_pmadmin_aa2de528.import_7fafa6a4_12d8_454c_9ced_7854de115889`"
+          }
+        },
+        "originalSchema": [
+          {
+            "name": "h3",
+            "type": "STRING"
+          },
+          {
+            "name": "do_date",
+            "type": "DATE"
+          },
+          {
+            "name": "country_iso",
+            "type": "STRING"
+          },
+          {
+            "name": "country_iso_a3",
+            "type": "STRING"
+          },
+          {
+            "name": "population",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_under_1",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_1_to_4",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_5_to_9",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_10_to_14",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_15_to_19",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_20_to_24",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_25_to_29",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_30_to_34",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_35_to_39",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_40_to_44",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_45_to_49",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_50_to_54",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_55_to_59",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_60_to_64",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_65_to_69",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_70_to_74",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_75_to_79",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "female_80_and_over",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_under_1",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_1_to_4",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_5_to_9",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_10_to_14",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_15_to_19",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_20_to_24",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_25_to_29",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_30_to_34",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_35_to_39",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_40_to_44",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_45_to_49",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_50_to_54",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_55_to_59",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_60_to_64",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_65_to_69",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_70_to_74",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_75_to_79",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "male_80_and_over",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "retail",
+            "type": "INTEGER"
+          },
+          {
+            "name": "education",
+            "type": "INTEGER"
+          },
+          {
+            "name": "financial",
+            "type": "INTEGER"
+          },
+          {
+            "name": "food_drink",
+            "type": "INTEGER"
+          },
+          {
+            "name": "healthcare",
+            "type": "INTEGER"
+          },
+          {
+            "name": "leisure",
+            "type": "INTEGER"
+          },
+          {
+            "name": "tourism",
+            "type": "INTEGER"
+          },
+          {
+            "name": "transportation",
+            "type": "INTEGER"
+          },
+          {
+            "name": "elevation",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "urbanity",
+            "type": "STRING"
+          },
+          {
+            "name": "tmin_jan",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_feb",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_mar",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_apr",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_may",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_jun",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_jul",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_aug",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_sep",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_oct",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_nov",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmin_dec",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_jan",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_feb",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_mar",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_apr",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_may",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_jun",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_jul",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_aug",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_sep",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_oct",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_nov",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tmax_dec",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_jan",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_feb",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_mar",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_apr",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_may",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_jun",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_jul",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_aug",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_sep",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_oct",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_nov",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "tavg_dec",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_jan",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_feb",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_mar",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_apr",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_may",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_jun",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_jul",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_aug",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_sep",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_oct",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_nov",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "prec_dec",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_jan",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_feb",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_mar",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_apr",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_may",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_jun",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_jul",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_aug",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_sep",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_oct",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_nov",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "srad_dec",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_jan",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_feb",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_mar",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_apr",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_may",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_jun",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_jul",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_aug",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_sep",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_oct",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_nov",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "wind_dec",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_jan",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_feb",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_mar",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_apr",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_may",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_jun",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_jul",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_aug",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_sep",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_oct",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_nov",
+            "type": "BIGNUMERIC"
+          },
+          {
+            "name": "vapr_dec",
+            "type": "BIGNUMERIC"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "width": 192,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": true,
+      "position": {
+        "x": 384,
+        "y": 768
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 384,
+        "y": 768
+      }
+    },
+    {
+      "id": "import_6903d720_52df_4612_9939_1a8731743cb6",
+      "data": {
+        "id": "carto-dw-ac-jfjjof5m.workflows_temp_ernesto_pmadmin_aa2de528.import_6903d720_52df_4612_9939_1a8731743cb6",
+        "name": "ReadTable",
+        "size": 23024,
+        "type": "table",
+        "label": "retail_stores_colorado",
+        "nrows": 178,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table",
+            "value": "carto-dw-ac-jfjjof5m.workflows_temp_ernesto_pmadmin_aa2de528.import_6903d720_52df_4612_9939_1a8731743cb6",
+            "description": "Read Table"
+          }
+        ],
+        "schema": [
+          {
+            "name": "geom",
+            "type": "geometry"
+          },
+          {
+            "name": "cartodb_id",
+            "type": "number"
+          },
+          {
+            "name": "storetype",
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "type": "string"
+          },
+          {
+            "name": "city",
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "type": "string"
+          },
+          {
+            "name": "zip",
+            "type": "string"
+          },
+          {
+            "name": "store_id",
+            "type": "number"
+          },
+          {
+            "name": "revenue",
+            "type": "number"
+          },
+          {
+            "name": "size_m2",
+            "type": "number"
+          }
+        ],
+        "enriched": true,
+        "provider": "bigquery",
+        "geomField": "geom",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/retail_stores_colorado",
+        "tableRegion": "US",
+        "autoguessing": true,
+        "lastModified": 1735904319861,
+        "optimization": {
+          "actions": [
+            {
+              "type": "cluster",
+              "enabled": true
+            }
+          ]
+        },
+        "originalSchema": [
+          {
+            "name": "geom",
+            "type": "GEOGRAPHY"
+          },
+          {
+            "name": "cartodb_id",
+            "type": "INTEGER"
+          },
+          {
+            "name": "storetype",
+            "type": "STRING"
+          },
+          {
+            "name": "address",
+            "type": "STRING"
+          },
+          {
+            "name": "city",
+            "type": "STRING"
+          },
+          {
+            "name": "state",
+            "type": "STRING"
+          },
+          {
+            "name": "zip",
+            "type": "STRING"
+          },
+          {
+            "name": "store_id",
+            "type": "INTEGER"
+          },
+          {
+            "name": "revenue",
+            "type": "INTEGER"
+          },
+          {
+            "name": "size_m2",
+            "type": "INTEGER"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "width": 192,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 208,
+        "y": 432
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 208,
+        "y": 432
+      }
+    },
+    {
+      "id": "9905cf1a-e54d-4a7b-9dcf-855562013354",
+      "data": {
+        "name": "native.groupby",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "columns",
+            "type": "SelectColumnAggregation",
+            "title": "Aggregation",
+            "parent": "source",
+            "placeholder": "workflows.parameterForm.selectAField",
+            "allowExpression": false,
+            "description": "Aggregation",
+            "value": "population_joined,sum"
+          },
+          {
+            "name": "groupby",
+            "type": "Column",
+            "title": "Group by",
+            "parent": "source",
+            "mode": "multiple",
+            "dataType": [
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "noDefault": true,
+            "maxSelectionsCount": null,
+            "description": "Group by",
+            "value": [
+              "store_id"
+            ]
+          }
+        ],
+        "version": "1",
+        "label": "Group by"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1632,
+        "y": 528
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1632,
+        "y": 528
+      }
+    }
+  ],
+  "title": "Estimate population around top performant retail stores",
+  "useCache": true,
+  "viewport": {
+    "x": -48.68596625125997,
+    "y": -77.58762705938972,
+    "zoom": 0.46161049346066707
+  },
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery"
+}

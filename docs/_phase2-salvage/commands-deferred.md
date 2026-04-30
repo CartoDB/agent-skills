@@ -7,7 +7,7 @@
 | Section | Target Phase 2 skill |
 |---|---|
 | Maps | `carto-create-builder-maps` |
-| Workflows | `carto-create-analytics-workflow` |
+| Workflows | `carto-create-workflow` |
 | Imports | `carto-import-export-data` |
 | Organization | `carto-manage-platform` |
 | Users | `carto-manage-platform` |

@@ -1,0 +1,815 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "id": "reactflow__edge-9eade7a5-286b-4d9f-9093-e0d767c735a1result-004e4983-30b9-4943-b61e-954a5101fc79source",
+      "source": "9eade7a5-286b-4d9f-9093-e0d767c735a1",
+      "target": "004e4983-30b9-4943-b61e-954a5101fc79",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "5fe33713-0e19-4add-a12b-339bb23457e6result-ee5928c0-30a9-4fc8-b3fe-8e5e5fb696b7source",
+      "source": "5fe33713-0e19-4add-a12b-339bb23457e6",
+      "target": "ee5928c0-30a9-4fc8-b3fe-8e5e5fb696b7",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "ee5928c0-30a9-4fc8-b3fe-8e5e5fb696b7result-a35ab1ca-f20a-493e-89bd-f4ee1dc86f34source",
+      "source": "ee5928c0-30a9-4fc8-b3fe-8e5e5fb696b7",
+      "target": "a35ab1ca-f20a-493e-89bd-f4ee1dc86f34",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-a35ab1ca-f20a-493e-89bd-f4ee1dc86f34result-9eade7a5-286b-4d9f-9093-e0d767c735a1table",
+      "source": "a35ab1ca-f20a-493e-89bd-f4ee1dc86f34",
+      "target": "9eade7a5-286b-4d9f-9093-e0d767c735a1",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "table"
+    },
+    {
+      "source": "import_a88e422e_3eef_4cbb_a27d_91572e58515e",
+      "target": "5fe33713-0e19-4add-a12b-339bb23457e6",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "maintable",
+      "id": "reactflow__edge-import_a88e422e_3eef_4cbb_a27d_91572e58515eout-5fe33713-0e19-4add-a12b-339bb23457e6maintable"
+    },
+    {
+      "source": "import_ccbf1d0f_2b64_4827_bf40_bf61b7d3bd91",
+      "target": "5fe33713-0e19-4add-a12b-339bb23457e6",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "secondarytable",
+      "id": "reactflow__edge-import_ccbf1d0f_2b64_4827_bf40_bf61b7d3bd91out-5fe33713-0e19-4add-a12b-339bb23457e6secondarytable"
+    }
+  ],
+  "nodes": [
+    {
+      "width": 496,
+      "height": 624,
+      "id": "d5f81d81-54e8-421e-8118-5920a04f05a8",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 336,
+        "height": 496,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Spatial Features\nThis table is derived from a sample of the \n[Spatial Features](https://carto.com/spatial-data-catalog/browser/dataset/cdb_spatial_fea_d94258a9/) data product for the city of Milan, Italy, for a [quadbin](https://docs.carto.com/data-and-analysis/analytics-toolbox-for-bigquery/key-concepts/spatial-indexes) grid with resolution 18.\n\nHere, we have selected population data for the young female population, relevant Points of Interests (POIs) as well as the level of urbanity. Furthermore, to account for the effect of neighboring sites, we have smoothed the data by computing the sum of the respective variables using a k-ring of 20 for the population data and a k-ring of 4 for the POI data."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": -1136,
+        "y": 400
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -1296,
+        "y": 400
+      }
+    },
+    {
+      "id": "9eade7a5-286b-4d9f-9093-e0d767c735a1",
+      "data": {
+        "name": "native.select",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "table",
+            "type": "Table",
+            "title": "Source table",
+            "optional": true,
+            "description": "Source table"
+          },
+          {
+            "name": "select",
+            "type": "StringSql",
+            "title": "SELECT statement",
+            "placeholder": "E.g.: *, distance_in_km * 1000 AS distance_in_meters",
+            "allowExpressions": false,
+            "description": "SELECT statement",
+            "value": "quadbin, revenue_change, fempop_15_44, public_transport, education, pois, urbanity"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Select"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 320,
+        "y": 720
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 320,
+        "y": 720
+      }
+    },
+    {
+      "width": 432,
+      "height": 624,
+      "id": "114f9c57-a645-4be9-8833-5dfd2e11ea0d",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 624,
+        "height": 624,
+        "inputs": [],
+        "markdown": "---\nlabel:  Select relevant variables\n---\n\nHere we select the relevant variables that should be used to derive the composite score. \n\nThe score should  be able to identify resilient neighborhoods, i.e. neighborhoods with good outcomes despite a low target population. Specifically, in this context, we want to identify areas where the expected revenue change, taking into account the female young population, the selected POIs and the urbanity level, is higher/lower than the observed. For this reason, here we select the following variables:\n\n- `fempop_15_44`: the female population between 15 and 44 years of age\n- `public_transport`: the number of public transport POId\n- `education`:  the number of education  POIs\n- `pois`:  other relevant POIs which are either of interests for students (such as universities) or are linked to day-to-day activities (such as postal offices\n- `urbanity`: the level of [urbanity](https://carto.com/blog/carto-spatial-features-urbanity-climatology-elevation)\n- `revenue_change`: the average change in annual revenue reported by all retail businesses before and after the COVID-19 pandemic."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 64,
+        "y": 256
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 64,
+        "y": 256
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "004e4983-30b9-4943-b61e-954a5101fc79",
+      "data": {
+        "name": "native.spatialcompositesupervised",
+        "version": "1.0.0",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "indexcol",
+            "type": "Column",
+            "parent": "source",
+            "title": "Column with unique geographic identifier",
+            "noDefault": true,
+            "description": "Column with unique geographic identifier",
+            "value": "quadbin"
+          },
+          {
+            "name": "inputpredictors",
+            "type": "Column",
+            "parent": "source",
+            "title": "Input variables",
+            "description": "The columns containing the model variables.",
+            "mode": "multiple",
+            "noDefault": true,
+            "value": [
+              "revenue_change",
+              "fempop_15_44",
+              "public_transport",
+              "education",
+              "pois",
+              "urbanity"
+            ]
+          },
+          {
+            "name": "modelvariablecolumn",
+            "type": "Column",
+            "parent": "source",
+            "title": "Response variable",
+            "description": "The column containing the response variable.",
+            "noDefault": true,
+            "value": "revenue_change"
+          },
+          {
+            "name": "modelregressor",
+            "type": "String",
+            "title": "Model regressor",
+            "default": "LINEAR_REG",
+            "description": "The model regressor type.",
+            "value": "LINEAR_REG"
+          },
+          {
+            "name": "modeloptions",
+            "type": "String",
+            "title": "Model options",
+            "mode": "multiline",
+            "allowExpressions": false,
+            "optional": true,
+            "placeholder": "{\"DATA_SPLIT_METHOD\":\"NO_SPLIT\", \"OPTIMIZE_STRATEGY\":\"NORMAL_EQUATION\"}",
+            "description": "Model options",
+            "value": "{\"DATA_SPLIT_METHOD\":\"no_split\", \"OPTIMIZE_STRATEGY\":\"NORMAL_EQUATION\", \"CATEGORY_ENCODING_METHOD\":\"ONE_HOT_ENCODING\"}"
+          },
+          {
+            "name": "bucketizemethod",
+            "type": "Selection",
+            "title": "Bucketize method",
+            "options": [
+              "NONE",
+              "EQUAL_INTERVALS_ZERO_CENTERED"
+            ],
+            "default": "NONE",
+            "description": "Bucketize method",
+            "value": "EQUAL_INTERVALS_ZERO_CENTERED"
+          },
+          {
+            "name": "automaticnbuckets",
+            "type": "Boolean",
+            "title": "Define number of buckets automatically",
+            "default": false,
+            "showIf": [
+              {
+                "parameter": "bucketizemethod",
+                "value": "EQUAL_INTERVALS_ZERO_CENTERED"
+              }
+            ],
+            "description": "Define number of buckets automatically",
+            "value": false
+          },
+          {
+            "name": "nbuckets",
+            "type": "Number",
+            "title": "Number of buckets",
+            "min": 2,
+            "default": 5,
+            "showIf": [
+              {
+                "parameter": "automaticnbuckets",
+                "value": false
+              },
+              {
+                "parameter": "bucketizemethod",
+                "value": "EQUAL_INTERVALS_ZERO_CENTERED"
+              }
+            ],
+            "description": "Number of buckets",
+            "value": 5
+          },
+          {
+            "name": "removeoutliers",
+            "type": "Boolean",
+            "title": "Remove_outliers",
+            "default": true,
+            "showIf": [
+              {
+                "parameter": "bucketizemethod",
+                "value": "EQUAL_INTERVALS_ZERO_CENTERED"
+              }
+            ],
+            "description": "Remove_outliers",
+            "value": true
+          },
+          {
+            "name": "r2thr",
+            "type": "Number",
+            "title": "r2 thr",
+            "max": 1,
+            "default": 0.5,
+            "description": "r2 thr",
+            "value": "0.4"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "quadbin"
+          }
+        ],
+        "label": "Composite Score Supervised"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 928,
+        "y": 720
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 928,
+        "y": 720
+      }
+    },
+    {
+      "width": 656,
+      "height": 624,
+      "id": "c54a5842-5c6a-4d63-94cc-e39e71a2bfaf",
+      "data": {
+        "name": "Note",
+        "color": "#DCB0F2",
+        "genAi": false,
+        "label": "",
+        "width": 495.98999999999995,
+        "height": 799.9870000000001,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Create a supervised composite score\n\nHere we compute the score regressing the revenue change on the the selected predictors using a linear model (`LINEAR_REG`) and then computing the model residuals (`predicted - observed`) which are used to detect areas of under- and over-prediction. Other options can be set in the `Model options` section (e.g. the data split method, the optimisation strategy or the encoding method for categorical variables), while the minimum accepted goodness of fit can be set with the `R-squared threshold` parameter.\n\nWe can also discretize the results by creating equally spaced buckets centered in zero selecting the `EQUAL_INTERVAL_ZERO_CENTERED` method in the output formatting section. The number of buckets can be pre-defined (as done here) or derived automatically following [Freedman and Diaconis's (1981) rule](https://robjhyndman.com/papers/sturges.pdf). The method also includes an option to remove the outliers when defining the buckets.\n\nThe output table contains for each quadbin cell the derived score."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 720,
+        "y": 95.984
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 720,
+        "y": 128
+      }
+    },
+    {
+      "width": 672,
+      "height": 320,
+      "id": "ad600631-b69a-4a54-9ded-7346e4d98309",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 672,
+        "height": 288,
+        "inputs": [],
+        "markdown": "---\nlabel:Statistics\n---\n## Create A Composite Score With The Supervised Method\n### Identifying Resilient Neighbourhoods In Milan\n\n\nA [composite indicator](https://academy.carto.com/advanced-spatial-analytics/spatial-analytics-for-bigquery/step-by-step-tutorials/how-to-create-a-composite-score-with-your-spatial-data#computing-a-composite-score-supervised-method) is an aggregation of variables which aims to measure complex and multidimensional concepts which are difficult to define, and cannot be measured directly. Examples include [innovation](https://en.wikipedia.org/wiki/Global_Innovation_Index), [human development](https://en.wikipedia.org/wiki/Human_Development_Index), [environmental performance](https://en.wikipedia.org/wiki/Environmental_Performance_Index), and so on.\n\nIn this example, we will use the [Create Score Supervised](https://docs.carto.com/carto-user-manual/workflows/components/statistics#composite-score-supervised) component, to identify resilient areas in Milan for a wellness & beauty center mainly aimed for teenage and adult women."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": -1136,
+        "y": 96
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -1136,
+        "y": 64
+      }
+    },
+    {
+      "width": 496,
+      "height": 624,
+      "id": "d5f81d81-54e8-421e-8118-5920a04f05a8-1709209208284",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 320,
+        "height": 496,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Revenue change\nThis table contains synthetic data about the average change in annual revenue reported by all retail businesses in Milan before and after the COVID-19 pandemic."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": -784,
+        "y": 400
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -960,
+        "y": 400
+      }
+    },
+    {
+      "width": 1104,
+      "height": 832,
+      "id": "f47ad09b-356a-43b5-bd91-9a1edaa43aeb",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 1151.99,
+        "height": 799.99,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Preprocessing"
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": -448,
+        "y": 96
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -448,
+        "y": 96
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "5fe33713-0e19-4add-a12b-339bb23457e6",
+      "data": {
+        "name": "native.join",
+        "version": "1.2",
+        "inputs": [
+          {
+            "name": "maintable",
+            "type": "Table",
+            "title": "Main table",
+            "description": "Main table"
+          },
+          {
+            "name": "secondarytable",
+            "type": "Table",
+            "title": "Secondary table",
+            "description": "Secondary table"
+          },
+          {
+            "name": "maincolumn",
+            "type": "Column",
+            "title": "Column in main table",
+            "parent": "maintable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in main table",
+            "value": "quadbin"
+          },
+          {
+            "name": "secondarycolumn",
+            "type": "Column",
+            "title": "Column in secondary table",
+            "parent": "secondarytable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in secondary table",
+            "value": "quadbin"
+          },
+          {
+            "name": "jointype",
+            "type": "Selection",
+            "title": "Join type",
+            "options": [
+              "Inner",
+              "Left",
+              "Right",
+              "Full outer"
+            ],
+            "default": "Inner",
+            "description": "Join type",
+            "value": "Inner"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Join"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": -384,
+        "y": 672
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -384,
+        "y": 672
+      }
+    },
+    {
+      "width": 329,
+      "height": 613,
+      "id": "c752c819-9f1c-4663-aaa9-5c7267c1aadb",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 479.98999999999995,
+        "height": 623.986,
+        "inputs": [],
+        "markdown": "---\nlabel: Joining data sources\n---\nHere we join the selected data sources."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": -432,
+        "y": 256
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -432,
+        "y": 256
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "ee5928c0-30a9-4fc8-b3fe-8e5e5fb696b7",
+      "data": {
+        "name": "native.renamecolumn",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column to rename",
+            "parent": "source",
+            "dataType": [
+              "boolean",
+              "geography",
+              "number",
+              "string"
+            ],
+            "description": "Column to rename",
+            "value": "revenue_change_joined"
+          },
+          {
+            "name": "newname",
+            "type": "String",
+            "title": "New column name",
+            "validation": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+            "allowExpressions": false,
+            "description": "New column name",
+            "value": "revenue_change"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "quadbin"
+          }
+        ],
+        "label": "Rename Column"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": -224,
+        "y": 672
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -224,
+        "y": 672
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "a35ab1ca-f20a-493e-89bd-f4ee1dc86f34",
+      "data": {
+        "name": "native.dropcolumn",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Columns to drop",
+            "parent": "source",
+            "mode": "multiple",
+            "description": "Columns to drop",
+            "value": [
+              "quadbin_joined"
+            ]
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "quadbin"
+          }
+        ],
+        "label": "Drop Columns"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": -64,
+        "y": 672
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": -64,
+        "y": 672
+      }
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_a88e422e_3eef_4cbb_a27d_91572e58515e",
+      "position": {
+        "x": -1072,
+        "y": 800
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "milan_spatial_features_smoothed",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/milan_spatial_features_smoothed",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "cartodb-on-gcp-pm-team.workflows_temp.import_a88e422e_3eef_4cbb_a27d_91572e58515e"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -1072,
+        "y": 800
+      },
+      "dragging": false
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_ccbf1d0f_2b64_4827_bf40_bf61b7d3bd91",
+      "position": {
+        "x": -720,
+        "y": 800
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "milan_revenue_change",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/milan_revenue_change",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "cartodb-on-gcp-pm-team.workflows_temp.import_ccbf1d0f_2b64_4827_bf40_bf61b7d3bd91"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -720,
+        "y": 800
+      },
+      "dragging": false
+    }
+  ],
+  "title": "Statistics - Create A Composite Score With The Supervised Method. Identifying Resilient Neighbourhoods",
+  "useCache": true,
+  "viewport": {
+    "x": 912.7953809139847,
+    "y": -6.218006568314934,
+    "zoom": 0.7219645977612529
+  },
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery"
+}

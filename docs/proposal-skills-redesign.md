@@ -82,7 +82,7 @@ Sync scripts keep manifests aligned. A single change ships to all three harnesse
 | `carto-import-export-data` | Import files or external tables into the warehouse, export results back out, and prepare tilesets. |
 | `carto-create-builder-maps` | Author maps in CARTO Builder: layers, basemaps, styling, sharing, and AI map agents. |
 | `carto-build-app` | Build apps that consume CARTO: APIs, named sources, scoped tokens, SDKs, embedding, hosted deployment. |
-| `carto-create-analytics-workflow` | Build, schedule, and operate analytics DAGs in the CARTO Workflows product. |
+| `carto-create-workflow` | Build, schedule, and operate analytics DAGs in the CARTO Workflows product. |
 | `carto-find-spatial-data` | Discover external spatial datasets (Data Observatory and partners) and subscribe them into your warehouse. |
 | `carto-manage-platform` | Administer the CARTO org: users, roles, quotas, activity logs, bulk resource ops. |
 
@@ -93,6 +93,14 @@ Sync scripts keep manifests aligned. A single change ships to all three harnesse
 | `carto-build-spatial-dashboard` | Build an internal spatial analytics dashboard end-to-end, from connection through map. |
 | `carto-build-customer-facing-map` | Ship an embedded or public map for external users with token scoping and tenant isolation. |
 | `carto-migrate-to-carto` | Plan a migration from a legacy GIS or analytics platform onto CARTO. |
+
+### Pattern (variable) — recipe skills layered on a Platform skill
+
+Pattern skills encode a specific analytics recipe (e.g. hotspot analysis, GWR) and declare a Platform skill as prerequisite. Their value is in their description: rich trigger-keyword lists let the harness route on user intent (`"build a hotspot analysis"` → `carto-pattern-hotspot-analysis`). Burying them as references defeats automatic routing.
+
+Naming convention: `carto-pattern-<topic>` — distinct from `carto-<verb>-<object>` so they read as recipes, not new top-level verbs. The first 11 patterns (migrated from the workflows-assistant-skills repo) all attach to `carto-create-workflow`:
+
+`carto-pattern-hotspot-analysis`, `carto-pattern-spatial-autocorrelation`, `carto-pattern-gwr`, `carto-pattern-spatial-enrichment`, `carto-pattern-trade-area-analysis`, `carto-pattern-site-selection`, `carto-pattern-territory-planning`, `carto-pattern-routing-od-analysis`, `carto-pattern-geocoding`, `carto-pattern-composite-scoring`.
 
 ### Why these boundaries
 
@@ -225,7 +233,7 @@ Six months after launch:
 | `carto sql query/job` | `carto-query-datawarehouse` | |
 | `carto import/export/transfer` | `carto-import-export-data` | |
 | `carto maps *` | `carto-create-builder-maps` | |
-| `carto workflows *` | `carto-create-analytics-workflow` | |
+| `carto workflows *` | `carto-create-workflow` | |
 | `carto named-sources *` | `carto-build-app` | |
 | `carto do *` | `carto-find-spatial-data` | |
 | `carto app *` | `carto-build-app` | |

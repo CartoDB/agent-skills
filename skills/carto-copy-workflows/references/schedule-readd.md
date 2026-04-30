@@ -26,7 +26,7 @@ The expression syntax depends on the **destination** warehouse engine, not the s
 | Snowflake / Postgres / Redshift | standard 5-field cron: `"0 8 * * *"` |
 | Databricks | Quartz cron (6-field): `"0 0 8 * * ?"` |
 
-For full dialect detail and examples, see [`../../carto-create-analytics-workflow/references/scheduling.md`](../../carto-create-analytics-workflow/references/scheduling.md) — that skill owns scheduling depth; this skill just calls out the cross-profile-copy gotcha.
+For full dialect detail and examples, see [`../../carto-create-workflow/references/scheduling.md`](../../carto-create-workflow/references/scheduling.md) — that skill owns scheduling depth; this skill just calls out the cross-profile-copy gotcha.
 
 ## Inspecting before re-adding
 

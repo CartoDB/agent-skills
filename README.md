@@ -2,9 +2,9 @@
 
 A multi-harness skills catalog for the CARTO Geospatial Cloud, modeled on the [MotherDuck agent-skills](https://github.com/motherduckdb/agent-skills) pattern. Wraps the CARTO CLI (and complementary surfaces) so AI agents ship correct, idiomatic CARTO work without re-discovering the platform every session.
 
-## Status: Phase 2c (utility + platform tiers, all four harnesses)
+## Status: Phase 2d (utility, platform, and use-case tiers, all four harnesses)
 
-This release ships **10 skills** distributed via **Claude Code, Skills CLI, Codex, and Gemini CLI**. Two further platform skills (`carto-create-builder-maps`, `carto-build-app`) are owned by another PM and intentionally deferred — see [`docs/deferred-skills.md`](docs/deferred-skills.md). The `carto-promote-between-orgs` use-case orchestration skill is parked — see [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the full roadmap.
+This release ships **20 skills** (4 utility, 6 platform, 10 use-case patterns) distributed via **Claude Code, Skills CLI, Codex, and Gemini CLI**. Two further platform skills (`carto-create-builder-maps`, `carto-build-app`) are owned by another PM and intentionally deferred — see [`docs/deferred-skills.md`](docs/deferred-skills.md). See [`docs/proposal-skills-redesign.md`](docs/proposal-skills-redesign.md) for the full roadmap.
 
 ### Utility tier
 
@@ -20,11 +20,28 @@ This release ships **10 skills** distributed via **Claude Code, Skills CLI, Code
 | Skill | Purpose |
 |---|---|
 | [`carto-import-export-data`](skills/carto-import-export-data) | Imports, tilesets, and warehouse-native exports. |
-| [`carto-create-analytics-workflow`](skills/carto-create-analytics-workflow) | Workflow authoring: CRUD + scheduling. |
+| [`carto-create-workflow`](skills/carto-create-workflow) | Build, schedule, and operate analytics DAGs in CARTO Workflows. |
 | [`carto-copy-workflows`](skills/carto-copy-workflows) | Cross-org / cross-profile workflow copy + schedule re-add. |
 | [`carto-find-spatial-data`](skills/carto-find-spatial-data) | Discover and subscribe to Data Observatory datasets. |
 | [`carto-manage-platform`](skills/carto-manage-platform) | Org admin: users, quotas, activity audit, bulk ops. |
 | [`carto-copy-maps`](skills/carto-copy-maps) | Cross-org / cross-profile map copy, AI-agent migration caveats, validation. |
+
+### Use-case (pattern) tier
+
+Recipe skills that layer on top of [`carto-create-workflow`](skills/carto-create-workflow). Each ships rich trigger-keyword descriptions so the harness routes on user intent.
+
+| Skill | Purpose |
+|---|---|
+| [`carto-pattern-hotspot-analysis`](skills/carto-pattern-hotspot-analysis) | Getis-Ord Gi* hotspots and spacetime hotspots. |
+| [`carto-pattern-spatial-autocorrelation`](skills/carto-pattern-spatial-autocorrelation) | Moran's I, LISA, HH/HL/LH/LL classification. |
+| [`carto-pattern-gwr`](skills/carto-pattern-gwr) | Geographically Weighted Regression. |
+| [`carto-pattern-spatial-enrichment`](skills/carto-pattern-spatial-enrichment) | Demographics and spatial-features enrichment. |
+| [`carto-pattern-trade-area-analysis`](skills/carto-pattern-trade-area-analysis) | Catchment areas, isochrones, billboard scoring. |
+| [`carto-pattern-site-selection`](skills/carto-pattern-site-selection) | Site selection, cannibalization, twin-area discovery. |
+| [`carto-pattern-territory-planning`](skills/carto-pattern-territory-planning) | Territory balancing and location allocation. |
+| [`carto-pattern-routing-od-analysis`](skills/carto-pattern-routing-od-analysis) | Routing, isolines, OD matrices. |
+| [`carto-pattern-geocoding`](skills/carto-pattern-geocoding) | Address-to-coordinate geocoding. |
+| [`carto-pattern-composite-scoring`](skills/carto-pattern-composite-scoring) | Composite indices, supervised/unsupervised scoring. |
 
 ## Installing in Claude Code
 
@@ -36,7 +53,7 @@ This release ships **10 skills** distributed via **Claude Code, Skills CLI, Code
 /plugin install carto-skills@carto-agent-skills
 ```
 
-All ten skills are registered as one bundle (`carto-skills`).
+All 20 skills are registered as one bundle (`carto-skills`).
 
 > **⚠ Migrating from v1.x?** The old `carto-cli@carto-agent-skills` and `carto-activity@carto-agent-skills` plugin IDs are **retired**. Re-install as `carto-skills@carto-agent-skills`. See [CHANGELOG.md](CHANGELOG.md).
 

@@ -16,7 +16,7 @@ This file is loaded as context whenever the `carto-skills` extension is active i
 **Platform tier** — wraps a CARTO product:
 
 - `carto-import-export-data` — imports, tilesets, exports.
-- `carto-create-analytics-workflow` — Workflow CRUD + scheduling + dev→prod.
+- `carto-create-workflow` — Workflow CRUD + scheduling + dev→prod.
 - `carto-find-spatial-data` — Data Observatory discovery and subscription.
 - `carto-manage-platform` — org admin, users, quotas, activity audit.
 

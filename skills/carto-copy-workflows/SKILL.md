@@ -6,7 +6,7 @@ license: MIT
 
 # carto-copy-workflows
 
-`workflows copy` duplicates a workflow definition from one CARTO profile (org / environment) to another. The typical use is **dev → prod promotion**, but the same verb covers same-tier relocation (e.g. moving a customer workflow into a customer-segregated org). Copy is **mechanical replication**, not creation — for authoring a workflow from scratch use [`carto-create-analytics-workflow`](../carto-create-analytics-workflow).
+`workflows copy` duplicates a workflow definition from one CARTO profile (org / environment) to another. The typical use is **dev → prod promotion**, but the same verb covers same-tier relocation (e.g. moving a customer workflow into a customer-segregated org). Copy is **mechanical replication**, not creation — for authoring a workflow from scratch use [`carto-create-workflow`](../carto-create-workflow).
 
 ## When to use this skill
 

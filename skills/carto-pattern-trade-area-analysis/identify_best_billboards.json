@@ -1,0 +1,1288 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "id": "c99139ec-d269-49ca-8fba-e8114ccbbcb2result-27e77ad3-cdea-456e-822b-699c9c4c6229source",
+      "source": "c99139ec-d269-49ca-8fba-e8114ccbbcb2",
+      "target": "27e77ad3-cdea-456e-822b-699c9c4c6229",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-27e77ad3-cdea-456e-822b-699c9c4c6229result-cca084dc-e1f6-4abd-95e9-34238ef988f1maintable",
+      "source": "27e77ad3-cdea-456e-822b-699c9c4c6229",
+      "target": "cca084dc-e1f6-4abd-95e9-34238ef988f1",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "maintable"
+    },
+    {
+      "id": "cca084dc-e1f6-4abd-95e9-34238ef988f1result-b471b1e6-82fa-469d-8444-089a4fe33076source",
+      "source": "cca084dc-e1f6-4abd-95e9-34238ef988f1",
+      "target": "b471b1e6-82fa-469d-8444-089a4fe33076",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "b471b1e6-82fa-469d-8444-089a4fe33076result-5174a50e-e957-4664-b8c2-3a8cd179a095source",
+      "source": "b471b1e6-82fa-469d-8444-089a4fe33076",
+      "target": "5174a50e-e957-4664-b8c2-3a8cd179a095",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "5174a50e-e957-4664-b8c2-3a8cd179a095result-4e675228-bfaf-4c31-a78a-e5a5dfc492a5source",
+      "source": "5174a50e-e957-4664-b8c2-3a8cd179a095",
+      "target": "4e675228-bfaf-4c31-a78a-e5a5dfc492a5",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "4e675228-bfaf-4c31-a78a-e5a5dfc492a5result-5ea37518-8e15-4e00-bf53-02024b45fa30source",
+      "source": "4e675228-bfaf-4c31-a78a-e5a5dfc492a5",
+      "target": "5ea37518-8e15-4e00-bf53-02024b45fa30",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "5ea37518-8e15-4e00-bf53-02024b45fa30result-b24a5af2-0a7e-4497-b4f2-86678e9c415etable",
+      "source": "5ea37518-8e15-4e00-bf53-02024b45fa30",
+      "target": "b24a5af2-0a7e-4497-b4f2-86678e9c415e",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "table"
+    },
+    {
+      "id": "b24a5af2-0a7e-4497-b4f2-86678e9c415eresult-ca57f9ca-4f71-42f5-bc2c-d25ce257a615source",
+      "source": "b24a5af2-0a7e-4497-b4f2-86678e9c415e",
+      "target": "ca57f9ca-4f71-42f5-bc2c-d25ce257a615",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "a68c71d8-57cb-4667-ab48-a53afe0cf184result-9b5a978c-80b6-497e-b0af-bb34ba8dc42csource",
+      "source": "a68c71d8-57cb-4667-ab48-a53afe0cf184",
+      "target": "9b5a978c-80b6-497e-b0af-bb34ba8dc42c",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-ca57f9ca-4f71-42f5-bc2c-d25ce257a615result-a68c71d8-57cb-4667-ab48-a53afe0cf184secondarytable",
+      "source": "ca57f9ca-4f71-42f5-bc2c-d25ce257a615",
+      "target": "a68c71d8-57cb-4667-ab48-a53afe0cf184",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "secondarytable"
+    },
+    {
+      "id": "reactflow__edge-c99139ec-d269-49ca-8fba-e8114ccbbcb2result-a68c71d8-57cb-4667-ab48-a53afe0cf184maintable",
+      "source": "c99139ec-d269-49ca-8fba-e8114ccbbcb2",
+      "target": "a68c71d8-57cb-4667-ab48-a53afe0cf184",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "result",
+      "targetHandle": "maintable"
+    },
+    {
+      "source": "import_6e395dba_acf5_4f19_a68a_38a711c8ca0c",
+      "sourceHandle": "out",
+      "target": "c99139ec-d269-49ca-8fba-e8114ccbbcb2",
+      "targetHandle": "source",
+      "id": "reactflow__edge-import_6e395dba_acf5_4f19_a68a_38a711c8ca0cout-c99139ec-d269-49ca-8fba-e8114ccbbcb2source",
+      "selected": false,
+      "animated": true
+    },
+    {
+      "source": "import_c3a7046c_1a25_4777_af48_7c58129c6e2d",
+      "target": "cca084dc-e1f6-4abd-95e9-34238ef988f1",
+      "animated": true,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "secondarytable",
+      "id": "reactflow__edge-import_c3a7046c_1a25_4777_af48_7c58129c6e2dout-cca084dc-e1f6-4abd-95e9-34238ef988f1secondarytable"
+    }
+  ],
+  "nodes": [
+    {
+      "width": 64,
+      "height": 64,
+      "id": "c99139ec-d269-49ca-8fba-e8114ccbbcb2",
+      "data": {
+        "name": "native.buffer",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "geo",
+            "type": "Column",
+            "title": "Geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column",
+            "value": "geom"
+          },
+          {
+            "name": "distance",
+            "type": "Number",
+            "title": "Distance",
+            "optional": true,
+            "default": 10,
+            "description": "Distance",
+            "value": "300"
+          },
+          {
+            "name": "units",
+            "type": "Selection",
+            "title": "Units",
+            "options": [
+              "Meters",
+              "Miles"
+            ],
+            "default": "Meters",
+            "description": "Units",
+            "value": "Meters"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom_buffer"
+          }
+        ],
+        "label": "ST Buffer"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 800,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 800,
+        "y": 496
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "27e77ad3-cdea-456e-822b-699c9c4c6229",
+      "data": {
+        "name": "native.h3polyfill",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "geo",
+            "type": "Column",
+            "title": "Geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Geo column",
+            "value": "geom_buffer"
+          },
+          {
+            "name": "resolution",
+            "type": "Number",
+            "title": "Resolution",
+            "min": 0,
+            "max": 15,
+            "default": 8,
+            "slider": true,
+            "description": "Resolution",
+            "value": 9
+          },
+          {
+            "name": "includecols",
+            "type": "Boolean",
+            "title": "Keep input table columns",
+            "default": false,
+            "description": "Keep input table columns",
+            "value": true
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "H3 Polyfill"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 944,
+        "y": 560
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 944,
+        "y": 560
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "cca084dc-e1f6-4abd-95e9-34238ef988f1",
+      "data": {
+        "name": "native.join",
+        "version": "1.1",
+        "inputs": [
+          {
+            "name": "maintable",
+            "type": "Table",
+            "title": "Main table",
+            "description": "Main table"
+          },
+          {
+            "name": "secondarytable",
+            "type": "Table",
+            "title": "Secondary table",
+            "description": "Secondary table"
+          },
+          {
+            "name": "maincolumn",
+            "type": "Column",
+            "title": "Column in main table",
+            "parent": "maintable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in main table",
+            "value": "h3"
+          },
+          {
+            "name": "secondarycolumn",
+            "type": "Column",
+            "title": "Column in secondary table",
+            "parent": "secondarytable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in secondary table",
+            "value": "h3"
+          },
+          {
+            "name": "jointype",
+            "type": "Selection",
+            "title": "Join type",
+            "options": [
+              "Inner",
+              "Left",
+              "Right"
+            ],
+            "default": "Inner",
+            "description": "Join type",
+            "value": "Inner"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Join"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1152,
+        "y": 624
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1152,
+        "y": 624
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "b471b1e6-82fa-469d-8444-089a4fe33076",
+      "data": {
+        "name": "native.groupby",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "columns",
+            "type": "String",
+            "title": "Columns and methods for aggregation",
+            "description": "Columns and methods for aggregation",
+            "value": "median_income_6eb619a2_avg_joined,max,female_18_40_pop_joined,max"
+          },
+          {
+            "name": "groupby",
+            "type": "String",
+            "title": "Columns to group by",
+            "optional": true,
+            "description": "Columns to group by",
+            "value": "h3,full_id"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Group by"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1296,
+        "y": 624
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1296,
+        "y": 624
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "5174a50e-e957-4664-b8c2-3a8cd179a095",
+      "data": {
+        "name": "native.normalize",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column to normalize",
+            "dataType": [
+              "number"
+            ],
+            "parent": "source",
+            "description": "Column to normalize",
+            "value": "median_income_6eb619a2_avg_joined_max"
+          },
+          {
+            "name": "zscores",
+            "type": "Boolean",
+            "title": "Use z-scores",
+            "default": false,
+            "optional": true,
+            "description": "Use z-scores",
+            "value": false
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Normalize"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1472,
+        "y": 544
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1472,
+        "y": 544
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "4e675228-bfaf-4c31-a78a-e5a5dfc492a5",
+      "data": {
+        "name": "native.normalize",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column to normalize",
+            "dataType": [
+              "number"
+            ],
+            "parent": "source",
+            "description": "Column to normalize",
+            "value": "female_18_40_pop_joined_max"
+          },
+          {
+            "name": "zscores",
+            "type": "Boolean",
+            "title": "Use z-scores",
+            "default": false,
+            "optional": true,
+            "description": "Use z-scores",
+            "value": false
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Normalize"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1584,
+        "y": 544
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1584,
+        "y": 544
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "5ea37518-8e15-4e00-bf53-02024b45fa30",
+      "data": {
+        "name": "native.selectexpression",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "String",
+            "title": "Name for new column",
+            "placeholder": "E.g.: distance_in_meters",
+            "validation": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+            "description": "Name for new column",
+            "value": "index"
+          },
+          {
+            "name": "expression",
+            "type": "StringSQL",
+            "title": "Expression",
+            "placeholder": "E.g.: distance_in_km * 1000",
+            "description": "Expression",
+            "value": "median_income_6eb619a2_avg_joined_max_norm + female_18_40_pop_joined_max_norm"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Create Column"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1712,
+        "y": 544
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1712,
+        "y": 544
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "b24a5af2-0a7e-4497-b4f2-86678e9c415e",
+      "data": {
+        "name": "native.orderby",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "table",
+            "type": "Table",
+            "title": "Table to order",
+            "description": "Table to order"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column to order by",
+            "dataType": [
+              "number",
+              "string"
+            ],
+            "parent": "table",
+            "description": "Column to order by",
+            "value": "index"
+          },
+          {
+            "name": "desc",
+            "type": "Boolean",
+            "title": "Use descending order",
+            "default": false,
+            "optional": true,
+            "description": "Use descending order",
+            "value": true
+          },
+          {
+            "name": "columnb",
+            "type": "Column",
+            "title": "Optional secondary column to order by",
+            "parent": "table",
+            "dataType": [
+              "number",
+              "string"
+            ],
+            "default": null,
+            "optional": true,
+            "description": "Optional secondary column to order by",
+            "value": null
+          },
+          {
+            "name": "descb",
+            "type": "Boolean",
+            "title": "Use descending order in secondary column",
+            "default": false,
+            "optional": true,
+            "description": "Use descending order in secondary column",
+            "value": false
+          },
+          {
+            "name": "optimizationcol"
+          }
+        ],
+        "label": "Order by"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1920,
+        "y": 544
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1920,
+        "y": 544
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "ca57f9ca-4f71-42f5-bc2c-d25ce257a615",
+      "data": {
+        "name": "native.limit",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "limit",
+            "type": "Number",
+            "title": "Number of rows",
+            "min": 1,
+            "default": 10,
+            "description": "Number of rows",
+            "value": "100"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Limit"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 2032,
+        "y": 544
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2032,
+        "y": 544
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "9b5a978c-80b6-497e-b0af-bb34ba8dc42c",
+      "data": {
+        "name": "native.saveastable",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "destination",
+            "type": "OutputTable",
+            "title": "Table details",
+            "placeholder": "Rename and select destination",
+            "description": "Table details",
+            "value": ""
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "h3"
+          }
+        ],
+        "label": "Save as Table"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 2480,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2480,
+        "y": 496
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "a68c71d8-57cb-4667-ab48-a53afe0cf184",
+      "data": {
+        "name": "native.join",
+        "version": "1.1",
+        "inputs": [
+          {
+            "name": "maintable",
+            "type": "Table",
+            "title": "Main table",
+            "description": "Main table"
+          },
+          {
+            "name": "secondarytable",
+            "type": "Table",
+            "title": "Secondary table",
+            "description": "Secondary table"
+          },
+          {
+            "name": "maincolumn",
+            "type": "Column",
+            "title": "Column in main table",
+            "parent": "maintable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in main table",
+            "value": "full_id"
+          },
+          {
+            "name": "secondarycolumn",
+            "type": "Column",
+            "title": "Column in secondary table",
+            "parent": "secondarytable",
+            "dataType": [
+              "boolean",
+              "date",
+              "datetime",
+              "time",
+              "timestamp",
+              "number",
+              "string"
+            ],
+            "description": "Column in secondary table",
+            "value": "full_id"
+          },
+          {
+            "name": "jointype",
+            "type": "Selection",
+            "title": "Join type",
+            "options": [
+              "Inner",
+              "Left",
+              "Right"
+            ],
+            "default": "Inner",
+            "description": "Join type",
+            "value": "Inner"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Join"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 2288,
+        "y": 496
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2288,
+        "y": 496
+      }
+    },
+    {
+      "width": 511,
+      "height": 199,
+      "id": "818443c8-5e9b-438e-a11a-3bc68ec30d2b",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 511.988,
+        "height": 207.999,
+        "inputs": [],
+        "markdown": "---\nlabel: Out-of-home Advertising\n---\n## Identify best billboards to target a specific audience\nThis workflow example computes an index in order to analyze what are the best billboards to target a specific audience, then it filters the top 100 best billboards. "
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 320,
+        "y": 6.72
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 320,
+        "y": 16
+      }
+    },
+    {
+      "width": 320,
+      "height": 336,
+      "id": "b8256302-16a7-448f-9328-ebeebaf7b405",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 399.99699999999996,
+        "height": 223.98899999999998,
+        "inputs": [],
+        "markdown": "---\nlabel: Input data\n---\n## Billboard locations"
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 320,
+        "y": 224
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 320,
+        "y": 224
+      }
+    },
+    {
+      "width": 320,
+      "height": 336,
+      "id": "b8256302-16a7-448f-9328-ebeebaf7b405-1697206823730",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 399.98699999999997,
+        "height": 271.995,
+        "inputs": [],
+        "markdown": "---\nlabel: Input data\n---\n## Demographic data\nWe load a table with sociodemographic and socioeconomic data aggregated at the H3 spatial index resolution 9 level."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 320,
+        "y": 464
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 320,
+        "y": 464
+      }
+    },
+    {
+      "width": 404,
+      "height": 358,
+      "id": "aaba653e-8395-4c73-9327-7d3cf134b43f",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 399.993,
+        "height": 511.98699999999997,
+        "inputs": [],
+        "markdown": "---\nlabel: Analysis\n---\n## Computing suitability index for target audience\nIn these steps we normalize the data and build an index that models the suitability of each billboard to target our desired audience.\n"
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1440,
+        "y": 224
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1440,
+        "y": 224
+      }
+    },
+    {
+      "width": 404,
+      "height": 358,
+      "id": "aaba653e-8395-4c73-9327-7d3cf134b43f-1697207043629",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 319.991,
+        "height": 511.99699999999996,
+        "inputs": [],
+        "markdown": "---\nlabel: Analysis\n---\n## Filtering top 100 billboards\nWe order the different billboards based on the index and we filter out the top 100.\n"
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1856,
+        "y": 224
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1856,
+        "y": 224
+      }
+    },
+    {
+      "width": 336,
+      "height": 368,
+      "id": "5d56c6c3-7f5d-4e03-9cc5-403dfc07be31",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 335.993,
+        "height": 511.998,
+        "inputs": [],
+        "markdown": "---\nlabel: Data preparation\n---\n## Computing buffers and transformation to H3\nWe compute 300m buffers around each billboard and we polyfill the areas based on the H3 spatial index at resolution 9 in order to facilitate the enrichment with the audience data."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 736,
+        "y": 224
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 736,
+        "y": 224
+      }
+    },
+    {
+      "width": 336,
+      "height": 368,
+      "id": "5d56c6c3-7f5d-4e03-9cc5-403dfc07be31-1697207314552",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 335.993,
+        "height": 511.998,
+        "inputs": [],
+        "markdown": "---\nlabel: Data preparation\n---\n## Aggregating audience data for each billboard\nWe join and aggregate data for our specific audience based on sociodemographic and socioeconomic factors."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 1088,
+        "y": 224
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1088,
+        "y": 224
+      }
+    },
+    {
+      "width": 240,
+      "height": 512,
+      "id": "8960ebdc-fc4a-4f2f-a5fc-0429d90f4557",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 239.99899999999997,
+        "height": 511.996,
+        "inputs": [],
+        "markdown": "---\nlabel: Results\n---\n## Results prep\nWe add back the metadata of the different billboards and save the final result as a new table in the data warehouse."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 2192,
+        "y": 224
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2192,
+        "y": 224
+      }
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_6e395dba_acf5_4f19_a68a_38a711c8ca0c",
+      "position": {
+        "x": 416,
+        "y": 336
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "newyork_newjersey_ooh_panels",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/newyork_newjersey_ooh_panels",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "carto-dw-ac-2z63m9l4.workflows_temp_ernesto_exampleworkflows_38118196.import_6e395dba_acf5_4f19_a68a_38a711c8ca0c"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 416,
+        "y": 336
+      },
+      "dragging": false
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_c3a7046c_1a25_4777_af48_7c58129c6e2d",
+      "position": {
+        "x": 416,
+        "y": 640
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "newyork_ooh_sample_audience_h3",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/newyork_ooh_sample_audience_h3",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "carto-dw-ac-2z63m9l4.workflows_temp_ernesto_exampleworkflows_38118196.import_c3a7046c_1a25_4777_af48_7c58129c6e2d"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 416,
+        "y": 640
+      },
+      "dragging": false
+    }
+  ],
+  "title": "OOH - Identify best billboards to target a specific audience",
+  "viewport": {
+    "x": -105.48808672879306,
+    "y": 3.002025081869533,
+    "zoom": 0.6406397570351069
+  },
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery"
+}

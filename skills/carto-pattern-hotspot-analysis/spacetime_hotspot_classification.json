@@ -1,0 +1,512 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "id": "reactflow__edge-2f99010d-1a55-4d41-a695-32e63e559cfdout-fa39492d-9ce8-44c1-af3c-4b7dad481c69source",
+      "source": "2f99010d-1a55-4d41-a695-32e63e559cfd",
+      "target": "fa39492d-9ce8-44c1-af3c-4b7dad481c69",
+      "animated": false,
+      "selected": false,
+      "sourceHandle": "out",
+      "targetHandle": "source"
+    },
+    {
+      "id": "reactflow__edge-fa39492d-9ce8-44c1-af3c-4b7dad481c69result-d16d9803-ffc6-499a-8ba8-e7e772152adcsource",
+      "source": "fa39492d-9ce8-44c1-af3c-4b7dad481c69",
+      "target": "d16d9803-ffc6-499a-8ba8-e7e772152adc",
+      "animated": false,
+      "sourceHandle": "result",
+      "targetHandle": "source"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "2f99010d-1a55-4d41-a695-32e63e559cfd",
+      "data": {
+        "name": "native.gettablebyname",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table FQN",
+            "placeholder": "mydata.tables.mytable",
+            "validation": "^[a-zA-Z_][a-zA-Z0-9_-]*\\.[a-zA-Z_][a-zA-Z0-9_-]*\\.[a-zA-Z_][a-zA-Z0-9_-]*$",
+            "description": "Source table FQN",
+            "value": "cartobq.docs.spacetime_collisions_weekly_h3"
+          }
+        ],
+        "version": "1",
+        "label": "Get Table by Name"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 256,
+        "y": 400
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 256,
+        "y": 400
+      }
+    },
+    {
+      "id": "fa39492d-9ce8-44c1-af3c-4b7dad481c69",
+      "data": {
+        "name": "native.getisordspacetime",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "indexcol",
+            "type": "Column",
+            "title": "Index column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number"
+            ],
+            "description": "Index column",
+            "value": "h3",
+            "options": [
+              "h3",
+              "n_collisions"
+            ]
+          },
+          {
+            "name": "datecol",
+            "type": "Column",
+            "title": "Date column",
+            "parent": "source",
+            "dataType": [
+              "datetime",
+              "timestamp",
+              "date"
+            ],
+            "description": "Date column",
+            "value": "week",
+            "options": [
+              "week"
+            ]
+          },
+          {
+            "name": "valuecol",
+            "type": "Column",
+            "title": "Value column",
+            "parent": "source",
+            "dataType": [
+              "number"
+            ],
+            "description": "Value column",
+            "value": "n_collisions",
+            "options": [
+              "n_collisions"
+            ]
+          },
+          {
+            "name": "kernel",
+            "type": "Selection",
+            "title": "Kernel function for spatial weights",
+            "options": [
+              "uniform",
+              "triangular",
+              "quadratic",
+              "quartic",
+              "gaussian"
+            ],
+            "description": "Kernel function for spatial weights",
+            "value": "gaussian"
+          },
+          {
+            "name": "kerneltime",
+            "type": "Selection",
+            "title": "Kernel function for temporal weights",
+            "options": [
+              "uniform",
+              "triangular",
+              "quadratic",
+              "quartic",
+              "gaussian"
+            ],
+            "description": "Kernel function for temporal weights",
+            "value": "gaussian"
+          },
+          {
+            "name": "size",
+            "type": "Number",
+            "title": "Size",
+            "default": 3,
+            "min": 1,
+            "max": 10,
+            "description": "Size",
+            "value": 3
+          },
+          {
+            "name": "bandwidth",
+            "type": "Number",
+            "title": "Temporal bandwidth",
+            "default": 3,
+            "min": 1,
+            "max": 10,
+            "description": "Temporal bandwidth",
+            "value": 1
+          },
+          {
+            "name": "timeinterval",
+            "type": "Selection",
+            "title": "Time interval",
+            "options": [
+              "year",
+              "quarter",
+              "month",
+              "week",
+              "day",
+              "hour",
+              "minute",
+              "second"
+            ],
+            "description": "Time interval",
+            "value": "week"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "index",
+            "options": [
+              "index",
+              "date",
+              "gi",
+              "p_value"
+            ]
+          }
+        ],
+        "version": "1",
+        "label": "Getis Ord Spacetime"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 512,
+        "y": 400
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 512,
+        "y": 400
+      }
+    },
+    {
+      "id": "46e3113d-6e7d-4106-bea7-5fd40fb007dd",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 815.98,
+        "height": 319.989,
+        "inputs": [],
+        "markdown": "---\nlabel: Statistics\n---\n## Spacetime Hotspot Classification: Understanding Collision Patterns\nSpatio-temporal analysis is crucial in extracting meaningful insights from data with spatial and temporal components. We can unveil dynamic behaviors and dependencies by incorporating spatial information, such as geographic coordinates, with temporal data, such as timestamps.\n\nIn this example, we will perform a hotspot analysis to identify space-time clusters and classify them according to their behavior over time. We will use the location and time of accidents in London in 2021 and 2022, provided by [Transport for London](https://tfl.gov.uk/corporate/publications-and-reports/road-safety#on-this-page-1). See this [step-by-step tutorial](https://academy.carto.com/advanced-spatial-analytics/spatial-analytics-for-bigquery/step-by-step-tutorials/spacetime-hotspot-classification-understanding-collision-patterns) for further detail.",
+        "position": {
+          "x": 160,
+          "y": -224
+        }
+      },
+      "type": "note",
+      "width": 896,
+      "height": 320,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 160,
+        "y": -224
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 160,
+        "y": -224
+      }
+    },
+    {
+      "id": "ab82472e-5fda-46f6-96d5-bc0c11a7ac04",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 239.997,
+        "height": 447.992,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Accident Data\nThe source data we use has two years of weekly aggregated data into an H3 grid, counting the number of collisions per cell.",
+        "position": {
+          "x": 128,
+          "y": 112
+        }
+      },
+      "type": "note",
+      "width": 240,
+      "height": 400,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 160,
+        "y": 112
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 160,
+        "y": 112
+      }
+    },
+    {
+      "id": "a36265b5-7857-45ea-a553-67ae39c53c5e",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 239.989,
+        "height": 447.98499999999996,
+        "inputs": [],
+        "markdown": "---\nlabel: Data analysis\n---\n## Analyzing Spacetime Hotspots\nWe start by performing a spacetime hotspot analysis to better understand our data. ",
+        "position": {
+          "x": 384,
+          "y": 112
+        }
+      },
+      "type": "note",
+      "width": 386,
+      "height": 351,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 416,
+        "y": 112
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 416,
+        "y": 112
+      }
+    },
+    {
+      "id": "8b1172d5-99b6-49f9-9396-894319ca865b",
+      "data": {
+        "name": "Note",
+        "color": "#9EB9F3",
+        "genAi": false,
+        "label": "",
+        "width": 303.998,
+        "height": 447.989,
+        "inputs": [],
+        "markdown": "---\nlabel: Hotspot Classification\n---\n## Understanding Hot and Coldspots\nOnce we have identified hot and cold spots, we can classify them into a set of predefined categories so that the results are easier to digest (see [full list of categories](https://docs.carto.com/data-and-analysis/analytics-toolbox-for-bigquery/sql-reference/statistics#spacetime_hotspots_classification)). ",
+        "position": {
+          "x": 672,
+          "y": 112
+        }
+      },
+      "type": "note",
+      "width": 240,
+      "height": 448,
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 672,
+        "y": 112
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 672,
+        "y": 112
+      }
+    },
+    {
+      "id": "d16d9803-ffc6-499a-8ba8-e7e772152adc",
+      "data": {
+        "name": "native.spacetimehotspotsclassification",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "indexcol",
+            "type": "Column",
+            "title": "Index column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number"
+            ],
+            "description": "Index column",
+            "value": "index",
+            "options": [
+              "index",
+              "gi",
+              "p_value"
+            ]
+          },
+          {
+            "name": "datecol",
+            "type": "Column",
+            "title": "Date column",
+            "parent": "source",
+            "dataType": [
+              "datetime",
+              "timestamp",
+              "date"
+            ],
+            "description": "Date column",
+            "value": "date",
+            "options": [
+              "date"
+            ]
+          },
+          {
+            "name": "valuecol",
+            "type": "Column",
+            "title": "Gi Value",
+            "helper": "Select a column that contains a Gi value generated by a Getis Ord Spacetime component",
+            "default": "gi",
+            "parent": "source",
+            "dataType": [
+              "number"
+            ],
+            "description": "Gi Value",
+            "value": "gi",
+            "options": [
+              "gi",
+              "p_value"
+            ]
+          },
+          {
+            "name": "pvaluecol",
+            "type": "Column",
+            "title": "P Value",
+            "helper": "Select a column  that contains a P value generated by a Getis Ord Spacetime component",
+            "default": "p_value",
+            "parent": "source",
+            "dataType": [
+              "number"
+            ],
+            "description": "P Value",
+            "value": "p_value",
+            "options": [
+              "gi",
+              "p_value"
+            ]
+          },
+          {
+            "name": "threshold",
+            "type": "Selection",
+            "title": "Threshold",
+            "helper": "Select the threshold of the P value for a location to be considered as hotspot/coldspot",
+            "default": 0.05,
+            "options": [
+              0.01,
+              0.05,
+              0.1,
+              1
+            ],
+            "description": "Threshold",
+            "value": 0.05
+          },
+          {
+            "name": "algorithm",
+            "type": "Selection",
+            "title": "Algorithm",
+            "helper": "The algorithm to be used for the monotonic trend test",
+            "default": "Mann-Kendall",
+            "options": [
+              "Mann-Kendall",
+              "Modified Mann-Kendall"
+            ],
+            "description": "Algorithm",
+            "value": "Modified Mann-Kendall"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "index",
+            "options": [
+              "index",
+              "classification",
+              "tau",
+              "tau_p"
+            ]
+          }
+        ],
+        "version": "1",
+        "label": "Spacetime Hotspots Classification"
+      },
+      "type": "generic",
+      "width": 64,
+      "height": 64,
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 784,
+        "y": 400
+      },
+      "selected": false
+    }
+  ],
+  "title": "Statistics - Spacetime hotspot classification",
+  "useCache": true,
+  "viewport": {
+    "x": 256.3310160258137,
+    "y": 192.17183254853424,
+    "zoom": 0.6662477729841241
+  },
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery"
+}

@@ -1,0 +1,584 @@
+{
+  "tags": [],
+  "edges": [
+    {
+      "source": "import_66308668_6583_4270_b993_e47723e26730",
+      "sourceHandle": "out",
+      "target": "f9971184-4eec-4d6c-b9af-af2ed4f2eb19",
+      "targetHandle": "source",
+      "id": "reactflow__edge-import_66308668_6583_4270_b993_e47723e26730out-f9971184-4eec-4d6c-b9af-af2ed4f2eb19source",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "f9971184-4eec-4d6c-b9af-af2ed4f2eb19",
+      "sourceHandle": "match",
+      "target": "75a9493e-5aba-44c0-a2d9-91e35e97f0bf",
+      "targetHandle": "source",
+      "id": "reactflow__edge-f9971184-4eec-4d6c-b9af-af2ed4f2eb19match-75a9493e-5aba-44c0-a2d9-91e35e97f0bfsource",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "75a9493e-5aba-44c0-a2d9-91e35e97f0bf",
+      "sourceHandle": "match",
+      "target": "3d2a4568-b904-42eb-8d4e-8230ca5d5c6c",
+      "targetHandle": "target",
+      "id": "reactflow__edge-75a9493e-5aba-44c0-a2d9-91e35e97f0bfmatch-3d2a4568-b904-42eb-8d4e-8230ca5d5c6ctarget",
+      "selected": false,
+      "animated": false
+    },
+    {
+      "source": "import_316dbcb1_c90c_41e8_afc2_b5bee2d324ee",
+      "sourceHandle": "out",
+      "target": "3d2a4568-b904-42eb-8d4e-8230ca5d5c6c",
+      "targetHandle": "source",
+      "id": "reactflow__edge-import_316dbcb1_c90c_41e8_afc2_b5bee2d324eeout-3d2a4568-b904-42eb-8d4e-8230ca5d5c6csource",
+      "selected": false,
+      "animated": false
+    }
+  ],
+  "nodes": [
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_316dbcb1_c90c_41e8_afc2_b5bee2d324ee",
+      "data": {
+        "name": "ReadTable",
+        "label": "natural_risk_spain",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "title": "Source table",
+            "value": "carto-dw-ac-2z63m9l4.workflows_temp_ernesto_exampleworkflows_38118196.import_316dbcb1_c90c_41e8_afc2_b5bee2d324ee",
+            "description": "Read Table"
+          }
+        ],
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/natural_risk_spain",
+        "autoguessing": true,
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 384,
+        "y": 768
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 384,
+        "y": 768
+      }
+    },
+    {
+      "width": 464,
+      "height": 224,
+      "id": "10a514fc-80c9-485c-b614-d636794d9230",
+      "data": {
+        "name": "Note",
+        "color": "#FE88B1",
+        "genAi": false,
+        "label": "",
+        "width": 464,
+        "height": 208,
+        "inputs": [],
+        "markdown": "---\nlabel: Data Enrichment\n---\n## Enrich point data with a custom source\nThis example demonstrates how to use Workflows to enrich a set of point targets with a custom data source. "
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 336,
+        "y": 80
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 336,
+        "y": 64
+      }
+    },
+    {
+      "width": 274,
+      "height": 381,
+      "id": "5e5f61eb-8665-4b91-b4d7-89ea2f976dc5",
+      "data": {
+        "name": "Note",
+        "color": "#F6CF71",
+        "genAi": false,
+        "label": "",
+        "width": 288,
+        "height": 336,
+        "inputs": [],
+        "markdown": "---\nlabel: Data source\n---\n## Natural Risk in Spain\nThis dataset contains data about natural risks like fire frequency, air quality ordesertification and flood risks in Spain, based on the countrie's census sections."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 336,
+        "y": 512
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 336,
+        "y": 512
+      }
+    },
+    {
+      "width": 272,
+      "height": 400,
+      "id": "ec6524f6-6cde-4637-b959-4308a4c59c2d",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 255.985,
+        "height": 543.998,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Find points of interest\nFiltering to find admin level 1 capital cities in Spain"
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 640,
+        "y": 304
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 640,
+        "y": 304
+      }
+    },
+    {
+      "width": 272,
+      "height": 400,
+      "id": "ec6524f6-6cde-4637-b959-4308a4c59c2d-1697731908261",
+      "data": {
+        "name": "Note",
+        "color": "#8BE0A4",
+        "genAi": false,
+        "label": "",
+        "width": 255.985,
+        "height": 543.998,
+        "inputs": [],
+        "markdown": "---\nlabel:\n---\n## Enrichment\nSelect properties and aggregation method for the enrichment."
+      },
+      "type": "note",
+      "zIndex": -1,
+      "dragging": false,
+      "position": {
+        "x": 912,
+        "y": 304
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 912,
+        "y": 304
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "3d2a4568-b904-42eb-8d4e-8230ca5d5c6c",
+      "data": {
+        "name": "native.enrichpoints",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "target",
+            "type": "Table",
+            "title": "Target points to be enriched",
+            "placeholder": "FQN of the target table",
+            "description": "Target points to be enriched"
+          },
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source for the enrichment",
+            "placeholder": "FQN of the source table"
+          },
+          {
+            "name": "target_col",
+            "type": "Column",
+            "title": "Target point geo column",
+            "parent": "target",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Target point geo column",
+            "value": "geom"
+          },
+          {
+            "name": "source_col",
+            "type": "Column",
+            "title": "Source geo column",
+            "parent": "source",
+            "dataType": [
+              "geography"
+            ],
+            "description": "Source geo column",
+            "value": "geom"
+          },
+          {
+            "name": "variables",
+            "type": "ColumnAggregation",
+            "title": "Variables",
+            "parent": "source",
+            "noDefault": true,
+            "description": "Comma-separated list of variable names and aggregation methods (e.g. population_93405ad7, sum, population_93405ad7, avg)",
+            "placeholder": "population_93405ad7, sum, population_93405ad7, avg",
+            "value": "general_physical_risk,max,fire_frequency,min,desertification_risk,max,air_quality,avg,maritime_flood_risk,max"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom"
+          }
+        ],
+        "label": "Enrich Points"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "dragging": false,
+      "position": {
+        "x": 1008,
+        "y": 656
+      },
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1008,
+        "y": 656
+      }
+    },
+    {
+      "width": 192,
+      "height": 64,
+      "id": "import_66308668_6583_4270_b993_e47723e26730",
+      "position": {
+        "x": 384,
+        "y": 416
+      },
+      "data": {
+        "name": "ReadTable",
+        "label": "populated_places",
+        "importUrl": "https://storage.googleapis.com/carto-workflows-examples/populated_places",
+        "autoguessing": true,
+        "inputs": [
+          {
+            "name": "source",
+            "type": "String",
+            "description": "Read Table",
+            "title": "Source table",
+            "value": "carto-dw-ac-2z63m9l4.workflows_temp_ernesto_exampleworkflows_38118196.import_66308668_6583_4270_b993_e47723e26730"
+          }
+        ],
+        "fromImportedFile": true
+      },
+      "type": "source",
+      "zIndex": 2,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 384,
+        "y": 416
+      },
+      "dragging": false
+    },
+    {
+      "width": 294,
+      "height": 197,
+      "id": "d435098b-5c80-41df-8e45-c112a8b3fd76",
+      "position": {
+        "x": 336,
+        "y": 304
+      },
+      "data": {
+        "name": "Note",
+        "label": "",
+        "inputs": [],
+        "width": 293.85537980595126,
+        "height": 197.4340833071235,
+        "color": "#F6CF71",
+        "markdown": "---\nlabel: Data source\n---\n## Populated places",
+        "genAi": false
+      },
+      "type": "note",
+      "zIndex": -1,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 336,
+        "y": 304
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "f9971184-4eec-4d6c-b9af-af2ed4f2eb19",
+      "position": {
+        "x": 672,
+        "y": 496
+      },
+      "data": {
+        "name": "native.wheresimplified",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "description": "Column",
+            "value": "featurecla"
+          },
+          {
+            "name": "operator",
+            "type": "Selection",
+            "title": "Operator",
+            "options": [
+              "equal to",
+              "not equal",
+              "less than",
+              "greater than",
+              "equal or less than",
+              "equal or greater than"
+            ],
+            "description": "Operator",
+            "value": "equal to"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "title": "Value",
+            "description": "Value",
+            "value": "Admin-1 capital"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "match",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom"
+          }
+        ],
+        "label": "Simple Filter"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 672,
+        "y": 496
+      }
+    },
+    {
+      "width": 64,
+      "height": 64,
+      "id": "75a9493e-5aba-44c0-a2d9-91e35e97f0bf",
+      "position": {
+        "x": 800,
+        "y": 560
+      },
+      "data": {
+        "name": "native.wheresimplified",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "column",
+            "type": "Column",
+            "title": "Column",
+            "parent": "source",
+            "dataType": [
+              "string",
+              "number",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "description": "Column",
+            "value": "sov_a3"
+          },
+          {
+            "name": "operator",
+            "type": "Selection",
+            "title": "Operator",
+            "options": [
+              "equal to",
+              "not equal",
+              "less than",
+              "greater than",
+              "equal or less than",
+              "equal or greater than"
+            ],
+            "description": "Operator",
+            "value": "equal to"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "title": "Value",
+            "description": "Value",
+            "value": "ESP"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "match",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by",
+            "value": "geom"
+          }
+        ],
+        "label": "Simple Filter"
+      },
+      "type": "generic",
+      "zIndex": 2,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 800,
+        "y": 560
+      }
+    },
+    {
+      "id": "a6f1987a-259e-4ccb-acba-f305f03f81dc",
+      "position": {
+        "x": 1232,
+        "y": 640
+      },
+      "data": {
+        "name": "native.saveastable",
+        "version": "1",
+        "inputs": [
+          {
+            "name": "source",
+            "type": "Table",
+            "title": "Source table",
+            "description": "Source table"
+          },
+          {
+            "name": "destination",
+            "type": "OutputTable",
+            "title": "Table details",
+            "placeholder": "Rename and select destination",
+            "description": "Table details"
+          },
+          {
+            "name": "optimizationcol",
+            "type": "Column",
+            "title": "Cluster by",
+            "parent": "source",
+            "parentOutput": "result",
+            "dataType": [
+              "geography",
+              "boolean",
+              "number",
+              "string",
+              "date",
+              "datetime",
+              "time",
+              "timestamp"
+            ],
+            "providers": [
+              "bigquery"
+            ],
+            "optional": true,
+            "advanced": true,
+            "description": "Cluster by"
+          }
+        ],
+        "label": "Save as Table"
+      },
+      "type": "generic",
+      "zIndex": 2
+    }
+  ],
+  "title": "Enrich points with a custom source",
+  "viewport": {
+    "x": 107.206843928794,
+    "y": -68.27719886480173,
+    "zoom": 0.6250311512926064
+  },
+  "description": "",
+  "thumbnailUrl": "",
+  "schemaVersion": "1.0.0",
+  "connectionProvider": "bigquery"
+}

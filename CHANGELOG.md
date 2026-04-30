@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.4.0-phase2d — 2026-04-30
+
+Migrates the workflow-builder skill set from the standalone `workflows-assistant-skills` repo into this catalog and adds the use-case (pattern) tier.
+
+### Added
+
+- `carto-create-workflow` — full DAG authoring lifecycle (6-phase process, native-first rule, live CLI fetching, JSON structure, provider notes, pitfalls) plus operating CRUD/scheduling. Replaces the prior `carto-create-analytics-workflow` skill.
+- 10 use-case `carto-pattern-*` skills (hotspot, GWR, Moran's I, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment). Each ships rich trigger-keyword descriptions and bundled `.json` examples.
+- Provider-specific customsql footguns and the Snowflake uppercase rule live in `references/providers/*.md` under `carto-create-workflow`.
+
+### Changed
+
+- `carto-create-analytics-workflow` renamed to `carto-create-workflow`. Cross-profile copy content stays owned by `carto-copy-workflows` (introduced in 2.3.0-phase2c).
+- `carto workflows verify` references updated to `carto workflows verify-remote` to match the CLI.
+
+### Catalog dependencies for new skills
+
+- `carto-create-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
+- All `carto-pattern-*` → `carto-create-workflow`.
+
+### Note
+
+This release pairs with the matching `carto` CLI version in https://github.com/CartoDB/cloud-native/pull/24203.
+
+---
+
 ## 2.3.0-phase2c — 2026-04-28
 
 Splits **create** and **copy** activities into separate platform skills. Cross-org / cross-profile artifact replication now has its own home, distinct from agentic creation. Lays the groundwork for absorbing PR #2's migration content cleanly.
@@ -66,7 +92,7 @@ Adds the **4 platform-tier skills** that make up the bulk of CARTO's day-to-day 
 ### Added
 
 - `carto-import-export-data` — imports, tilesets, exports.
-- `carto-create-analytics-workflow` — workflow CRUD, scheduling per engine, dev→prod promotion.
+- `carto-create-workflow` — workflow CRUD, scheduling per engine, dev→prod promotion.
 - `carto-find-spatial-data` — Data Observatory discovery and subscriptions.
 - `carto-manage-platform` — org stats, users/invitations, admin bulk ops, activity event reference.
 - `docs/deferred-skills.md` — status of `carto-create-builder-maps` and `carto-build-app` (owned by another PM).
@@ -77,7 +103,7 @@ Adds the **4 platform-tier skills** that make up the bulk of CARTO's day-to-day 
 Platform-tier dependencies declared and validated:
 
 - `carto-import-export-data` → `carto-basics`, `carto-connect-datawarehouse`, `carto-explore-datawarehouse`.
-- `carto-create-analytics-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
+- `carto-create-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
 - `carto-find-spatial-data` → `carto-basics`, `carto-connect-datawarehouse`, `carto-explore-datawarehouse`.
 - `carto-manage-platform` → `carto-basics`, `carto-query-datawarehouse`.
 
@@ -127,7 +153,7 @@ The new bundle ships **4 utility skills** that together cover the install/auth/c
 
 ### Deferred to Phase 2 / 3
 
-- 6 platform skills (Phase 2): `carto-import-export-data`, `carto-create-builder-maps`, `carto-build-app`, `carto-create-analytics-workflow`, `carto-find-spatial-data`, `carto-manage-platform`.
+- 6 platform skills (Phase 2): `carto-import-export-data`, `carto-create-builder-maps`, `carto-build-app`, `carto-create-workflow`, `carto-find-spatial-data`, `carto-manage-platform`.
 - 3 use-case skills (Phase 3): `carto-build-spatial-dashboard`, `carto-build-customer-facing-map`, `carto-migrate-to-carto`.
 - Codex plugin and Gemini extension distribution.
 - `custom_user_agent` watermarking.
