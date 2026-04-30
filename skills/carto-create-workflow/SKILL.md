@@ -1,6 +1,6 @@
 ---
 name: carto-create-workflow
-description: Build, schedule, and operate analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Use when the user wants to author a workflow, run/edit/promote one, or schedule a DAG.
+description: Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit/promote one, or schedule a DAG.
 license: MIT
 ---
 
@@ -64,22 +64,31 @@ References (only for what the CLI doesn't serve):
    - H3/Quadbin columns work for visualization without geometry extraction.
    - Use standard names for visualization: `geom`, `h3`, `quadbin`.
 
-### Phase 3 — Present plan and confirm
+### Phase 3 — Present plan, surface gaps, confirm
 
-Present the workflow plan (components, data flow, decisions). Ask about ambiguities. **Wait for confirmation** before building.
+Present the workflow plan (components, data flow, decisions). Then **explicitly enumerate every gap** before building:
+
+- **Unresolved parameters** — thresholds, radii, filter values, time windows, k for k-NN, aggregation columns, output table names, etc.
+- **Analytical decisions left to the user** — significance levels, distance metrics, join types, null-handling, dedup keys, CRS, H3/quadbin resolution.
+- **Ambiguities in the request** — anything where you had to guess intent.
+
+For each gap, **propose a sensible default with its rationale** (e.g. "p-value threshold: suggest `0.05` — conventional significance level", "buffer distance: suggest `1000m` — matches the city-block scale of the input"), and **ask the user to confirm or override**. Never silently pick a value for a user-facing analytical parameter. **Wait for confirmation** before building.
 
 ### Phase 4 — Build the workflow
 
 1. Create the workflow file. Get the bundle/node/edge/variable shapes from `carto workflows schema [section]` (start with `bundle`, then `node`, `node.source`, `node.customsql`, `edge`, `handles`). For customsql nodes, copy the template from `carto workflows schema customsql`.
-2. Build in phases, validating after each:
+2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately:
    ```bash
-   # Offline structural check (fast, no auth needed)
    carto workflows validate workflow.json --json
-   # Deep warehouse-aware check (column types, table existence, AT resolution)
+   ```
+   Treat any save without a passing `validate` as broken — fix before continuing to the next node/edge.
+3. **Run `verify` at branch boundaries**, not on every save. It hits the warehouse (slower, requires auth), so reserve it for whole sub-DAGs once their structure validates clean, and once at the end before presenting:
+   ```bash
    carto workflows verify workflow.json --connection <connection-name> --json
    ```
-3. Fix errors silently — don't expose implementation details to the user.
-4. Iterate until complete and validated.
+   `verify` is what catches column-type mismatches, missing tables, and AT resolution — things `validate` cannot see.
+4. Fix errors silently — don't expose implementation details to the user.
+5. Iterate until complete, with both `validate` and a final `verify` clean.
 
 ### Phase 5 — Present result
 

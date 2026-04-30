@@ -1,4 +1,4 @@
-description = "Build, schedule, and operate analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse (carto-skills)"
+description = "Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse (carto-skills)"
 
 prompt = """
 Apply the `carto-create-workflow` skill from the carto-skills catalog to the user's request.

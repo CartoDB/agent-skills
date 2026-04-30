@@ -48,7 +48,7 @@
         "carto-connect-datawarehouse",
         "carto-query-datawarehouse"
       ],
-      "description": "Build, schedule, and operate analytics DAGs in CARTO Workflows \u2014 the no-code/low-code orchestration layer over the data warehouse.",
+      "description": "Builds, schedules, and operates analytics DAGs in CARTO Workflows \u2014 the no-code/low-code orchestration layer over the data warehouse.",
       "path": "skills/carto-create-workflow"
     },
     {
