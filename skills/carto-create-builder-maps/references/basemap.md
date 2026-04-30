@@ -21,7 +21,7 @@ The two values **must match** — Tier-1 (`carto-cli/src/schemas/crossField/base
 | Group | Ids | Notes |
 |---|---|---|
 | CARTO basemaps | `positron`, `dark-matter`, `voyager` | Always work; no external dependency |
-| Google Maps | `roadmap`, `google-positron`, `google-dark-matter`, `google-voyager`, `satellite`, `hybrid`, `terrain` | Require an organization Google Maps API key |
+| Google Maps | `roadmap`, `google-positron`, `google-dark-matter`, `google-voyager`, `satellite`, `hybrid`, `terrain` | |
 | Custom basemap | Any organization-defined id (declared under `customBaseMaps.customStyle.id`) | Persist the full style (a MapLibre `style.json`) at `keplerMapConfig.config.customBaseMaps.customStyle` |
 
 **Common typos the CLI catches.** Tier-1 flags near-misses of canonical ids: `"darkmatter"` → suggests `"dark-matter"`; `"darkMatter"` → same; `"dark_matter"` → same. Builder silently falls back to `positron` on any unknown id, so typos are invisible until someone opens the map.

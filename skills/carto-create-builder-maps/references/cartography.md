@@ -728,7 +728,7 @@ Data is a photo-real raster (satellite imagery, NDVI composite)
 
 Data is about real-world features that need high-zoom context
 (delivery routes, indoor plans, detailed ops)
-└── Use Google `satellite` or `hybrid` — requires organization Google Maps key
+└── Use Google `satellite` or `hybrid`
 ```
 
 **Default, when in doubt: `positron`.** It's neutral, doesn't fight the data, and works with every palette family.
