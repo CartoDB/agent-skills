@@ -106,7 +106,7 @@ Use `native.saveastable` to persist results. The spatial index column is directl
 
 ## Gotchas
 
-- The GWR component requires the Analytics Toolbox. Always run `carto workflows verify --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
+- The GWR component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
 - The dependent variable must be continuous and numeric. Categorical targets need a different approach (e.g. classification).
 - Cells with null values in ANY variable (dependent or independent) will be excluded from the model. Pre-filter or impute nulls before running GWR.
 - Multicollinearity between independent variables degrades results. If two predictors are highly correlated (e.g. `bedrooms` and `total_rooms`), drop one or combine them. Check correlation before including multiple similar variables.

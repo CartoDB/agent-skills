@@ -84,7 +84,7 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
    Treat any save without a passing `validate` as broken — fix before continuing to the next node/edge.
 3. **Run `verify` at branch boundaries**, not on every save. It hits the warehouse (slower, requires auth), so reserve it for whole sub-DAGs once their structure validates clean, and once at the end before presenting:
    ```bash
-   carto workflows verify workflow.json --connection <connection-name> --json
+   carto workflows verify-remote workflow.json --connection <connection-name> --json
    ```
    `verify` is what catches column-type mismatches, missing tables, and AT resolution — things `validate` cannot see.
 4. Fix errors silently — don't expose implementation details to the user.
