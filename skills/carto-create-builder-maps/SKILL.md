@@ -40,24 +40,39 @@ Follow these phases in order for every "create a map" request. Skipping a phase 
 
 ### Phase 1 — Gather context (intake gate)
 
-This phase is a **gate, not a suggestion**. Before touching JSON, the agent must have an answer (user-supplied OR an explicit default the user has accepted) for every item below. The most common cause of *"the map isn't what I asked for"* is the agent skipping straight to composition with one or more of these unresolved.
+This phase is a **gate, not a suggestion**. But the order matters: **the data is the only fact that constrains what's even askable**. Asking the user abstract preferences (audience, mode, widgets, sharing) before knowing what's in the table produces generic questions that often don't apply, and makes the user do the agent's job of mapping wishes to columns.
 
-**Technical preconditions** (silent — don't surface unless they fail):
+#### Sequence
 
-1. **Auth status.** Run `carto auth status`. If unauthenticated, ask the user to run `carto auth login` and stop.
-2. **Tenant AI status** (only if the user mentions an Agent on the map). `carto maps agents status` — if `enabled: false`, drop agent plans and tell the user.
+1. **Goal — one line.** *"What's the map about, and what's the takeaway?"* Don't proceed without an answer; *"just make a map of X"* is fine if X is specific.
+2. **Data hint — one line.** *"Where's the data — a table you already have, a demo dataset, or a file to import?"* Resolve to a concrete table FQN before moving on. Demo data: search `carto-demo-data.demo_tables` by topic. File: run `carto imports create` first.
+3. **SILENT data inspection.** Before asking anything else:
+   - `carto connections describe <conn> <table>` → schema, row count, geom type (point / line / polygon / h3 / quadbin / raster).
+   - `carto sql query` for: NULL ratios on candidate `colorField` columns, min/max/p50/p95/p99 on numeric columns relevant to the goal, `COUNT(DISTINCT ...)` on candidate categorical columns to detect cardinality traps, date range on temporal columns.
+   - **Cap inspection at one or two queries.** Don't audit every column. Inspect what's relevant to the user's goal.
+4. **Questions, NOW data-contingent.** Only ask what the data makes answerable. Examples of *good* data-grounded questions versus *bad* abstract ones:
 
-**Required intake — ask in plain language, paraphrased; don't recite the list verbatim.** Lead with these questions; the *Lead with intent* always-on rule covers tone.
+   | Bad (abstract, asked too early) | Good (data-grounded, asked after inspect) |
+   |---|---|
+   | *"Want widgets?"* | *"I see `capacity_repd_mwp` (sum to ~13 GW) and `repd_status` (5 categories) — want a capacity total + a status breakdown widget?"* |
+   | *"Analytical or cartographic?"* | *"The table has 23 columns including operational date, area, capacity. Strong analytical map territory — propose a histogram of capacity, or stay simple?"* |
+   | *"Public or private?"* | (sharing is orthogonal to data; ask cleanly when relevant — never on first turn) |
+   | *"Which palette?"* | *"With 265k installations, points will overlap heavily — propose low opacity + uniform colour, or color by capacity (heavy-tailed → log scale)?"* |
 
-| Required | Question | Default if the user says *"just make it"* |
-|---|---|---|
-| **Topic / goal** | What's the map about, and what should the viewer take away from it? *"Spanish population density — show where it's densest"*, *"our top-100 stores — find the closest one"*. One line. | If genuinely none given, ask once. Don't guess from a vague *"make a map"*. |
-| **Data** | Which dataset? Three real options: (a) a specific table they already have in a connection, (b) explore their existing connections, (c) a local or remote file they want to **import** first (CSV / GeoJSON / GeoPackage / GeoParquet / KML / KMZ / Shapefile, ≤ 1GB) via `carto imports create --file <path>` (or `--url <url>`) `--connection <name> --destination <fqn>` → then build the map on the imported table. | If unspecified: list connections (`carto connections list`), or offer the CARTO demo data, or offer to import a file if the user mentions one. Don't pick silently. |
-| **Audience** (drives styling) | Who reads this — an analyst exploring, an exec scanning a dashboard, or a public viewer? | Analyst — denser legends and widgets are OK. |
-| **Map mode** | Analytical (widgets, popups, SQL parameters, cross-filtering matter) or pure cartography (one strong visual read, minimal chrome)? | Inferred from audience: analyst / exec → analytical; public-viewer / presentation → cartography. State the inference and let the user override. |
-| **Sharing** (privacy mechanism, separate from audience) | Private draft, shared with the org, shared with specific teammates, or public link? | `private` (default). Don't share without explicit instruction. |
+   If the data answers a question on its own, **don't ask** — just decide:
+   - Geom type → layer type, silently: polygon / line / point → `tileset`; pre-indexed h3 / quadbin → `h3` / `quadbin` directly; raster → `raster`.
+   - Viewport → bounding box of the data.
+   - NULL ratio on a candidate `colorField` > 25% → switch column or filter `WHERE col IS NOT NULL` silently. See [`cartography.md` §4.5a](references/cartography.md).
+5. **Sharing / audience / agent — ask only when triggered.** Don't gate the first map render on these. Default to `private`. Surface them when the user says *"share with the team"*, *"send to my CEO"*, *"add an AI agent"*.
 
-Connection / FQN / layer-type / viewport are *"do silently"* (next section), not gate items. Only escalate to a question when the dataset shape is genuinely ambiguous (e.g. *"individual store locations, or a density heatmap?"*).
+#### Technical preconditions (silent — don't surface unless they fail)
+
+- **Auth status.** Run `carto auth status`. If unauthenticated, ask the user to run `carto auth login` and stop.
+- **Tenant AI status** (only if the user mentions an Agent on the map). `carto maps agents status` — if `enabled: false`, drop agent plans and tell the user.
+
+#### Time budget
+
+**First-version target: ~30s wall time** from the user's "go" to a working URL. Achievable when the only intake is goal + data hint and the agent inspects silently. The first map still has to look good — cartographic defaults from [`cartography.md`](references/cartography.md) (palette family, scale, basemap pairing, multi-layer hue separation) apply on the first shot; refinement (custom domains, palette swaps, widget tuning) lands on subsequent turns *with the user looking at the result*.
 
 ### Phase 2 — Make cartographic decisions
 
