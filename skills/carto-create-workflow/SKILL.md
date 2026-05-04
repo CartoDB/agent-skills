@@ -138,7 +138,7 @@ Common operations and their native equivalents — try these first:
 | `WHERE x = …` / multi-condition filter | `native.where` (predicate), `native.wheresimplified` (UI builder), `native.spatialfilter` (geometry-based match/unmatch split), `native.select` (column projection) |
 | `SELECT a, b, c FROM t` (multi-column projection / rename / multi-expression) | `native.select` (one node, free-form SELECT body) |
 | `SELECT ..., expr AS c FROM t` (add **one** computed column) | `native.selectexpression` (one column + one expression per node) |
-| `GROUP BY k, SUM(x), AVG(y), COUNT(*)` | `native.groupby` |
+| `GROUP BY k, SUM(x), AVG(y), COUNT(*)` (single key) | `native.groupby` — `groupby` input is a single `Column`, not multi-column. For multi-key grouping use `native.customsql`. |
 | `JOIN ... ON a.k = b.k` (any join type) | `native.joinv2` |
 | `JOIN ... ON ST_INTERSECTS / ST_CONTAINS / ST_WITHIN` | `native.spatialjoin` |
 | `MIN(ST_DISTANCE(a.geom, b.geom))` across two tables | `native.distance` (augments the **main** table in place with `nearest_id` + `nearest_distance` — rename them per source if you chain two `native.distance` nodes for two reference tables) |
@@ -177,6 +177,12 @@ What to look for in the response:
 - **Input `format`** — prose describing the expected value shape.
 - **Input `examples`** — concrete JSON snippets showing correct usage.
 - **Input `pitfalls`** — common mistakes, evaluation order, format quirks.
+- **Component `version`** — copy verbatim into the authored node's `data.version` (string). Generic nodes without it are flagged OUTDATED in Builder.
+- **Input `options` (Selection / Enum)** — the engine matches values **exactly**. Copy each option string verbatim — preserve case, never paraphrase or Title-Case (e.g. spatialjoin's `jointype` accepts `"inner"`, not `"Inner"`).
+
+For values that may evolve over time (component versions, bundle/config defaults, enum option lists), treat the CLI's `components get` / `schema` output as the single source of truth — never hardcode values in your own templates. Specifically:
+
+- **`config.schemaVersion`** — read the current default from `carto workflows schema config --json` → `properties.schemaVersion.default`. Today it's `"1.0.0"` (string), but resolve at author time so future bumps don't require a skill update.
 
 ---
 
