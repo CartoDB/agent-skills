@@ -73,14 +73,14 @@ Use `native.getisord` with:
 
 **K-ring size**: Larger = smoother, broader patterns. Smaller = more localized clusters.
 
-**Success**: Output contains `INDEX`, `GI` (z-score), and `P_VALUE` columns for every cell.
+**Success**: Output contains `index`, `gi` (z-score), and `p_value` columns for every cell. (Engine declares them lowercase. Snowflake uppercases unquoted identifiers, so on Snowflake reference them as `INDEX`, `GI`, `P_VALUE`.)
 
 ### Step 6: Filter Significant Results (optional)
 
-Use `native.where` to keep only statistically significant cells:
-- `P_VALUE < 0.05` — 95% confidence
-- `P_VALUE < 0.05 AND GI > 0` — hotspots only
-- `P_VALUE < 0.05 AND GI < 0` — coldspots only
+Use `native.where` to keep only statistically significant cells (BigQuery / Postgres / Redshift / Databricks — lowercase; Snowflake — uppercase the identifiers):
+- `p_value < 0.05` — 95% confidence
+- `p_value < 0.05 AND gi > 0` — hotspots only
+- `p_value < 0.05 AND gi < 0` — coldspots only
 
 **Success**: Only cells with statistically meaningful clustering remain.
 
@@ -96,18 +96,19 @@ Use `native.saveastable` to persist results. The H3/Quadbin column is directly v
 
 | Column | Meaning |
 |--------|---------|
-| `INDEX` | Spatial index cell ID (H3 or Quadbin) |
-| `GI` | Gi* z-score — positive = hotspot, negative = coldspot |
-| `P_VALUE` | Statistical significance — lower = more confident |
+| `index` | Spatial index cell ID (H3 or Quadbin) |
+| `gi` | Gi* z-score — positive = hotspot, negative = coldspot |
+| `p_value` | Statistical significance — lower = more confident |
+
+The engine declares these lowercase. On Snowflake (case-insensitive unquoted identifiers), they surface as `INDEX` / `GI` / `P_VALUE`. Match the warehouse convention when writing downstream expressions.
 
 ---
 
 ## Gotchas
 
 - The Getis-Ord component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
-- The output column is named `INDEX`, not `H3` or `QUADBIN`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`).
+- The output column is named `index` (lowercase per engine schema; `INDEX` on Snowflake), not `H3` or `QUADBIN`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`).
 - The `valuecol` must be numeric. If you're counting features, the group-by step must produce a count column — don't pass the raw index column as the value.
-- On Snowflake, column names are uppercased. Use `H3`, `H3_COUNT`, `GI`, `P_VALUE` in expressions.
 - Resolution too high + large area = very many cells, which can be slow or hit memory limits. Start with a moderate resolution and refine.
 - An empty result from the filter step (Step 6) usually means the k-ring size is too small or the data is too sparse for significant clustering. Try increasing `size` or lowering the resolution.
 - Date columns must be DATETIME type for spacetime Getis-Ord. CAST if your data has DATE or TIMESTAMP.

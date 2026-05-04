@@ -135,18 +135,18 @@ Common operations and their native equivalents — try these first:
 
 | If you'd write SQL like… | Use natives |
 |---|---|
-| `WHERE x = …` / multi-condition filter | `native.simplefilter` |
+| `WHERE x = …` / multi-condition filter | `native.where` (predicate), `native.wheresimplified` (UI builder), `native.spatialfilter` (geometry-based match/unmatch split), `native.select` (column projection) |
 | `SELECT a, b, c FROM t` (multi-column projection / rename / multi-expression) | `native.select` (one node, free-form SELECT body) |
 | `SELECT ..., expr AS c FROM t` (add **one** computed column) | `native.selectexpression` (one column + one expression per node) |
 | `GROUP BY k, SUM(x), AVG(y), COUNT(*)` | `native.groupby` |
 | `JOIN ... ON a.k = b.k` (any join type) | `native.joinv2` |
 | `JOIN ... ON ST_INTERSECTS / ST_CONTAINS / ST_WITHIN` | `native.spatialjoin` |
-| `MIN(ST_DISTANCE(a.geom, b.geom))` across two tables | `native.distancetonearest` |
+| `MIN(ST_DISTANCE(a.geom, b.geom))` across two tables | `native.distance` (augments the **main** table in place with `nearest_id` + `nearest_distance` — rename them per source if you chain two `native.distance` nodes for two reference tables) |
 | `ST_BUFFER(geom, d)` | `native.buffer` |
-| H3 binning / boundary / center / polyfill | `native.h3frompoint`, `native.h3boundary`, `native.h3center`, `native.h3polyfill` |
+| H3 binning / boundary / center / polyfill | `native.h3frompoint`, `native.h3boundary` (output geometry column is named `<h3col>_geo`, e.g. `index_geo` — **not** `geom`), `native.h3center`, `native.h3polyfill` |
 | `ORDER BY ... LIMIT n` | `native.orderby` + `native.limit` |
-| z-score / standardization | `native.normalize` (verify name with `components list`) |
-| weighted composite score | `native.compositescore` (verify) |
+| z-score / standardization | `native.normalize` |
+| weighted composite score | `native.spatialcompositeunsupervised` (weighted/PCA), `native.spatialcompositesupervised` (target-driven) |
 | Getis-Ord Gi*, GWR, isolines | `native.getisord`, `native.gwr`, `native.isolines` |
 | Save final node to a table | `native.saveastable` |
 
