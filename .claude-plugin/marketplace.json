@@ -12,7 +12,7 @@
     {
       "name": "carto-skills",
       "source": "./",
-      "description": "CARTO skills bundle: utility tier (basics, connect/query/explore datawarehouse) + platform tier (import-export, workflows, find-spatial-data, manage-platform, copy-maps, copy-workflows) + use-case patterns (hotspot, GWR, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment, spatial-autocorrelation).",
+      "description": "CARTO skills bundle: utility tier (basics, connect/query/explore datawarehouse) + platform tier (import-export, workflows, find-spatial-data, manage-platform, builder-maps, copy-maps, copy-workflows) + use-case patterns (hotspot, GWR, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment, spatial-autocorrelation).",
       "category": "geospatial",
       "tags": [
         "carto",
@@ -34,6 +34,7 @@
         "./skills/carto-create-workflow",
         "./skills/carto-find-spatial-data",
         "./skills/carto-manage-platform",
+        "./skills/carto-create-builder-maps",
         "./skills/carto-copy-maps",
         "./skills/carto-copy-workflows",
         "./skills/carto-pattern-hotspot-analysis",

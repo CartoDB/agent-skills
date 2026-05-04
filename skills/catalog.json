@@ -58,6 +58,13 @@
       "path": "skills/carto-manage-platform"
     },
     {
+      "name": "carto-create-builder-maps",
+      "layer": "platform",
+      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "description": "Author maps in CARTO Builder: layers, basemaps, styling, sharing, and AI Agents.",
+      "path": "skills/carto-create-builder-maps"
+    },
+    {
       "name": "carto-copy-maps",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-explore-datawarehouse"],

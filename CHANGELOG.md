@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `carto-create-builder-maps` — author maps in CARTO Builder: layers, basemaps, styling, sharing, AI Agents on the map. Migrated from `cloud-native-cli-pr/carto-cli/skills/` after end-to-end validation against a live organization. SKILL.md + 11 references covering authoring lifecycle, cartographic decisions (palette, scale, basemap pairing, anti-patterns), per-layer-type guidance, widgets, popups, SQL parameters, basemap, agent-on-the-map block, troubleshooting, and CRUD updates.
+
+### Changed
+
+- Removed `carto-create-builder-maps` from the deferred list (`docs/deferred-skills.md`). The open question about AI Agents (sub-topic vs. sibling skill) was settled in favour of bundling them into `carto-create-builder-maps` via `references/agent-config.md`.
+- Skill count: 20 → 21 (4 utility + 7 platform + 10 use-case patterns). Install matrix, README, and plugin manifests updated.
+
+---
+
 ## 2.4.0-phase2d — 2026-04-30
 
 Migrates the workflow-builder skill set from the standalone `workflows-assistant-skills` repo into this catalog and adds the use-case (pattern) tier.
