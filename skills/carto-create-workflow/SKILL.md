@@ -89,6 +89,10 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
 1. Create the workflow file. Get the bundle/node/edge/variable shapes from `carto workflows schema [section]` (start with `bundle`, then `node`, `node.source`, `node.customsql`, `edge`, `handles`). For customsql nodes, copy the template from `carto workflows schema customsql`.
 
    If you set the optional top-level `privacy`, it must be an **object**, not a string: `"privacy": { "privacy": "private" }` (the field name nests). Omit the field entirely if you don't need it — `"privacy": "private"` will fail `validate`.
+
+   **Source nodes** (`type: "source"`) — treat `ReadTable` like any other component: fetch its spec with `carto workflows components get ReadTable --connection <conn> --json` to get the canonical `inputs[*].title` and `inputs[*].description`. (`ReadTable` is hidden from `components list` because it's grouped `__internal`, but `get` returns it normally.) Two source-only rules `get` cannot tell you, both from `schema node.source`:
+   - The canvas display name lives in `data.label`, NOT `data.title`. Generic nodes use `title`; source nodes use `label`.
+   - `data.id` and `data.inputs[0].value` must be the same FQN.
 2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately:
    ```bash
    carto workflows validate workflow.json --json
@@ -132,18 +136,18 @@ Common operations and their native equivalents — try these first:
 
 | If you'd write SQL like… | Use natives |
 |---|---|
-| `WHERE x = …` / multi-condition filter | `native.simplefilter` |
+| `WHERE x = …` / multi-condition filter | `native.where` (predicate), `native.wheresimplified` (UI builder), `native.spatialfilter` (geometry-based match/unmatch split), `native.select` (column projection) |
 | `SELECT a, b, c FROM t` (multi-column projection / rename / multi-expression) | `native.select` (one node, free-form SELECT body) |
 | `SELECT ..., expr AS c FROM t` (add **one** computed column) | `native.selectexpression` (one column + one expression per node) |
-| `GROUP BY k, SUM(x), AVG(y), COUNT(*)` | `native.groupby` |
+| `GROUP BY k, SUM(x), AVG(y), COUNT(*)` (single key) | `native.groupby` — `groupby` input is a single `Column`, not multi-column. For multi-key grouping use `native.customsql`. |
 | `JOIN ... ON a.k = b.k` (any join type) | `native.joinv2` |
 | `JOIN ... ON ST_INTERSECTS / ST_CONTAINS / ST_WITHIN` | `native.spatialjoin` |
-| `MIN(ST_DISTANCE(a.geom, b.geom))` across two tables | `native.distancetonearest` |
+| `MIN(ST_DISTANCE(a.geom, b.geom))` across two tables | `native.distance` (augments the **main** table in place with `nearest_id` + `nearest_distance` — rename them per source if you chain two `native.distance` nodes for two reference tables) |
 | `ST_BUFFER(geom, d)` | `native.buffer` |
-| H3 binning / boundary / center / polyfill | `native.h3frompoint`, `native.h3boundary`, `native.h3center`, `native.h3polyfill` |
+| H3 binning / boundary / center / polyfill | `native.h3frompoint`, `native.h3boundary` (output geometry column is named `<h3col>_geo`, e.g. `index_geo` — **not** `geom`), `native.h3center`, `native.h3polyfill` |
 | `ORDER BY ... LIMIT n` | `native.orderby` + `native.limit` |
-| z-score / standardization | `native.normalize` (verify name with `components list`) |
-| weighted composite score | `native.compositescore` (verify) |
+| z-score / standardization | `native.normalize` |
+| weighted composite score | `native.spatialcompositeunsupervised` (weighted/PCA), `native.spatialcompositesupervised` (target-driven) |
 | Getis-Ord Gi*, GWR, isolines | `native.getisord`, `native.gwr`, `native.isolines` |
 | Save final node to a table | `native.saveastable` |
 
@@ -174,6 +178,12 @@ What to look for in the response:
 - **Input `format`** — prose describing the expected value shape.
 - **Input `examples`** — concrete JSON snippets showing correct usage.
 - **Input `pitfalls`** — common mistakes, evaluation order, format quirks.
+- **Component `version`** — copy verbatim into the authored node's `data.version` (string). Generic nodes without it are flagged OUTDATED in Builder.
+- **Input `options` (Selection / Enum)** — the engine matches values **exactly**. Copy each option string verbatim — preserve case, never paraphrase or Title-Case (e.g. spatialjoin's `jointype` accepts `"inner"`, not `"Inner"`).
+
+For values that may evolve over time (component versions, bundle/config defaults, enum option lists), treat the CLI's `components get` / `schema` output as the single source of truth — never hardcode values in your own templates. Specifically:
+
+- **`config.schemaVersion`** — read the current default from `carto workflows schema config --json` → `properties.schemaVersion.default`. Today it's `"1.0.0"` (string), but resolve at author time so future bumps don't require a skill update.
 
 ---
 
