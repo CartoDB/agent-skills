@@ -49,7 +49,7 @@ Ask the user the following decision tree:
 4. Optionally reverse variables where higher = worse by multiplying by -1 in the SELECT query passed to the component
 5. Run `native.spatialcompositeunsupervised` with parameters:
    - `scoring_method`: `CUSTOM_WEIGHTS` / `ENTROPY` / `FIRST_PC`
-   - `weights`: required if `CUSTOM_WEIGHTS` (object mapping column names to numeric weights)
+   - `weights`: required if `CUSTOM_WEIGHTS`. **Wire format is a JSON-encoded string of triples `[[<column>, <weight>, <reverse>], ...]`** — `column` is the feature column name, `weight` is a numeric weight (normalized internally to sum to 1), `reverse` is a boolean (`true` flips the variable so higher = worse becomes higher = better without needing a CASE WHEN). Example: `'[["population_density", 0.5, false], ["accident_rate", 0.5, true]]'`. **Not** an object map.
    - `scaling`: `RANKING`
    - `aggregation`: `LINEAR`
    - `output`: `RETURN_RANGE` with range `[0, 1]`

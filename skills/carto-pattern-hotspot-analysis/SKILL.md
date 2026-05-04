@@ -108,6 +108,7 @@ The engine declares these lowercase. On Snowflake (case-insensitive unquoted ide
 
 - The Getis-Ord component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
 - The output column is named `index` (lowercase per engine schema; `INDEX` on Snowflake), not `H3` or `QUADBIN`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`).
+- If you call `native.h3boundary` to materialize cell geometries for visualization, the new column is named `<h3col>_geo` (e.g. `index_geo`), **not** `geom`. Reference it accordingly in downstream nodes.
 - The `valuecol` must be numeric. If you're counting features, the group-by step must produce a count column — don't pass the raw index column as the value.
 - Resolution too high + large area = very many cells, which can be slow or hit memory limits. Start with a moderate resolution and refine.
 - An empty result from the filter step (Step 6) usually means the k-ring size is too small or the data is too sparse for significant clustering. Try increasing `size` or lowering the resolution.
