@@ -11,6 +11,8 @@ Both surfaces share the same `fields[]` schema and the same `templateMode`-based
 
 > **Hard cap: hover = 5 fields per layer, click = unlimited.** Builder's UI enforces `MAX_HOVER_FIELDS = 5` — the "add field" button disappears at 5. Tier-1 in the CLI rejects configurations with 6+ hover fields pre-flight. Move overflow fields to `click` (no cap) when you need to show more context. Authored a hover popup with 6+ fields and wondering why `maps create` fails? This is why.
 
+> ⚠️ **Anti-pattern: `items[]` with `{ field, label }`.** The canonical shape is `fields[]` with `{ name, customName }`. The popup schema accepts unknown keys (`additionalProperties: true`), so `items[]` / `field` / `label` passes structural validation but Builder's renderer **only reads `fields[]` / `name`**. Result on map open: empty popup; on some layer shapes the Builder app shell crashes with HTTP 500. The CLI's Tier-1 now rejects this shape, but the rejection happens *after* an authoring round trip — and the rename is mechanical: `items` → `fields`, `field` → `name`, `label` → `customName`. **Don't author the popup block from memory.** Run `carto maps schema popupSettings --json` and copy the shape from there.
+
 Popups are keyed by **layer id**, not dataset id. Each layer can have independent `hover` and `click` settings.
 
 ```jsonc
