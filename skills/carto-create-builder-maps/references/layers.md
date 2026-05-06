@@ -78,20 +78,11 @@ Each aggregatable channel has its own `<channel>Aggregation` knob in `visConfig`
 For icon-per-category rendering on point tilesets, you need **four things**, all required:
 
 1. **`visConfig.customMarkers: true`** — toggle the channel on.
-2. **`visConfig.customMarkersUrl`** — fallback icon URL for any feature whose value isn't in the markerMap. Without it, those features render iconless. Use an organization-served Maki URL (`<org>.app.carto.com/markers/maki/<icon>.svg`) or a URL from your own upload (see below).
+2. **`visConfig.customMarkersUrl`** — fallback icon URL for any feature whose value isn't in the markerMap. Without it, those features render iconless. Use an organization-served Maki URL (`<org>.app.carto.com/markers/maki/<icon>.svg`) or any other publicly-reachable SVG / PNG URL.
 3. **`visConfig.customMarkersRange.markerMap[]`** — array of `{ value, markerId | markerUrl }` per category. **Each entry sets EITHER `markerId` OR `markerUrl`, never both** — `markerId` references the Maki icon catalogue (`"restaurant"`, `"lodging"`, `"airport"`, etc.); `markerUrl` accepts any custom SVG / PNG URL. Tier-1 rejects entries that set both.
 4. **`visualChannels.customMarkersField`** + **`customMarkersScale: "ordinal"`** — the binding that says "use this column to look up which icon goes on each feature". Without the field, the markerMap is dead config and every feature renders the fallback. Tier-1 rejects `customMarkers: true` + populated markerMap with no `customMarkersField`.
 
-**Uploading a custom marker.** When a user wants a custom SVG / PNG that isn't in the Maki catalogue, upload it via the CLI and use the returned URL:
-
-```sh
-$ carto maps markers upload restaurant.svg --json | jq -r .url
-https://example.carto.com/assets/<asset-id>
-```
-
-Constraints (mirrored from Builder): file size ≤ 200 KB, format `.svg` or `.png` only, PNG resolution ≤ 120 × 120 px (SVGs unconstrained). Pass `--public` for markers on `privacy: "public"` maps so viewers without an organization session can load the icon (uses the GCS signed-URL path).
-
-Once uploaded, drop the URL into either `customMarkersUrl` (single-icon use) or `customMarkersRange.markerMap[].markerUrl` (per-category). Run `carto maps schema layer.tileset` for the full visConfig schema.
+**Sourcing icon URLs.** Custom-marker URLs must already be hosted somewhere viewers can reach (Builder's organization-served Maki catalogue at `<org>.app.carto.com/markers/maki/<icon>.svg`, or any other public CDN). Drop the URL into either `customMarkersUrl` (single-icon use) or `customMarkersRange.markerMap[].markerUrl` (per-category). Run `carto maps schema layer.tileset` for the full visConfig schema.
 
 **Minimal point-tileset example** — colour by a numeric column, default radius:
 

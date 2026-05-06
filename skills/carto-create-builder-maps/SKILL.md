@@ -249,7 +249,6 @@ carto maps update <id> [patch.json] [--publish]   # partial update, optional aut
 carto maps publish <id>                           # freeze a snapshot for shared/public viewers
 carto maps schema [section]                       # JSON Schema reference
 carto maps agents status                          # is CARTO AI enabled on this organization?
-carto maps markers upload <file.svg|file.png>     # upload a custom marker icon, returns URL
 carto maps screenshot <id>                        # PNG render for visual verification
 carto --commands --json                           # full CLI command catalogue (machine-readable)
 ```
