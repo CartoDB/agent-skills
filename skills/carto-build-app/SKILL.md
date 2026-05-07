@@ -14,6 +14,7 @@ Apps follow the [CartoDB/deck.gl-examples](https://github.com/CartoDB/deck.gl-ex
 
 - "deck.gl app", "CARTO app", "map app", "spatial dashboard" — use this skill.
 - Builder map ID supplied → [`fetchmap.md`](references/fetchmap.md).
+- Storymap / scrollytelling / narrative map / guided tour → [`storymap.md`](references/storymap.md) (composes on top of the React scaffold below).
 - Chat-with-map / embedded AI agent → [`agentic-variant.md`](references/agentic-variant.md).
 - *Authoring* maps in Builder → `carto-create-builder-maps` (deferred). *Migrating* a Builder map → [`carto-copy-maps`](../carto-copy-maps).
 
@@ -46,6 +47,7 @@ Only ask what the CLI can't answer: **table name** (if not obvious) and ambiguou
 ## Decision flow — only ask when truly ambiguous
 
 1. **Builder map ID supplied?** Yes → [`fetchmap.md`](references/fetchmap.md). Done.
+1b. **Storymap shape?** Cues: "story map", "scrollytelling", "guided tour", "scenes/chapters/slides", "fly through". → [`storymap.md`](references/storymap.md). Still pick the React scaffold + sources/layers below; storymap is a state pattern layered on top, not a separate scaffold.
 2. **Demo or production?** Default to **vanilla TS + Vite + MapLibre** ([`scaffold-vanilla.md`](references/scaffold-vanilla.md)) unless the prompt says "production", "auth", "deploy", "team", "multi-screen" → React ([`scaffold-react.md`](references/scaffold-react.md)). Vue / Angular only if explicitly named ([`scaffold-vue-angular.md`](references/scaffold-vue-angular.md)).
 3. **Auth model?** Pick from prompt cues; ask only if cues conflict.
    - "public" / "share" / "embed" / no login → API access token ([`auth-public-token.md`](references/auth-public-token.md))
