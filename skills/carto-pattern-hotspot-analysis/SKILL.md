@@ -73,11 +73,11 @@ Use `native.getisord` with:
 
 **K-ring size**: Larger = smoother, broader patterns. Smaller = more localized clusters.
 
-**Success**: Output contains `index`, `gi` (z-score), and `p_value` columns for every cell. (Engine declares them lowercase. Snowflake uppercases unquoted identifiers, so on Snowflake reference them as `INDEX`, `GI`, `P_VALUE`.)
+**Success**: Output contains `index`, `gi` (z-score), and `p_value` columns for every cell. (See the Provider casing note in Gotchas — Snowflake surfaces these UPPERCASE.)
 
 ### Step 6: Filter Significant Results (optional)
 
-Use `native.where` to keep only statistically significant cells (BigQuery / Postgres / Redshift / Databricks — lowercase; Snowflake — uppercase the identifiers):
+Use `native.where` to keep only statistically significant cells:
 - `p_value < 0.05` — 95% confidence
 - `p_value < 0.05 AND gi > 0` — hotspots only
 - `p_value < 0.05 AND gi < 0` — coldspots only
@@ -100,14 +100,15 @@ Use `native.saveastable` to persist results. The H3/Quadbin column is directly v
 | `gi` | Gi* z-score — positive = hotspot, negative = coldspot |
 | `p_value` | Statistical significance — lower = more confident |
 
-The engine declares these lowercase. On Snowflake (case-insensitive unquoted identifiers), they surface as `INDEX` / `GI` / `P_VALUE`. Match the warehouse convention when writing downstream expressions.
+The engine declares these lowercase. See the Provider casing note in Gotchas for Snowflake.
 
 ---
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `INDEX`, `GI`, `P_VALUE`, `H3_COUNT` in expressions. For dialect-specific SQL fragments (e.g. `DATETIME_TRUNC` below), see `carto-create-workflow/references/providers/<provider>.md` for the equivalents table.
 - The Getis-Ord component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
-- The output column is named `index` (lowercase per engine schema; `INDEX` on Snowflake), not `H3` or `QUADBIN`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`).
+- The output column is named `index`, not `h3` or `quadbin`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`).
 - If you call `native.h3boundary` to materialize cell geometries for visualization, the new column is named `<h3col>_geo` (e.g. `index_geo`), **not** `geom`. Reference it accordingly in downstream nodes.
 - The `valuecol` must be numeric. If you're counting features, the group-by step must produce a count column — don't pass the raw index column as the value.
 - Resolution too high + large area = very many cells, which can be slow or hit memory limits. Start with a moderate resolution and refine.
@@ -125,7 +126,7 @@ The engine declares these lowercase. On Snowflake (case-insensitive unquoted ide
 - Extends basic Gi* to detect clusters in both space AND time.
 - Additional inputs: `kerneltime` (uniform/gaussian), `bandwidth` (number of time steps), `timeinterval` (week/month/day).
 - Data must be pre-aggregated into time bins (e.g. weekly counts per H3 cell).
-- Pipeline: points -> H3 -> create time column (e.g. `DATETIME_TRUNC(CAST(datetime AS TIMESTAMP), WEEK)`) -> GROUP BY (h3, time_bin) -> Getis-Ord Spacetime -> filter `p_value < 0.05 AND gi > 0`.
+- Pipeline: points -> H3 -> create time column (BigQuery: `DATETIME_TRUNC(CAST(datetime AS TIMESTAMP), WEEK)`; Snowflake / Databricks / Postgres: `DATE_TRUNC('WEEK', datetime)`) -> GROUP BY (h3, time_bin) -> Getis-Ord Spacetime -> filter `p_value < 0.05 AND gi > 0`.
 
 **Spacetime Hotspot Classification** (`native.spacetimehotspotsclassification`):
 - Chains AFTER Getis-Ord Spacetime output.

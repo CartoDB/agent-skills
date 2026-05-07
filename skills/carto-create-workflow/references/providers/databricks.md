@@ -24,6 +24,8 @@ Use `carto connections browse <connection>` to navigate `catalog > schema > tabl
 
 Databricks **preserves original case** of column names. Column references must match exactly as stored.
 
+**Skill convention**: pattern skills use **lowercase** column names (`geom`, `h3`, `population_sum`, `morans_i`, etc.). On Databricks this is preserved verbatim — match the convention. (Snowflake uppercases unquoted identifiers — see `snowflake.md`.)
+
 **Gotcha with column name `geom`**: Databricks may auto-promote a `STRING` column named `geom` to `geometry(0)` when creating tables via DDL with uppercase column names. Use lowercase column names in `CREATE TABLE` statements to avoid this.
 
 ---
@@ -54,13 +56,15 @@ CALL `engineering-catalog-default`.`dedicated_1061_carto`.ENRICH_POLYGONS_WEIGHT
 
 ## Schedule Expressions
 
-Databricks uses standard cron expressions:
+Databricks uses **Quartz cron** expressions (6 fields, with seconds and a `?` placeholder for day-of-week / day-of-month):
 
 ```
-"0 8 * * *"       # Daily at 08:00
-"0 9 * * 1"       # Mondays at 09:00
-"0 */2 * * *"     # Every 2 hours
+"0 0 8 * * ?"       # Daily at 08:00:00
+"0 0 9 ? * MON"     # Mondays at 09:00
+"0 0 */2 * * ?"     # Every 2 hours
 ```
+
+Standard 5-field cron (`0 8 * * *`) will fail at `schedule add` time — Databricks only accepts Quartz syntax. See `carto workflows --help` for the full dialect-per-engine table.
 
 ---
 
@@ -71,6 +75,17 @@ Databricks uses standard cron expressions:
 - Uses `BEGIN ... END` blocks for workflow execution (multi-statement)
 - `DROP TABLE IF EXISTS` for cleanup before writing results
 - Lateral explode syntax: `LATERAL VIEW explode(array_col) AS elem`
+
+### Common dialect equivalents
+
+For canonical (BigQuery-shaped) examples in pattern skills, here are the Databricks equivalents:
+
+| Operation | Databricks | BigQuery (canonical) |
+|---|---|---|
+| Truncate datetime to week | `date_trunc('WEEK', x)` | `DATETIME_TRUNC(CAST(x AS TIMESTAMP), WEEK)` |
+| Format number to 2 decimals | `format_string('%.2f', x)` | `FORMAT('%.2f', x)` |
+| Lateral / unnest array | `LATERAL VIEW explode(arr) AS elem` | `UNNEST(arr) AS elem` |
+| Point from lon/lat | `ST_POINT(lon, lat, 4326)` | `ST_GEOGPOINT(lon, lat)` |
 
 ---
 

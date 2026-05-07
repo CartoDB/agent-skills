@@ -136,6 +136,7 @@ Use `native.saveastable` to persist results.
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill uses lowercase column names (`h3`, `geom_count`, `population`, `sentiment_avg`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, unquoted identifiers surface UPPERCASE — reference them as `H3`, `GEOM_COUNT`, `POPULATION`, `SENTIMENT_AVG`. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - **Extension package required**: Both territory balancing and location allocation require the Territory Planning Extension Package installed on the specific connection being used. This is NOT available by default -- the user must have it installed. Validation will fail if the package is missing.
 - **Location allocation is computationally expensive** with many candidates. Pre-filter candidates (by geography, capacity, or other criteria) to keep the candidate set small. Hundreds of candidates can be slow; thousands may time out.
 - **Coverage radius units** depend on the spatial reference system -- typically meters when using geography types. Verify the unit matches your intent.

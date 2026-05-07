@@ -35,6 +35,8 @@ Use `carto connections describe <connection> "DATABASE.SCHEMA.TABLE"` to see exa
 
 **This applies to component-generated columns too.** For example, the `native.buffer` component creates a column called `geom_buffer`, but on Snowflake it becomes `GEOM_BUFFER`. When referencing generated columns in downstream nodes (e.g. spatial join's `maintablejoincolumn`), use UPPERCASE.
 
+**Skill convention**: pattern skills and workflow examples document column names in **lowercase** (e.g. `geom`, `h3`, `population_sum`, `morans_i`, `index`, `gi`, `p_value`, `quadrant`). On Snowflake, surface those same identifiers as UPPERCASE (`GEOM`, `H3`, `POPULATION_SUM`, `MORANS_I`, `INDEX`, `GI`, `P_VALUE`, `QUADRANT`) wherever you reference them in expressions, predicates, or downstream component inputs.
+
 ---
 
 ## Analytics Toolbox
@@ -63,6 +65,17 @@ Snowflake uses standard cron expressions:
 - Uses `CREATE OR REPLACE VIEW` for source nodes
 - Identifier quoting uses double quotes: `"DATABASE"."SCHEMA"."TABLE"`
 - Lateral flatten syntax: `lateral FLATTEN(input => array_col) elem`
+
+### Common dialect equivalents
+
+For canonical (BigQuery-shaped) examples in pattern skills, here are the Snowflake equivalents:
+
+| Operation | Snowflake | BigQuery (canonical) |
+|---|---|---|
+| Truncate datetime to week | `DATE_TRUNC('WEEK', x)` | `DATETIME_TRUNC(CAST(x AS TIMESTAMP), WEEK)` |
+| Format number to 2 decimals | `TO_VARCHAR(x, 'FM999990.00')` | `FORMAT('%.2f', x)` |
+| Lateral / unnest array | `lateral FLATTEN(input => arr) elem` | `UNNEST(arr) AS elem` |
+| Point from lon/lat | `ST_POINT(lon, lat)` | `ST_GEOGPOINT(lon, lat)` |
 
 ---
 

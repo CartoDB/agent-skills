@@ -87,6 +87,7 @@ Use `native.saveastable` to persist the ranked results.
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill uses lowercase column names (`geom`, `population`, `income`, `normalized_population`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, unquoted identifiers surface UPPERCASE — reference them as `GEOM`, `POPULATION`, `INCOME`, `NORMALIZED_POPULATION`. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - Isochrone and route components call CARTO's LDS API — they require a valid connection with API access enabled. Buffers do not.
 - Cross Join for distance matrices can explode with many locations x many grid cells. Filter and limit candidates first (Step 2) to keep the pipeline manageable.
 - H3 resolution must match the enrichment dataset resolution. Check the enrichment table's index column before choosing resolution.

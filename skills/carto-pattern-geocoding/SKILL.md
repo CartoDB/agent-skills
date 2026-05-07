@@ -72,10 +72,7 @@ The workflow component wraps the CARTO Analytics Toolbox function `GEOCODE_TABLE
 - Adds a `CARTO_GEOCODE_METADATA` JSON column with quality information (confidence, match type)
 - Uses CARTO Location Data Services (LDS) -- each geocoded row consumes LDS quota
 
-Check available quota:
-```sql
-SELECT * FROM CARTO_DATASERVICES.CARTO.LDS_QUOTA_INFO()
-```
+Check available quota by querying the Analytics Toolbox `LDS_QUOTA_INFO()` function. The fully-qualified name is provider-specific (BigQuery: `` `carto-un.carto`.LDS_QUOTA_INFO() ``; Snowflake: `CARTO.CARTO.LDS_QUOTA_INFO()`; Databricks: stored procedure in the dedicated AT schema). Load `carto-create-workflow` and consult `references/providers/<provider>.md` for the AT path on your warehouse.
 
 ---
 
@@ -85,7 +82,7 @@ SELECT * FROM CARTO_DATASERVICES.CARTO.LDS_QUOTA_INFO()
 - **Two output handles: `match` and `unmatch`.** Don't connect to the wrong one -- `match` has geometries, `unmatch` has NULLs. If you connect the `unmatch` handle to a spatial operation, it will fail.
 - **Country filter is strongly recommended.** Without it, ambiguous addresses may resolve to the wrong country (e.g. "Springfield" exists in 30+ US states and in other countries). The country parameter improves both accuracy and speed.
 - **Address formatting matters.** Well-formatted addresses produce better results: `"123 Main St, Springfield, IL 60001"` works better than `"123 main street springfield"`. Include city, state/region, and postal code when available.
-- **On Snowflake, the metadata column name is uppercased.** Use `CARTO_GEOCODE_METADATA` in expressions. Column casing follows the provider's conventions.
+- **Provider casing & SQL dialect.** Examples in this skill use lowercase column names (BigQuery / Databricks / Postgres / Redshift convention); on Snowflake unquoted identifiers surface UPPERCASE (e.g. `CARTO_GEOCODE_METADATA`, `GEOM`). When writing dialect-specific SQL or referencing the AT path, see `carto-create-workflow/references/providers/<provider>.md`.
 - **For large tables, consider batching.** Geocoding hundreds of thousands of rows in a single run can exhaust quota or time out. Split into batches if needed.
 - **Output geometry is always WGS84 points.** The `geom` column contains EPSG:4326 point geometries regardless of the input address format or country.
 - **Failed geocodes deserve review.** The `unmatch` output is not just noise -- it often reveals data quality issues (missing postal codes, abbreviated city names, non-standard formatting) that can be fixed and re-geocoded.
