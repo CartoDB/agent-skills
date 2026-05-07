@@ -88,27 +88,30 @@ document.getElementById('rev')!.addEventListener('input', (e) => {
 ## React
 
 ```tsx
-const [region, setRegion] = useState('NY');
-const [revenueMin, setRevenueMin] = useState(0);
+function StorePicker() {
+  const [region, setRegion] = useState('NY');
+  const [revenueMin, setRevenueMin] = useState(0);
 
-const dataSource = useMemo(() => vectorQuerySource({
-  ...cartoConfig,
-  sqlQuery: 'SELECT * FROM demo.public.stores WHERE region = @region AND revenue >= @min',
-  queryParameters: { region, min: revenueMin },
-}), [region, revenueMin, accessToken]);
+  const dataSource = useMemo(() => vectorQuerySource({
+    ...cartoConfig,
+    sqlQuery: 'SELECT * FROM demo.public.stores WHERE region = @region AND revenue >= @min',
+    queryParameters: { region, min: revenueMin },
+  }), [region, revenueMin, accessToken]);
 
-return (
-  <>
-    <select value={region} onChange={(e) => setRegion(e.target.value)}>
-      <option value="NY">New York</option>
-      <option value="CA">California</option>
-    </select>
-    <input type="range" min={0} max={500_000} step={1000}
-           value={revenueMin}
-           onChange={(e) => setRevenueMin(+e.target.value)} />
-    <DeckGL layers={[new VectorTileLayer({ id: 'stores', data: dataSource, /* ... */ })]} ... />
-  </>
-);
+  return (
+    <>
+      <select value={region} onChange={(e) => setRegion(e.target.value)}>
+        <option value="NY">New York</option>
+        <option value="CA">California</option>
+      </select>
+      <input type="range" min={0} max={500_000} step={1000}
+             value={revenueMin}
+             onChange={(e) => setRevenueMin(+e.target.value)} />
+      <DeckGL layers={[new VectorTileLayer({ id: 'stores', data: dataSource })]}
+              initialViewState={INITIAL_VIEW_STATE} controller />
+    </>
+  );
+}
 ```
 
 For a slider, debounce the *re-fetch*, not the input — display the current value immediately, but only rebuild the source after 200 ms of stillness.

@@ -86,7 +86,7 @@ The MapLibre child reads `viewState` from deck.gl's context. No manual sync.
 
 For controlled view state (e.g. "fly to selected feature"):
 
-```tsx
+```tsx skip
 const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
 <DeckGL viewState={viewState} onViewStateChange={({ viewState }) => setViewState(viewState)} ...>
 ```

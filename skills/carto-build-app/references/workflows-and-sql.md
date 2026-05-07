@@ -35,7 +35,13 @@ For visualizations, prefer `vectorQuerySource` (see [`data-sources.md`](data-sou
 
 ```ts
 const controller = new AbortController();
-const result = await query({ /* ... */, signal: controller.signal });
+const result = await query({
+  apiBaseUrl,
+  accessToken,
+  connectionName,
+  sqlQuery: 'SELECT * FROM ...',
+  signal: controller.signal,
+});
 // later: controller.abort();
 ```
 
