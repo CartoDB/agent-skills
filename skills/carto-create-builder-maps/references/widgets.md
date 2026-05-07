@@ -10,15 +10,17 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 |---|---|---|
 | `formula` | Single headline metric (sum / average / minimum / maximum / count / custom). | `column` (except `operation: "count"`), `operation`. For `operation: "custom"` add `operationExp` (raw SQL, e.g. `"SUM(revenue) / COUNT(*)"`). |
 | `histogram` | Distribution of a numeric column. | `column`, `operation`, **`buckets` (REQUIRED — see callout)**. Optional `min`/`max` to pin the domain. |
-| `category` | Bar chart by string/categorical value. | `column`, `operation`. `operationColumn` for non-`count`. `orderBy`: `frequency_desc` (default) \| `frequency_asc` \| `alphabetical_asc` \| `alphabetical_desc`. |
+| `category` | Bar chart by string/categorical value. | `column`, `operation`, **`operationColumn` (REQUIRED at mount — see callout)**. `orderBy`: `frequency_desc` (default) \| `frequency_asc` \| `alphabetical_asc` \| `alphabetical_desc`. |
 | `pie` | Same shape as `category`, rendered as pie. | Same as `category`. |
 | `range` | Min/max slider filter. | `column`, `operation`. |
-| `timeseries` | Line / bar over time. | `column` (date/timestamp), `operation`, `stepSize` (`second`…`year` — no `quarter`; use `stepSize: "month"` + `stepMultiplier: 3`), `chartType` (`line` \| `area` \| `bar`). Optional `series[]` for multi-line, `splitByCategory` for per-category series. **Do NOT set `showControls: true` by default** — see callout below. |
+| `timeseries` | Line / bar over time. | `column` (date/timestamp), `operation`, **`operationColumn` (REQUIRED at mount — see callout)**, `stepSize` (`second`…`year` — no `quarter`; use `stepSize: "month"` + `stepMultiplier: 3`), `chartType` (`line` \| `area` \| `bar`), **`showControls` (REQUIRED at mount — emit `false` by default; see callout below)**. Optional `series[]` for multi-line, `splitByCategory` for per-category series. |
 | `table` | Paginated row browser / feature browser. | `dataSource` + `columns: [{ field, headerName, type, format }]`. No top-level `column` / `operation`. |
 
 > **Histogram requires both `column` AND `buckets`.** Builder's UI silently defaults `buckets` to 30 when authored in-panel, but the runtime does NOT — its tick loop is `for (let i = 1; i < widget.buckets; i++)`. With `buckets: undefined` the widget renders an empty container. Tier-1 rejects pre-create.
 
-> **Don't emit `showControls: true` on `timeseries` unless the user explicitly asks for animation.** The animation playback is a niche feature with several non-obvious failure modes: rejected outright on aggregated datasets (h3 / quadbin / heatmapTile / clusterTile — per-row timestamps are gone once binned), disabled when the widget is in `global: true` mode, and disabled when cross-filtering is active. For most timeseries widgets the chart-without-animation is the right default; emit `showControls: true` only when the user asks for time-scrubbing playback AND the dataset is non-aggregated.
+> **`operationColumn` is required at mount on `category` / `pie` / `timeseries`, even when `operation: "count"`.** Builder's widgets panel throws when mounting these widgets without it; the React `ErrorBoundary` catches the throw and renders the styled "Error 500" page (which masquerades as a backend failure — see *"`Error 500` page in CARTO Builder is ambiguous"*). For `count`, set `operationColumn` to the same value as `column`; for non-`count` aggregations (`sum` / `average` / etc.), set it to the numeric column being aggregated. Tier-1 rejects empty / missing `operationColumn` pre-create.
+
+> **`showControls` is required at mount on `timeseries`.** Builder reads the field at mount time; absent or `undefined` triggers a render error. **Emit `"showControls": false` by default**; emit `true` ONLY when the user explicitly asks for time-scrubbing animation playback. The animation playback has several non-obvious failure modes: rejected outright on aggregated datasets (h3 / quadbin / heatmapTile / clusterTile — per-row timestamps are gone once binned), disabled when the widget is in `global: true` mode, and disabled when cross-filtering is active.
 
 > **Aggregation aliases for widget `operation`, `series[].operation`, and `spatialIndexAggregation`** — see [`layers.md`](layers.md) *"h3 / quadbin aggregation restrictions"* for the long-form alias rule and column-type gating; same enum applies here. Short forms (`avg` / `max` / `min`) silently break Builder's click-to-filter and cross-filter wiring at runtime — author long-form (`average` / `maximum` / `minimum`).
 
@@ -41,17 +43,18 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 
 ```jsonc
 // category — bar chart by string/categorical value.
-// `column` groups; omit `operationColumn` for `count`.
+// `column` groups; `operationColumn` is REQUIRED at mount (mirror `column` for `count`).
 { "id": "w-cat", "type": "category", "title": "Sales by region",
-  "column": "region", "operation": "count",
+  "column": "region", "operation": "count", "operationColumn": "region",
   "dataSource": "$ref:stores",
   "orderBy": "frequency_desc" }
 ```
 
 ```jsonc
 // pie — same shape as category, rendered as pie. Use sparingly (≤ 7 slices).
+// `operationColumn` is REQUIRED at mount (mirror `column` for `count`).
 { "id": "w-pie", "type": "pie", "title": "Top contributing factor",
-  "column": "factor", "operation": "count",
+  "column": "factor", "operation": "count", "operationColumn": "factor",
   "dataSource": "$ref:incidents" }
 ```
 
@@ -75,14 +78,15 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 
 ```jsonc
 // timeseries — line / area / bar over time. `stepSize` accepts second…year (NO quarter — use month + stepMultiplier: 3).
-// Bottom of panel; collapsed by default.
+// `operationColumn` and `showControls` are REQUIRED at mount. Bottom of panel; collapsed by default.
 { "id": "w-time", "type": "timeseries", "title": "Sales over time",
   "column": "sale_date", "operation": "sum", "operationColumn": "revenue",
   "stepSize": "month", "chartType": "line",
   "dataSource": "$ref:stores", "global": false,
   "collapsible": true, "autoCollapse": true,
+  "showControls": false,
   "isValid": true }
-// NB: do NOT set showControls: true unless the user explicitly asks for animation playback —
+// NB: emit showControls: false by default. Set true ONLY when the user explicitly asks for animation playback —
 //     it's rejected on aggregated datasets and disabled when global: true or cross-filtering is active.
 ```
 
