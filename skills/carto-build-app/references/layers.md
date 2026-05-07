@@ -118,7 +118,7 @@ import { colorBins, colorCategories } from '@deck.gl/carto';
 const fill = colorBins({
   attr: 'revenue',
   domain: [10_000, 50_000, 100_000, 500_000],
-  colors: 'Sunset',                          // or 'Mint', 'Magenta', any CARTOColors palette
+  colors: 'Sunset',                          // or 'Mint', 'Magenta', any CartoColors palette name
 });
 
 const fillByCategory = colorCategories({

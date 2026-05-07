@@ -7,6 +7,7 @@ A vanilla TS app that renders a continuous raster (e.g. land-surface temperature
 - Vanilla scaffold from [`scaffold-vanilla.md`](../scaffold-vanilla.md).
 - A scoped public token from [`auth-public-token.md`](../auth-public-token.md).
 - A raster table in your warehouse, e.g. `demo.public.lst_celsius`.
+- `npm install cartocolor` for the temperature palette (`@deck.gl/carto` v9 does **not** re-export `CARTOColors`).
 
 ## `index.html`
 
@@ -36,8 +37,9 @@ A vanilla TS app that renders a continuous raster (e.g. land-surface temperature
 
 ```ts
 import { Deck } from '@deck.gl/core';
-import { RasterTileLayer, BASEMAP, CARTOColors } from '@deck.gl/carto';
+import { RasterTileLayer, BASEMAP } from '@deck.gl/carto';
 import { rasterSource } from '@carto/api-client';
+import * as cartoColors from 'cartocolor';
 import maplibregl from 'maplibre-gl';
 
 const cartoConfig = {
@@ -50,7 +52,12 @@ const INITIAL_VIEW_STATE = { longitude: -98.5, latitude: 39.5, zoom: 4, pitch: 0
 
 const TEMP_MIN = -10;
 const TEMP_MAX = 45;
-const TEMP_STOPS = CARTOColors.Temps;     // Temps, Tropic, Earth, etc. work for divergent scales
+// `cartocolor` returns hex strings; deck.gl `getFillColor` wants `[r,g,b]`.
+const TEMP_HEX = cartoColors.Temps[7] as string[];           // Temps/Tropic/Earth = divergent
+const hexToRgb = (h: string): [number, number, number] => [
+  parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16),
+];
+const TEMP_STOPS = TEMP_HEX.map(hexToRgb);
 
 const dataSource = rasterSource({
   ...cartoConfig,
@@ -87,11 +94,9 @@ new Deck({
   },
 });
 
-// Continuous gradient legend
+// Continuous gradient legend (CSS gradient takes hex strings directly)
 const bar = document.getElementById('legend-bar')!;
-bar.style.background = `linear-gradient(to right, ${
-  TEMP_STOPS.map(([r, g, b]) => `rgb(${r},${g},${b})`).join(',')
-})`;
+bar.style.background = `linear-gradient(to right, ${TEMP_HEX.join(',')})`;
 
 const labels = document.getElementById('legend-labels')!;
 labels.innerHTML = `<span>${TEMP_MIN}°</span><span>0°</span><span>${TEMP_MAX}°</span>`;

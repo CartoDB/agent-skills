@@ -8,7 +8,7 @@ Charts and stat cards that read from the same `widgetSource` returned by every d
 |---|---|---|
 | `getFormula` | A single number | KPI / stat card |
 | `getCategories` | Top-N categories with counts | Bar chart |
-| `getHistogram` | Counts per bin | Histogram |
+| `getHistogram` | `number[]` aligned to `ticks` (length `ticks.length + 1`, with under/overflow at ends) | Histogram |
 | `getRange` | `{ min, max }` | Slider bounds |
 | `getTimeSeries` | Time-bucketed values | Line / area chart |
 | `getScatter` | Sample points | Scatter plot |
@@ -141,12 +141,16 @@ widgetSource.getCategories({
 
 ### `getHistogram`
 ```ts
-widgetSource.getHistogram({
+const hist = await widgetSource.getHistogram({
   column: 'revenue',
   ticks: [0, 10_000, 50_000, 100_000, 500_000],   // bin edges, ascending
   operation: 'count',
   spatialFilter,
 });
+// hist is number[] of length ticks.length + 1 — NOT an array of {tick, value}.
+// hist[0]      = rows where revenue < ticks[0]                (underflow)
+// hist[i]      = rows where ticks[i-1] <= revenue < ticks[i]  (1 ≤ i ≤ N-1)
+// hist[N]      = rows where revenue >= ticks[N-1]             (overflow)
 ```
 
 ### `getRange`
@@ -194,14 +198,23 @@ widgetSource.getTable({
 
 ## Rendering with echarts
 
+`hist` is `number[]` aligned to your `ticks` (length = `ticks.length + 1`). Build the category labels yourself:
+
 ```ts
 import * as echarts from 'echarts';
 
+const ticks = [0, 10_000, 50_000, 100_000, 500_000];
+const labels = [
+  `< ${ticks[0]}`,
+  ...ticks.slice(0, -1).map((t, i) => `${t}–${ticks[i + 1]}`),
+  `≥ ${ticks.at(-1)}`,
+];
+
 const chart = echarts.init(document.getElementById('hist'));
 chart.setOption({
-  xAxis: { type: 'category', data: hist.map(b => b.tick) },
+  xAxis: { type: 'category', data: labels },
   yAxis: { type: 'value' },
-  series: [{ type: 'bar', data: hist.map(b => b.value) }],
+  series: [{ type: 'bar', data: hist }],   // hist[i] is already the count
 });
 ```
 

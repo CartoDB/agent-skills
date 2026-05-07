@@ -13,7 +13,7 @@ A React + Vite app that renders an H3-aggregated dataset (population by H3 cell)
 ```tsx
 import { useMemo, useState } from 'react';
 import DeckGL from '@deck.gl/react';
-import { H3TileLayer, BASEMAP, colorBins, CARTOColors } from '@deck.gl/carto';
+import { H3TileLayer, BASEMAP, colorBins } from '@deck.gl/carto';
 import { h3TableSource } from '@carto/api-client';
 import { Map as MaplibreMap } from 'react-map-gl/maplibre';
 import Legend from './components/Legend';
@@ -104,13 +104,16 @@ export default function KPI({ dataSource }: { dataSource: Promise<H3TableSourceR
 
 ## `src/components/Legend.tsx`
 
+`@deck.gl/carto` v9 does **not** re-export `CARTOColors`. Pull palette stops from the `cartocolor` package (`npm i cartocolor`). See [`legend.md`](../legend.md) for the full pattern.
+
 ```tsx
-import { CARTOColors } from '@deck.gl/carto';
+import * as cartoColors from 'cartocolor';
 
 export default function Legend({
   title, domain, palette,
-}: { title: string; domain: number[]; palette: keyof typeof CARTOColors }) {
-  const colors = CARTOColors[palette];
+}: { title: string; domain: number[]; palette: string }) {
+  const buckets = domain.length + 1;
+  const colors = cartoColors[palette][buckets] as string[];   // hex strings
   const labels = [
     `< ${domain[0].toLocaleString()}`,
     ...domain.slice(0, -1).map((d, i) => `${d.toLocaleString()}–${domain[i + 1].toLocaleString()}`),
@@ -119,19 +122,18 @@ export default function Legend({
   return (
     <div className="legend">
       <h4>{title}</h4>
-      {labels.map((label, i) => {
-        const [r, g, b] = colors[Math.min(i, colors.length - 1)];
-        return (
-          <div key={i} className="legend-row">
-            <span className="legend-swatch" style={{ background: `rgb(${r},${g},${b})` }} />
-            <span>{label}</span>
-          </div>
-        );
-      })}
+      {labels.map((label, i) => (
+        <div key={i} className="legend-row">
+          <span className="legend-swatch" style={{ background: colors[i] }} />
+          <span>{label}</span>
+        </div>
+      ))}
     </div>
   );
 }
 ```
+
+`cartocolor` ships without bundled types — add `declare module 'cartocolor';` to a `.d.ts` if TS complains.
 
 ## `src/style.css`
 
