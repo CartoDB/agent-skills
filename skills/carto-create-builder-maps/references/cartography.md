@@ -15,7 +15,7 @@
 - **§4** *Pick the palette* — CARTO families (§4.1), measure-character match (§4.2), basemap × narrative decision tree (§4.2a), centring diverging palettes (§4.3), dark-basemap considerations (§4.4), categorical-with-too-many-values (§4.5), numeric-with-too-many-NULLs (§4.5a), naming + borrowing (§4.6), hex-color column mode (§4.7).
 - **§5** *Basemap pairing* — light/dark fill picks, contrast.
 - **§6** *Legend, popup, label* — legend (§6.1), popup defaults (§6.2), label sparseness (§6.3).
-- **§7** *Anti-patterns — do not emit these* — rainbow on sequential (§7.1), sequential on signed (§7.2), 3D where it doesn't belong (§7.3), too many classes (§7.4), red/green only (§7.5), quantile on bimodal (§7.6), opacity-as-channel (§7.7), encoding the same column twice (§7.9), palette mono-culture across sessions (§7.10), multi-layer mono-culture within one map (§7.11), point overplotting at low zoom (§7.12).
+- **§7** *Anti-patterns — do not emit these* — rainbow on sequential (§7.1), sequential on signed (§7.2), 3D where it doesn't belong (§7.3), too many classes (§7.4), red/green only (§7.5), quantile on bimodal (§7.6), opacity-as-channel (§7.7), encoding the same column twice (§7.9), palette mono-culture across sessions (§7.10), multi-layer mono-culture within one map (§7.11), point overplotting at low zoom (§7.12), white / contrasting stroke on dense choropleths (§7.13).
 - **§8** *Worked recipes* — population density (§8.1), revenue change YoY (§8.2), and others.
 - **Authoring checklist** — final per-map gate before emit, at the bottom of the file.
 
@@ -154,6 +154,64 @@ The rest of §1 is **capability reference** — "given the layer type is fixed, 
 **No point or line attribution applies to polygons** — `radius`, `customMarkers`, `rotation`, line-style `sizeField` (stroke width is `thickness`) are not polygon concepts.
 
 **Don't extrude rates** (density, percentage, share). Extrusion reads as *count*, not *intensity*. See §8.3.
+
+#### Stroke styling on dense choropleths — derive the stroke from the fill
+
+When a choropleth has many small polygons in the viewport (admin boundaries below the country level, postcodes, parcels, h3 / quadbin cells), the default stroke is a contrasting colour — typically white-ish at low opacity. At wide zoom every polygon edge is drawn in a hue that is not in the data, and the boundaries become more visually prominent than the fill differences. Polygon shape needs to remain visible, but the stroke colour should not be a separate visual signal.
+
+**Pattern — bind `strokeColorField` to the same column as `colorField`, on a darker variant of the fill palette with the same break points.** Each polygon's stroke ends up in the same data class as its fill, just darker. Edges stay defined; the stroke does not introduce a new colour.
+
+```jsonc
+"visConfig": {
+  "filled": true,
+  "stroked": true,
+  "thickness": 0.6,
+  "strokeOpacity": 0.9,
+  "opacity": 0.9,
+  "colorRange": {
+    "name": "TealRose", "type": "diverging", "category": "CARTO",
+    "colors": ["#009392","#39b185","#9ccb86","#e9e29c","#eeb479","#e88471","#cf597e"],
+    "colorMap": [
+      [-10, "#009392"], [-5, "#39b185"], [0, "#9ccb86"], [5, "#e9e29c"],
+      [10, "#eeb479"], [20, "#e88471"], [null, "#cf597e"]
+    ]
+  },
+  "strokeColorRange": {
+    "name": "TealRose (dark)", "type": "diverging", "category": "Custom",
+    "colors": ["#00524f","#1d6048","#5a7649","#90875c","#8a6745","#854a3f","#7a3349"],
+    "colorMap": [
+      [-10, "#00524f"], [-5, "#1d6048"], [0, "#5a7649"], [5, "#90875c"],
+      [10, "#8a6745"], [20, "#854a3f"], [null, "#7a3349"]
+    ]
+  }
+},
+"visualChannels": {
+  "colorField":       { "name": "<your-column>", "type": "real" },
+  "colorScale":       "custom",
+  "strokeColorField": { "name": "<your-column>", "type": "real" },
+  "strokeColorScale": "custom"
+}
+```
+
+**Break points must match.** The stroke's `colorMap` uses the same break thresholds as the fill. A polygon classified into the third fill bucket should get the third stroke bucket. Mismatched breaks place a polygon's outline in a different data class than its fill, which is semantically wrong.
+
+**Deriving the darker palette.** Multiply each fill colour's RGB by ~0.65–0.75. The goal is "visibly darker, same hue", not a separately curated ramp.
+
+| Fill | Stroke (R×0.7) |
+|---|---|
+| `#009392` | `#00524f` |
+| `#9ccb86` | `#6d8e5e` |
+| `#e9e29c` | `#a39e6d` |
+| `#cf597e` | `#913e58` |
+
+**Numeric knobs at wide zoom.** Default `thickness: 0.5` + low `strokeOpacity` is too faint to define small polygons but too non-data-coloured to disappear into the fill. Use `thickness: 0.6–0.8` and `strokeOpacity: 0.85–0.95`. Set fill `opacity: 0.85–0.9` so the fill-stroke contrast is consistent across the map.
+
+**When to use a contrasting (non-derived) stroke instead:**
+
+- The stroke encodes a separate measure (a second data axis on the layer — e.g., outline thickness as a confidence indicator, or `strokeColorField` driven by a different column). The stroke serves an independent role; the palettes should also be independent.
+- The polygons are large and few (countries on a world map, top-level admin regions on a national map). At that zoom each polygon is a distinct entity rather than one cell in a continuous distribution, and a contrasting stroke (`#444` or `#333` at `strokeOpacity: 0.6`) is appropriate.
+
+The same pattern applies to `h3` / `quadbin` cells (§1.4 / §1.5) at any zoom dense enough that adjacent cells touch. See §7.13 for the failure mode this prevents.
 
 ### 1.4 `h3` — hex cell aggregation
 
@@ -876,6 +934,14 @@ Sibling failure mode to §7.10, but inside a single configuration: when a map ha
 ### 7.12 Point overplotting at low zoom — point layers always-visible without a fallback
 
 A single always-visible point `tileset` with no `visibilityByZoom` window and no aggregated companion collapses every point into the same on-screen pixel cluster at country / continent zoom — the most common low-zoom-unreadable failure for point maps, and the silent kind (configuration validates, create succeeds, the failure surfaces only when the user opens the map). Author the fix up front per §1.9 (Fix A: hide below readable zoom; Fix B: zoom cascade with an aggregated companion).
+
+### 7.13 Contrasting stroke on dense choropleths
+
+A polygon `tileset` (or `h3` / `quadbin`) choropleth with many small polygons in the viewport, rendered with the default contrasting stroke, makes every administrative boundary more visually prominent than the data-driven fill differences. The stroke colour is not in the data, so the boundaries pull attention away from the measure being mapped. Failure mode applies to any dense small-polygon choropleth — sub-national admin levels, postal areas, parcels, hex / quadbin grids.
+
+**Fix:** drive `strokeColorField` from the same column as the fill, with the same `colorMap` break points, on a darker variant of the fill palette (~70% RGB). Recipe in §1.3 *"Stroke styling on dense choropleths — derive the stroke from the fill"*.
+
+**When a contrasting stroke is correct** — large, few polygons (countries on a world map, top-level admin regions on a national map). Each polygon is a distinct entity rather than one cell in a continuous distribution. See §1.3 for the cutover.
 
 ---
 

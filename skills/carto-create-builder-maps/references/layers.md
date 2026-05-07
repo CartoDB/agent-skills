@@ -154,7 +154,7 @@ Set on `layer.config.visibilityByZoom: { min, max }` (NOT inside `visConfig`) to
 
 - **`filled` defaults to `true`** and is enough on its own — polygons render cleanly without a stroke (different from lines, which need stroke to show at all). Add `stroked: true` only when you want a visible outline.
 - **`colorField` / `colorRange` / `colorAggregation`** drive fill colour — the main visual.
-- **`strokeColorField` / `strokeColorAggregation`** drive outline colour, *if* you opt into a stroke.
+- **`strokeColorField` / `strokeColorAggregation`** drive outline colour, *if* you opt into a stroke. For dense choropleths, derive the stroke from the fill (same column, same break points, darker palette) instead of using the default contrasting outline — see `cartography.md` §1.3 for the recipe and §7.13 for the failure mode it avoids.
 - **`thickness`** is outline width (px) — only relevant when `stroked: true`. Keep thin (0.5 – 2) to let the fill read.
 - **No `radius`, `rotation`, `customMarkers`, `sizeField`** for polygons (size doesn't map to anything useful — use `thickness` for outline width when stroked).
 
