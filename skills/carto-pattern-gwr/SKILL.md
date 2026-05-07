@@ -82,7 +82,7 @@ Use `native.gwr` with:
 - Too large (5+): over-smoothed, approaches global regression.
 - Start with `3` as a balanced default.
 
-**Success**: Output contains per-cell columns: `INDEX`, `INTERCEPT`, one coefficient column per independent variable, `R_SQUARED`, and `RESIDUAL`.
+**Success**: Output contains per-cell columns: `index`, `intercept`, one coefficient column per independent variable, `r_squared`, and `residual`. (See the Provider casing note in Gotchas — Snowflake surfaces these UPPERCASE.)
 
 ### Step 6: Save
 
@@ -96,25 +96,27 @@ Use `native.saveastable` to persist results. The spatial index column is directl
 
 | Column | Meaning |
 |--------|---------|
-| `INDEX` | Spatial index cell ID (H3 or Quadbin) |
-| `INTERCEPT` | Local intercept term |
+| `index` | Spatial index cell ID (H3 or Quadbin) |
+| `intercept` | Local intercept term |
 | `<variable_name>` | Local coefficient for each independent variable |
-| `R_SQUARED` | Local model fit (0-1) -- higher = better local explanation |
-| `RESIDUAL` | Difference between observed and predicted value |
+| `r_squared` | Local model fit (0-1) -- higher = better local explanation |
+| `residual` | Difference between observed and predicted value |
+
+The engine declares these lowercase. See the Provider casing note in Gotchas for Snowflake.
 
 ---
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `INDEX`, `PRICE`, `R_SQUARED`, `INTERCEPT`, etc. in expressions. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - The GWR component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
 - The dependent variable must be continuous and numeric. Categorical targets need a different approach (e.g. classification).
 - Cells with null values in ANY variable (dependent or independent) will be excluded from the model. Pre-filter or impute nulls before running GWR.
 - Multicollinearity between independent variables degrades results. If two predictors are highly correlated (e.g. `bedrooms` and `total_rooms`), drop one or combine them. Check correlation before including multiple similar variables.
 - K-ring size matters significantly: too small = noisy, unstable coefficients; too large = over-smoothed results that approach a global regression. Start with `3` and adjust.
-- On Snowflake, column names are uppercased. Use `H3`, `PRICE`, `R_SQUARED`, etc. in expressions and references.
-- `R_SQUARED` per cell indicates local model fit. Very low values across many cells suggest important predictors are missing from the model.
+- `r_squared` per cell indicates local model fit. Very low values across many cells suggest important predictors are missing from the model.
 - The `features_columns` input is an array of column names (e.g. `["bedrooms", "bathrooms"]`), not a comma-separated string.
-- The output column is named `INDEX`, not the original spatial index column name. If joining back to original data, rename it with `native.renamecolumn`.
+- The output column is named `index`, not the original spatial index column name. If joining back to original data, rename it with `native.renamecolumn`.
 - Sparse data at high resolutions leads to unreliable coefficients. Ensure enough cells have data for all variables before choosing a high resolution.
 
 ---
@@ -139,5 +141,5 @@ Use `native.saveastable` to persist results. The spatial index column is directl
 | Pre-aggregated data (already one row per cell) | Skip Steps 3-4, go directly to GWR |
 | Enrich with Data Observatory | Add `native.enrichgrid` before GWR to include sociodemographic predictors |
 | Coefficient comparison | Save results, then use Builder to style map by each coefficient column separately |
-| Filter by model fit | Add `native.where` after GWR to keep only cells with `R_SQUARED > 0.5` (or another threshold) |
+| Filter by model fit | Add `native.where` after GWR to keep only cells with `r_squared > 0.5` (or another threshold) |
 | Combine with hotspot analysis | Run GWR first, then use residuals as input to Getis-Ord to find clusters of under/over-prediction |

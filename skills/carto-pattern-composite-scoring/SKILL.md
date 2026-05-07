@@ -59,6 +59,7 @@ Ask the user the following decision tree:
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill uses lowercase column names (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `POPULATION_DENSITY`, `ACCIDENT_RATE`, etc. in weights, expressions, and downstream SQL. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - **All input variables must be numeric.** Ordinal strings (e.g. "low"/"medium"/"high") must be manually encoded via CASE WHEN before passing to the component.
 - **Variable direction matters.** If "higher is worse" for a variable, multiply by -1 before scoring. Forgetting this inverts the score meaning.
 - **Supervised R-squared threshold** (default 0.4) is permissive. If model fit is poor, the residual-based score is mostly noise. Inspect model diagnostics.

@@ -75,16 +75,16 @@ Use `native.moransi` with:
 
 **K-ring size**: Larger = broader neighborhood = smoother global patterns. Smaller = more localized assessment. The choice of neighborhood size significantly affects results.
 
-**Success**: Output contains `INDEX`, `MORANS_I`, `P_VALUE`, and `QUADRANT` columns for every cell.
+**Success**: Output contains `index`, `morans_i`, `p_value`, and `quadrant` columns for every cell. (See the Provider casing note in Gotchas — Snowflake surfaces these UPPERCASE.)
 
 ### Step 6: Filter Significant Results (recommended)
 
 Use `native.where` to keep only statistically significant cells. Quadrant classification is only meaningful for significant cells.
 
 Common filters:
-- `P_VALUE < 0.05` -- all significant cells (95% confidence)
-- `P_VALUE < 0.05 AND QUADRANT = 'HH'` -- high-value clusters only
-- `P_VALUE < 0.05 AND (QUADRANT = 'HL' OR QUADRANT = 'LH')` -- spatial outliers only
+- `p_value < 0.05` -- all significant cells (95% confidence)
+- `p_value < 0.05 AND quadrant = 'HH'` -- high-value clusters only
+- `p_value < 0.05 AND (quadrant = 'HL' OR quadrant = 'LH')` -- spatial outliers only
 
 **Success**: Only cells with statistically meaningful spatial patterns remain.
 
@@ -100,10 +100,12 @@ Use `native.saveastable` to persist results. The H3/Quadbin column is directly v
 
 | Column | Meaning |
 |--------|---------|
-| `INDEX` | Spatial index cell ID (H3 or Quadbin) |
-| `MORANS_I` | Local Moran's I value -- positive = similar neighbors, negative = dissimilar neighbors |
-| `P_VALUE` | Statistical significance -- lower = more confident |
-| `QUADRANT` | Cluster classification: `HH`, `HL`, `LH`, or `LL` |
+| `index` | Spatial index cell ID (H3 or Quadbin) |
+| `morans_i` | Local Moran's I value -- positive = similar neighbors, negative = dissimilar neighbors |
+| `p_value` | Statistical significance -- lower = more confident |
+| `quadrant` | Cluster classification: `HH`, `HL`, `LH`, or `LL` |
+
+The engine declares these lowercase. See the Provider casing note in Gotchas for Snowflake.
 
 ### Interpreting Results
 
@@ -124,13 +126,13 @@ Use `native.saveastable` to persist results. The H3/Quadbin column is directly v
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `INDEX`, `MORANS_I`, `P_VALUE`, `QUADRANT`, `GEOID_COUNT` in expressions. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - The Moran's I component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
-- The output column is named `INDEX`, not `H3` or `QUADBIN`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`). This is the same behavior as Getis-Ord.
+- The output column is named `index`, not `h3` or `quadbin`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`). This is the same behavior as Getis-Ord.
 - The `valuecol` must be numeric. If you are counting features, the group-by step must produce a count column -- do not pass the raw index column as the value.
-- On Snowflake, column names are uppercased. Use `H3`, `GEOID_COUNT`, `MORANS_I`, `P_VALUE`, `QUADRANT` in expressions.
 - Resolution too high + large area = very many cells, which can be slow or hit memory limits. Start with a moderate resolution and refine.
 - Moran's I is sensitive to the definition of neighborhood. Both k-ring size and decay function choice materially affect results. Document your choices and consider testing alternatives.
-- Quadrant classification is only meaningful for statistically significant cells. Always filter by `P_VALUE` before interpreting quadrants -- non-significant cells may show any quadrant label by chance.
+- Quadrant classification is only meaningful for statistically significant cells. Always filter by `p_value` before interpreting quadrants -- non-significant cells may show any quadrant label by chance.
 - The decay input parameter is named `decay` (not `kernel`). Check the component schema if unsure.
 
 ---

@@ -180,6 +180,7 @@ Use `native.saveastable`.
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill uses lowercase column names (`origin_id`, `destination_id`, `duration_s`, `distance_m`, `origin_h3`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, reference these UPPERCASE (`ORIGIN_ID`, `DURATION_S`, ...). See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - Isolines and routing components consume **LDS (Location Data Services) quota**. Check available quota with `LDS_QUOTA_INFO` before bulk operations. Buffers (`native.buffer`) do not consume LDS quota and are a free alternative for simple circular catchments.
 - OD matrices grow **quadratically**: N origins x M destinations = N*M rows. Filter or sample inputs to keep the matrix manageable. For 1000 origins x 1000 destinations, you get 1 million rows.
 - **Walking mode** has a much shorter practical range than driving. Walking isolines beyond 20-30 minutes or OD matrices beyond a few kilometers produce unreliable or empty results.

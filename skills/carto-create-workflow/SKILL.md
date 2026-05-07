@@ -94,6 +94,14 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
    **Source nodes** (`type: "source"`) — treat `ReadTable` like any other component: fetch its spec with `carto workflows components get ReadTable --connection <conn> --json` to get the canonical `inputs[*].title` and `inputs[*].description`. (`ReadTable` is hidden from `components list` because it's grouped `__internal`, but `get` returns it normally.) Two source-only rules `get` cannot tell you, both from `schema node.source`:
    - The canvas display name lives in `data.label`, NOT `data.title`. Generic nodes use `title`; source nodes use `label`.
    - `data.id` and `data.inputs[0].value` must be the same FQN.
+
+   **Canvas layout & naming — apply on every node, every workflow.** None of this affects execution, but the user opens the DAG in Builder and a sloppy canvas reads as low quality. The numbers are small and stable; just apply them.
+
+   - **Snap grid is 16 px.** Every `x` and `y` you write must be `% 16 == 0`. Builder snaps drags to this grid; off-grid values look subtly misaligned next to anything the user nudged.
+   - **Card widths are fixed by node type:** source nodes render at **192 px** (12 cells), generic components at **64 px** (4 cells). Knowing this is what lets you reason about gaps.
+   - **Canonical inter-card gap (right edge → next left edge):** 80 px (5 cells) for tight linear placement; 128 px (8 cells) at a fan-in (a join's left input, where an edge from another row needs room). The *gap* is the constant; left-edge-to-left-edge Δx differs across patterns only because cards have different widths. So a generic→generic linear step is Δx=144 (9 cells); a source→generic step at the same gap is Δx=272 (17 cells); a generic→generic fan-in step is Δx=192 (12 cells).
+   - **Layout.** Source nodes stack at the leftmost column with the same `x`, Δy = 144 px (9 cells). The main pipeline runs at the y-midline of the source rows — e.g. sources at y=80 and y=224 → pipeline at y=160. Joins on the midline visually receive both inputs symmetrically.
+   - **`data.title` and `data.label` are different fields** — never duplicate. `title` = short instance-specific verb (≤ 15 chars) describing what *this* node does in *this* DAG (`"Rank"`, `"Join to score"`, `"To H3"`). `label` = the component's canonical type name as Builder shows it on a fresh drop (`"Join"`, `"Create Column"`, `"H3 from GeoPoint"`) — read from `carto workflows components get <name> --json` → `components[0].title`. Source nodes only render `data.label` on canvas (treat it as a short alias for the table: `"Candidates"`, `"Score grid C"`).
 2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately:
    ```bash
    carto workflows validate workflow.json --json

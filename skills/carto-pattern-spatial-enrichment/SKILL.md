@@ -75,6 +75,7 @@ If the goal is per-entity enrichment (e.g. population per store), add a second J
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill documents output column names in lowercase (`population_sum`, `air_quality_avg`, `<column>_joined`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, unquoted identifiers surface UPPERCASE — reference them as `POPULATION_SUM`, `AIR_QUALITY_AVG`, `<COLUMN>_JOINED`. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - **Resolution alignment is critical.** The polyfill resolution MUST match the enrichment dataset's native resolution (e.g. H3 resolution 8 with resolution 8 spatial features). A mismatch produces zero JOIN matches with NO error.
 - **Manual JOIN drops unmatched cells.** `native.join` defaults to INNER JOIN, silently dropping cells with no enrichment data. Use LEFT JOIN if completeness matters.
 - **Deduplicate after polyfill.** Use `SELECT DISTINCT` or GROUP BY on the index column to remove duplicate cells. If you need to preserve source identity (e.g. which store each cell came from), set `includecols: true` in the polyfill node.

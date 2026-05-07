@@ -183,6 +183,7 @@ For demand-driven site selection (e.g. "where is unmet demand highest?"), use `n
 
 ## Gotchas
 
+- **Provider casing & SQL dialect.** This skill uses lowercase column names (`h3`, `is_proposed`, `population`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, unquoted identifiers surface UPPERCASE — reference them as `H3`, `IS_PROPOSED`, `POPULATION`. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - `native.commercialhotspots` requires the **Retail module** of the Analytics Toolbox. Validate with `--connection` to confirm availability.
 - Twin Areas and Similar Locations use **PCA** internally — results are sensitive to variable selection and scaling. Include only relevant, non-redundant variables. Normalize inputs if scales differ widely.
 - Cannibalization overlap depends heavily on **trade area definition** (buffer radius, isoline time). Small changes in parameters can flip results. Document the chosen parameters and rationale.
