@@ -58,6 +58,8 @@ Only ask what the CLI can't answer: **table name** (if not obvious) and ambiguou
 
 Then layer in only what was asked for: [widgets](references/widgets.md), [filters](references/filters.md), [inputs](references/inputs-and-parameters.md), [legend](references/legend.md), [SQL/workflows](references/workflows-and-sql.md), [agentic chat](references/agentic-variant.md). Recipes in [`recipes/`](references/recipes/).
 
+5. **Visual style?** No style cues → Meridian-inspired default (clean, professional, CARTO-native). Any style cue ("futuristic", "corporate", a named design system) → custom theme matching the user's description. Either way, apply the UX layout principles. See [`design-and-theming.md`](references/design-and-theming.md).
+
 ## Always-on guidance
 
 - **`apiBaseUrl`** comes from `carto auth status --json` (`tenant.domain` region). Never hard-code.
@@ -65,4 +67,5 @@ Then layer in only what was asked for: [widgets](references/widgets.md), [filter
 - **Public tokens** must always pass `--source` and limit `--apis` to `sql,maps`. Never `imports` / `lds` in a public bundle.
 - **One `filters` object** is shared by source helpers *and* widget methods. Mutating it triggers re-fetch on both.
 - **Debounce viewport spatial filters ~300 ms** on `onViewStateChange`.
+- **Design** — apply the Meridian-inspired default theme unless the user specifies a different aesthetic. UX layout principles (map as hero, panel discipline, progressive disclosure) always apply. See [`design-and-theming.md`](references/design-and-theming.md).
 - **End by running the app.** Run `npm install && npm run dev` and report the URL.

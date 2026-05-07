@@ -153,6 +153,39 @@ export default function Map({ accessToken }: { accessToken: string }) {
 
 `@deck.gl/react` handles canvas + view state; `react-map-gl/maplibre` renders the basemap as a child component, fully synced.
 
+## `src/style.css`
+
+Meridian-inspired defaults. Override these tokens for a custom theme — see [`design-and-theming.md`](design-and-theming.md).
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --color-primary: #036FE2;
+  --color-primary-light: #358BE7;
+  --color-primary-dark: #024D9E;
+  --color-primary-bg: #EAF2FC;
+  --color-bg: #F8F9F9;
+  --color-surface: #FFFFFF;
+  --color-text: #2C3032;
+  --color-text-secondary: #6F777C;
+  --color-border: #E1E3E4;
+  --color-nav: #162945;
+  --color-nav-text: #FFFFFF;
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(44,48,50,0.08);
+  --shadow-md: 0 4px 12px rgba(44,48,50,0.10);
+  --shadow-lg: 0 8px 24px rgba(44,48,50,0.14);
+}
+
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; font: 400 14px/1.5 var(--font-family); color: var(--color-text); background: var(--color-bg); }
+#root { height: 100vh; width: 100vw; position: relative; }
+```
+
 ## State patterns
 
 - **Filters** — keep the shared `filters` object in a `useState` or `useReducer` at `<App>` level, pass to source factories *and* widgets. Mutating triggers re-render → re-fetch.

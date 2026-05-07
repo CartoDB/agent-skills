@@ -92,9 +92,28 @@ Add `cartocolor` for legends, `echarts` for widgets, `@auth0/auth0-spa-js` for p
 
 ## `style.css`
 
+Meridian-inspired defaults. Override these tokens for a custom theme — see [`design-and-theming.md`](design-and-theming.md).
+
 ```css
-* { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --color-primary: #036FE2;
+  --color-primary-light: #358BE7;
+  --color-primary-dark: #024D9E;
+  --color-bg: #F8F9F9;
+  --color-surface: #FFFFFF;
+  --color-text: #2C3032;
+  --color-text-secondary: #6F777C;
+  --color-border: #E1E3E4;
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --shadow-md: 0 4px 12px rgba(44,48,50,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; font: 400 14px/1.5 var(--font-family); color: var(--color-text); background: var(--color-bg); }
 #app { position: relative; height: 100vh; width: 100vw; }
 #map, #deck-canvas { position: absolute; top: 0; left: 0; height: 100%; width: 100%; }
 ```
@@ -155,7 +174,7 @@ const deck = new Deck({
 
 ## Optional add-ons
 
-- **Side panel** — add `<aside id="panel">` to `index.html` and grid-layout it in `style.css`. Mount widget charts into `<div>`s with `echarts.init(node)`.
+- **Side panel** — add `<aside id="panel">` to `index.html` and style with the design tokens (see [`design-and-theming.md`](design-and-theming.md)). Mount widget charts into `<div>`s with `echarts.init(node)`.
 - **Routing** — none. If the user wants routes, switch to React.
 - **State management** — none. If the user wants Redux/Zustand-grade state, switch to React.
 
