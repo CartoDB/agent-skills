@@ -2,13 +2,14 @@
 
 For non-interactive callers: backend services, ETL scripts, scheduled jobs, CI runners. **Don't ship M2M credentials to a browser** — the client secret is a real secret.
 
-## Issue the M2M client
+## Issue the M2M client autonomously
 
 ```bash
-carto credentials create m2m --title "ETL bot"
+carto credentials create m2m --json --title "ETL bot"
+#  → { "clientId": "...", "clientSecret": "..." }
 ```
 
-Returns `clientId` + `clientSecret`. Store both in a secret manager.
+Store both in a secret manager (or write to `.env` for local dev — gitignored).
 
 ## Use from the CLI
 

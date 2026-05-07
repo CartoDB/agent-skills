@@ -12,15 +12,15 @@ There are no first-party Vue/Angular wrappers from deck.gl, so the pattern is **
 {
   "dependencies": {
     "vue": "^3.4.0",
-    "@deck.gl/core": "^9.2.0",
-    "@deck.gl/carto": "^9.2.0",
-    "@carto/api-client": "^0.5.21",
-    "maplibre-gl": "^3.5.2"
+    "@deck.gl/core": "^9.2.2",
+    "@deck.gl/carto": "^9.2.2",
+    "@carto/api-client": "^0.5.24",
+    "maplibre-gl": "^5.12.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
-    "typescript": "^5.4.0",
-    "vite": "^4.5.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.0.0",
     "vue-tsc": "^2.0.0"
   }
 }

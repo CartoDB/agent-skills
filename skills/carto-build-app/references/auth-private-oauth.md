@@ -4,21 +4,24 @@ For apps where users log in with their CARTO account. Uses the **Auth0 OAuth 2.0
 
 Based on the [Build a Private Application](https://docs.carto.com/carto-for-developers/guides/build-a-private-application) guide.
 
-## Register the SPA OAuth client
+## Register the SPA OAuth client autonomously
+
+The agent runs this and parses the JSON — no user interview required.
 
 ```bash
-carto credentials create spa \
+carto credentials create spa --json \
   --title "My CARTO App" \
-  --callback https://myapp.example.com/callback \
-  --logout-url https://myapp.example.com \
-  --web-origin https://myapp.example.com \
-  --allowed-origin https://myapp.example.com \
-  --login-uri https://myapp.example.com
+  --callback http://localhost:5173 \
+  --logout-url http://localhost:5173 \
+  --web-origin http://localhost:5173 \
+  --allowed-origin http://localhost:5173 \
+  --login-uri http://localhost:5173
+#  → { "clientId": "...", "clientSecret": "..." }
 ```
 
-For local development, register a second client with `http://localhost:5173/...` URLs (Auth0 requires exact matches; you can also list multiple callbacks via repeated `--callback` flags).
+For a production origin, repeat each flag with the prod URL (`--callback https://myapp.example.com`, etc.). Auth0 requires exact matches per scheme/host/port.
 
-The command prints `clientId` and `clientSecret` — the SPA flow uses **only `clientId`**, never the secret in the browser.
+The SPA flow uses **only `clientId`** — never the secret in the browser.
 
 ## Install Auth0 SDK
 

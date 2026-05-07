@@ -61,20 +61,26 @@ deck.setProps({
 
 ## Pattern (React)
 
+The cleanest React shape is to lift the **viewport** (not just `viewState`) out of `DeckGL` via `onViewStateChange` and pass it down. `viewport.getBounds()` returns `[west, south, east, north]` — exactly what `createViewportSpatialFilter` wants. No helper needed.
+
 ```tsx
 import { useEffect, useMemo, useState } from 'react';
+import { WebMercatorViewport } from '@deck.gl/core';
 import { vectorTableSource, createViewportSpatialFilter } from '@carto/api-client';
 
-function useDebouncedViewState(viewState, ms = 300) {
-  const [debounced, setDebounced] = useState(viewState);
+function useDebounced<T>(value: T, ms = 300): T {
+  const [debounced, setDebounced] = useState(value);
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(viewState), ms);
+    const t = setTimeout(() => setDebounced(value), ms);
     return () => clearTimeout(t);
-  }, [viewState, ms]);
+  }, [value, ms]);
   return debounced;
 }
 
-function Widgets({ accessToken, viewState }) {
+function Widgets({ accessToken, viewState }: {
+  accessToken: string;
+  viewState: { longitude: number; latitude: number; zoom: number; pitch: number; bearing: number };
+}) {
   const dataSource = useMemo(() => vectorTableSource({
     apiBaseUrl: import.meta.env.VITE_API_BASE_URL,
     accessToken,
@@ -82,14 +88,21 @@ function Widgets({ accessToken, viewState }) {
     tableName: 'demo.public.stores',
   }), [accessToken]);
 
-  const debouncedView = useDebouncedViewState(viewState);
-  const [stats, setStats] = useState(null);
+  const debouncedView = useDebounced(viewState);
+  const [stats, setStats] = useState<{ total?: { value: number } } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const { widgetSource } = await dataSource;
-      const spatialFilter = createViewportSpatialFilter(boundsFromViewState(debouncedView));
+      // Build a viewport from the current view state, then read bounds.
+      // WebMercatorViewport(viewState) needs width/height — pass the rendering surface size.
+      const viewport = new WebMercatorViewport({
+        ...debouncedView,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+      const spatialFilter = createViewportSpatialFilter(viewport.getBounds());
       const total = await widgetSource.getFormula({ column: 'revenue', operation: 'sum', spatialFilter });
       if (!cancelled) setStats({ total });
     })();
@@ -99,6 +112,8 @@ function Widgets({ accessToken, viewState }) {
   return <KPICard label="Total revenue" value={stats?.total?.value} />;
 }
 ```
+
+If you already hold a `Deck` ref (e.g. via `<DeckGL ref={deckRef} ...>`), prefer `deckRef.current?.deck?.getViewports()[0]?.getBounds()` — it gives you the viewport deck.gl is actually rendering, including any non-WebMercator views. `WebMercatorViewport` is the simplest fallback when you only have view state.
 
 For multiple widgets in a panel, run them in parallel with `Promise.all`.
 

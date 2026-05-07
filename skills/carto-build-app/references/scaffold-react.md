@@ -37,30 +37,32 @@ my-app/
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "@deck.gl/core": "^9.2.0",
-    "@deck.gl/react": "^9.2.0",
-    "@deck.gl/layers": "^9.2.0",
-    "@deck.gl/geo-layers": "^9.2.0",
-    "@deck.gl/aggregation-layers": "^9.2.0",
-    "@deck.gl/extensions": "^9.2.0",
-    "@deck.gl/carto": "^9.2.0",
-    "@carto/api-client": "^0.5.21",
-    "maplibre-gl": "^3.5.2",
-    "react-map-gl": "^7.1.0"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@deck.gl/core": "^9.2.2",
+    "@deck.gl/react": "^9.2.2",
+    "@deck.gl/layers": "^9.2.2",
+    "@deck.gl/geo-layers": "^9.2.6",
+    "@deck.gl/aggregation-layers": "^9.2.6",
+    "@deck.gl/extensions": "^9.2.6",
+    "@deck.gl/carto": "^9.2.2",
+    "@carto/api-client": "^0.5.24",
+    "maplibre-gl": "^5.12.0",
+    "react-map-gl": "^8.1.0"
   },
   "devDependencies": {
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.0",
-    "typescript": "^5.4.0",
-    "vite": "^4.5.0"
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.2",
+    "typescript": "~5.8.3",
+    "vite": "^6.0.0"
   }
 }
 ```
 
-Add `@auth0/auth0-spa-js` for OAuth/SSO, `echarts` + `echarts-for-react` for widgets.
+Add `cartocolor` for legends, `@auth0/auth0-spa-js` for OAuth/SSO, `echarts` + `echarts-for-react` for widgets.
+
+These versions track the [CartoDB/deck.gl-examples](https://github.com/CartoDB/deck.gl-examples) React reference (`ai-tools-advanced-integrations/frontend-integration/react/package.json`). React 19 + Vite 6 + react-map-gl 8 + MapLibre GL 5 are the current peer-tested combination.
 
 ## `vite.config.ts`
 

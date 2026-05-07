@@ -4,7 +4,7 @@ CARTO-specific deck.gl layers from `@deck.gl/carto`. Each pairs with a source fa
 
 | Layer | Source pair | Geometry |
 |---|---|---|
-| `VectorTileLayer` | `vector*Source`, `boundary*Source` | Points, lines, polygons, MultiPolygon |
+| `VectorTileLayer` | `vector*Source` | Points, lines, polygons, MultiPolygon |
 | `H3TileLayer` | `h3*Source` | H3 cells |
 | `QuadbinTileLayer` | `quadbin*Source` | Quadbin cells |
 | `RasterTileLayer` | `rasterSource` | Raster pixels |

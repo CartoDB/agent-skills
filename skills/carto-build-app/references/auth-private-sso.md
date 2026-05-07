@@ -48,17 +48,33 @@ export async function initAuth(): Promise<string> {
     cacheLocation: 'localstorage',
   });
 
+  // 1. Handle Auth0 redirect callback first (before any other branch).
   if (location.search.includes('code=') && location.search.includes('state=')) {
     await auth0Client.handleRedirectCallback();
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
+  // 2. Not authenticated → start a fresh login. This handles cold start AND the
+  //    post-provisioning `?force-login=1` case in one path: clear the param so
+  //    the next iteration after re-login isn't stuck looping.
   if (!(await auth0Client.isAuthenticated())) {
+    if (new URLSearchParams(location.search).has(FORCE_LOGIN_PARAM)) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(FORCE_LOGIN_PARAM);
+      window.history.replaceState({}, document.title, url.pathname + url.search);
+    }
     await auth0Client.loginWithRedirect();
     return '';
   }
 
-  // Provisioning gate: first-time SSO user has no user_metadata
+  // 3. Authenticated but the page reloaded with `?force-login=1` → log out so
+  //    the next round-trip mints a fresh token with the new provisioning claims.
+  if (new URLSearchParams(location.search).has(FORCE_LOGIN_PARAM)) {
+    await auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
+    return '';
+  }
+
+  // 4. Provisioning gate: first-time SSO user has no user_metadata.
   const user = await auth0Client.getUser();
   if (!user?.[USER_METADATA_KEY]) {
     const accountsUrl = import.meta.env.VITE_ACCOUNTS_URL;
@@ -66,12 +82,6 @@ export async function initAuth(): Promise<string> {
     const redirectUri = `${window.location.origin}?${FORCE_LOGIN_PARAM}=1`;
     window.location.href =
       `${accountsUrl}sso/${orgId}?redirectUri=${encodeURIComponent(redirectUri)}`;
-    return '';
-  }
-
-  // Force re-login after provisioning so the new token has full claims
-  if (new URLSearchParams(location.search).has(FORCE_LOGIN_PARAM)) {
-    await auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
     return '';
   }
 

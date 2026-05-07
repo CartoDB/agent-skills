@@ -2,6 +2,16 @@
 
 deck.gl doesn't ship a legend component. You build one from the same domain + palette you passed to `colorBins` / `colorCategories`.
 
+`@deck.gl/carto`'s `colorBins` / `colorCategories` accept a palette **name** (`'Sunset'`, `'Bold'`, …). To resolve that name to actual color stops for the legend, install the `cartocolor` package — that's how every example in [CartoDB/deck.gl-examples](https://github.com/CartoDB/deck.gl-examples) does it. Pattern lifted from the `carto-colors` example: `import * as cartoColors from 'cartocolor'; const stops = cartoColors[palette][7]`.
+
+## Install
+
+```bash
+npm install cartocolor
+```
+
+`cartocolor` returns palettes as **hex strings**, indexed by stop count: `cartoColors['Sunset'][7]` is `string[]` of length 7.
+
 ## The pattern
 
 1. Name the palette + domain once.
@@ -11,7 +21,7 @@ deck.gl doesn't ship a legend component. You build one from the same domain + pa
 ```ts
 import { colorBins } from '@deck.gl/carto';
 
-const REVENUE_DOMAIN = [10_000, 50_000, 100_000, 500_000];
+const REVENUE_DOMAIN = [10_000, 50_000, 100_000, 500_000];   // 4 edges → 5 buckets
 const REVENUE_PALETTE = 'Sunset';
 
 const fillColor = colorBins({
@@ -29,16 +39,14 @@ renderLegend({
 });
 ```
 
-## Resolving a palette to colors
+## Bucket count
 
-`@deck.gl/carto` exposes the CARTOColors palettes as named constants. To turn `'Sunset'` into actual RGB stops:
+`colorBins` with `domain.length = N` produces `N + 1` buckets:
+- below first edge → bucket 0
+- between edge `i` and `i+1` → bucket `i+1`
+- above last edge → bucket `N`
 
-```ts
-import { CARTOColors } from '@deck.gl/carto';
-const colors = CARTOColors.Sunset;           // [[r,g,b], [r,g,b], ...]
-```
-
-Number of bins = `domain.length + 1` for `colorBins` (values below first edge → first color, between edge i and i+1 → color i+1, above last edge → last color). The palette must have ≥ that many stops; CARTOColors palettes ship in lengths 2–7 — if the palette has fewer than you need, deck.gl interpolates.
+So `[10_000, 50_000, 100_000, 500_000]` (4 edges) needs **5 swatches** in the legend. `cartocolor` palettes ship in lengths 2–7. Pick the smallest stop count ≥ your bucket count.
 
 ## Manual legend (vanilla)
 
@@ -54,25 +62,29 @@ Number of bins = `domain.length + 1` for `colorBins` (values below first edge �
 ```
 
 ```ts
-import { CARTOColors } from '@deck.gl/carto';
+import * as cartoColors from 'cartocolor';
 
-function renderLegend({ title, domain, palette }) {
-  const colors = CARTOColors[palette];
+function renderLegend({ title, domain, palette }: {
+  title: string;
+  domain: number[];
+  palette: string;
+}) {
+  const buckets = domain.length + 1;
+  const colors: string[] = cartoColors[palette][buckets];
   const labels = [
     `< ${fmt(domain[0])}`,
     ...domain.slice(0, -1).map((d, i) => `${fmt(d)} – ${fmt(domain[i + 1])}`),
-    `≥ ${fmt(domain.at(-1))}`,
+    `≥ ${fmt(domain.at(-1)!)}`,
   ];
   const root = document.getElementById('legend')!;
   root.innerHTML =
     `<h4>${title}</h4>` +
-    labels.map((label, i) => {
-      const [r, g, b] = colors[Math.min(i, colors.length - 1)];
-      return `<div class="legend-row">
-        <span class="legend-swatch" style="background:rgb(${r},${g},${b})"></span>
+    labels.map((label, i) => `
+      <div class="legend-row">
+        <span class="legend-swatch" style="background:${colors[i]}"></span>
         <span>${label}</span>
-      </div>`;
-    }).join('');
+      </div>
+    `).join('');
 }
 
 const fmt = (n: number) => n.toLocaleString();
@@ -81,12 +93,15 @@ const fmt = (n: number) => n.toLocaleString();
 ## Manual legend (React)
 
 ```tsx
-import { CARTOColors } from '@deck.gl/carto';
+import * as cartoColors from 'cartocolor';
 
 function Legend({ title, domain, palette }: {
-  title: string; domain: number[]; palette: keyof typeof CARTOColors;
+  title: string;
+  domain: number[];
+  palette: string;
 }) {
-  const colors = CARTOColors[palette];
+  const buckets = domain.length + 1;
+  const colors = cartoColors[palette][buckets] as string[];
   const labels = [
     `< ${domain[0].toLocaleString()}`,
     ...domain.slice(0, -1).map((d, i) => `${d.toLocaleString()} – ${domain[i + 1].toLocaleString()}`),
@@ -95,15 +110,12 @@ function Legend({ title, domain, palette }: {
   return (
     <div className="legend">
       <h4>{title}</h4>
-      {labels.map((label, i) => {
-        const [r, g, b] = colors[Math.min(i, colors.length - 1)];
-        return (
-          <div key={i} className="legend-row">
-            <span className="legend-swatch" style={{ background: `rgb(${r},${g},${b})` }} />
-            <span>{label}</span>
-          </div>
-        );
-      })}
+      {labels.map((label, i) => (
+        <div key={i} className="legend-row">
+          <span className="legend-swatch" style={{ background: colors[i] }} />
+          <span>{label}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -112,7 +124,8 @@ function Legend({ title, domain, palette }: {
 ## Categorical legend (`colorCategories`)
 
 ```ts
-import { colorCategories, CARTOColors } from '@deck.gl/carto';
+import { colorCategories } from '@deck.gl/carto';
+import * as cartoColors from 'cartocolor';
 
 const CAT_DOMAIN = ['retail', 'wholesale', 'online'];
 const CAT_PALETTE = 'Bold';
@@ -122,8 +135,7 @@ new VectorTileLayer({
   getFillColor: colorCategories({ attr: 'category', domain: CAT_DOMAIN, colors: CAT_PALETTE }),
 });
 
-// Legend rows: one per domain entry
-const colors = CARTOColors[CAT_PALETTE];
+const colors = cartoColors[CAT_PALETTE][CAT_DOMAIN.length] as string[];
 CAT_DOMAIN.forEach((cat, i) => render(cat, colors[i]));
 ```
 
@@ -132,12 +144,24 @@ CAT_DOMAIN.forEach((cat, i) => render(cat, colors[i]));
 For continuous data, render a CSS gradient bar:
 
 ```ts
-const stops = CARTOColors.Magenta;
-const bg = `linear-gradient(to right, ${stops.map(([r,g,b]) => `rgb(${r},${g},${b})`).join(',')})`;
+import * as cartoColors from 'cartocolor';
+
+const stops = cartoColors['Magenta'][7] as string[];
+const bg = `linear-gradient(to right, ${stops.join(',')})`;
 legendBar.style.background = bg;
 ```
 
 Add min/max labels at either end. For non-linear scales, render explicit tick marks at the same break points the layer uses.
+
+## TypeScript types
+
+`cartocolor` ships without bundled types. Add a one-liner to `vite-env.d.ts` (or any `.d.ts`) if you hit a type error:
+
+```ts
+declare module 'cartocolor';
+```
+
+That's exactly what the upstream React/Vue/Angular examples do.
 
 ## Loading the legend from a Builder map
 
@@ -145,7 +169,8 @@ Add min/max labels at either end. For non-linear scales, render explicit tick ma
 
 ## Gotchas
 
-- **Bin count off-by-one** — `colorBins` with `domain = [a, b, c]` makes 4 buckets, not 3. Make sure the legend has 4 rows.
-- **Palette length < bin count** — deck.gl interpolates colors; the legend should sample those interpolated stops, not just `CARTOColors[palette]`. For up to 7 bins, use a 7-stop palette and skip the math.
+- **Bucket count off-by-one** — `colorBins` with `domain = [a, b, c]` (3 edges) makes **4** buckets, not 3. Use `domain.length + 1` for `cartocolor[palette][n]`.
+- **Palette stop count** — `cartocolor[palette]` is keyed by stop count (`[2]`, `[3]`, …, `[7]`). Pick the smallest one `≥ bucket count`. If you need >7 buckets, redesign the bins (or pre-interpolate yourself) — most readable legends top out at 7 anyway.
 - **Hard-coded palette names break refactors.** Define `DOMAIN` and `PALETTE` constants at module scope, share between layer + legend.
 - **`getFillColor` callbacks lose closure when serialized.** If you ever pass layers through `Deck.toJSON()` for an agentic flow, use the `colorBins`/`colorCategories` helpers (they serialize cleanly) — never inline `(d) => ...` arrow functions.
+- **`cartocolor` is not re-exported by `@deck.gl/carto`.** Install it directly. There is no `import { CARTOColors } from '@deck.gl/carto'` — that doesn't exist.

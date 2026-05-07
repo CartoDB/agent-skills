@@ -30,23 +30,23 @@ my-app/
     "preview": "vite preview"
   },
   "dependencies": {
-    "@deck.gl/core": "^9.2.0",
-    "@deck.gl/layers": "^9.2.0",
-    "@deck.gl/geo-layers": "^9.2.0",
-    "@deck.gl/aggregation-layers": "^9.2.0",
-    "@deck.gl/extensions": "^9.2.0",
-    "@deck.gl/carto": "^9.2.0",
-    "@carto/api-client": "^0.5.21",
-    "maplibre-gl": "^3.5.2"
+    "@deck.gl/core": "^9.2.2",
+    "@deck.gl/layers": "^9.2.2",
+    "@deck.gl/geo-layers": "^9.2.6",
+    "@deck.gl/aggregation-layers": "^9.2.6",
+    "@deck.gl/extensions": "^9.2.6",
+    "@deck.gl/carto": "^9.2.2",
+    "@carto/api-client": "^0.5.24",
+    "maplibre-gl": "^5.12.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
-    "vite": "^4.5.0"
+    "typescript": "~5.8.3",
+    "vite": "^6.0.0"
   }
 }
 ```
 
-Add `echarts` only if widgets are involved. Add `@auth0/auth0-spa-js` only for private apps.
+Add `cartocolor` for legends, `echarts` for widgets, `@auth0/auth0-spa-js` for private apps.
 
 ## `tsconfig.json`
 
@@ -75,7 +75,7 @@ Add `echarts` only if widgets are involved. Add `@auth0/auth0-spa-js` only for p
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My CARTO App</title>
-    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.5.2/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>

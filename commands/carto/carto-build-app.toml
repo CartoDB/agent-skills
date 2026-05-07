@@ -1,4 +1,4 @@
-description = "Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster / boundary), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, or M2M) (carto-skills)"
+description = "Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, or M2M) (carto-skills)"
 
 prompt = """
 Apply the `carto-build-app` skill from the carto-skills catalog to the user's request.

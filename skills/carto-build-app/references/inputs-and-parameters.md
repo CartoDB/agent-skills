@@ -3,7 +3,7 @@
 Two ways to push user input into the map:
 
 1. **Local filters** via the `filters` object — best for predicates over a fixed table.
-2. **Parameterized SQL** via `vectorQuerySource` (or H3/quadbin/boundary `*QuerySource`) — best when you need joins, computed columns, or you want the warehouse to do the work.
+2. **Parameterized SQL** via `vectorQuerySource` (or H3/quadbin `*QuerySource`) — best when you need joins, computed columns, or you want the warehouse to do the work.
 
 Use both together when needed.
 

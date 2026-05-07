@@ -10,7 +10,6 @@ A **data source** is a function from `@carto/api-client` that returns metadata +
 | Pre-aggregated data on H3 cells | `h3Table*`, `h3Query*`, `h3Tileset*` | `H3TileLayer` |
 | Pre-aggregated data on quadbin cells | `quadbinTable*`, `quadbinQuery*`, `quadbinTileset*` | `QuadbinTileLayer` |
 | Continuous raster (temperature, elevation, NDVI) | `rasterSource` | `RasterTileLayer` |
-| Polygons joined to data by ID (admin boundaries) | `boundaryTableSource`, `boundaryQuerySource` | `VectorTileLayer` |
 
 Three flavors per family:
 
@@ -28,7 +27,6 @@ import {
   vectorQuerySource,
   h3TableSource,
   rasterSource,
-  boundaryTableSource,
 } from '@carto/api-client';
 
 const cartoConfig = {
@@ -61,14 +59,9 @@ const d = rasterSource({
   ...cartoConfig,
   tableName: 'demo.public.temperature_raster',
 });
-
-const e = boundaryTableSource({
-  ...cartoConfig,
-  tilesetTableName: 'carto-boundaries.us.county_tileset',
-  columnsTableName: 'demo.public.county_metrics',
-  propertiesSqlQuery: 'SELECT geoid, metric_a, metric_b FROM demo.public.county_metrics',
-});
 ```
+
+Need admin boundaries (countries, regions, ZIP codes, …)? Out of scope for v1. Either join your data to a polygon table you already have and use `vectorQuerySource`, or wait for the dedicated boundary skill.
 
 Each call returns `Promise<TilejsonResult & WidgetXxxSourceResult>`. Pass the *promise* (not the awaited value) to the layer's `data` prop — deck.gl handles the await internally.
 
