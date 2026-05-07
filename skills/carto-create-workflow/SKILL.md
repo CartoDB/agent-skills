@@ -36,6 +36,7 @@ Live introspection commands (use these before reaching for any reference file):
 References (only for what the CLI doesn't serve):
 - [`references/providers/`](references/providers/) — per-warehouse details (BigQuery, Snowflake, Databricks): identifier quoting, column casing, AT path.
 - [`references/scheduling.md`](references/scheduling.md) — `add` vs `update` semantics, bundle-level schedule warning, activity-log verification.
+- [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — publishing a workflow as an MCP tool or callable API endpoint: bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
 
 For copying a workflow across profiles (dev → prod, customer-segregated workspaces), use [`carto-copy-workflows`](../carto-copy-workflows).
 
