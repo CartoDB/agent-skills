@@ -118,14 +118,30 @@ For a slider, debounce the *re-fetch*, not the input — display the current val
 
 ## Multi-select
 
-For `IN` lists, build the parameter as an array and use the warehouse's `IN UNNEST(@arr)` or equivalent:
+For `IN` lists, build the parameter as an array and use the warehouse's array-membership syntax. **The exact predicate is dialect-specific.**
 
-```sql
+BigQuery / Snowflake — `IN UNNEST(...)`:
+
+```sql bigquery
 SELECT * FROM demo.public.stores
-WHERE category IN UNNEST(@categories)    -- BigQuery / Snowflake
--- or:
-WHERE category = ANY(@categories)        -- Postgres
+WHERE category IN UNNEST(@categories)
 ```
+
+Postgres / Redshift — `= ANY(...)`:
+
+```sql postgres
+SELECT * FROM demo.public.stores
+WHERE category = ANY(@categories)
+```
+
+Databricks — `IN (...)` with array literal:
+
+```sql databricks
+SELECT * FROM demo.public.stores
+WHERE array_contains(@categories, category)
+```
+
+The query parameter is the array itself:
 
 ```ts
 queryParameters: { categories: ['retail', 'wholesale'] }
