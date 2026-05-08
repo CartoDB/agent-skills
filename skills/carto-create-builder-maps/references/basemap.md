@@ -16,15 +16,19 @@ The basemap lives on **two parallel fields** inside `keplerMapConfig.config`. **
 
 The two values **must match** — Tier-1 (`carto-cli/src/schemas/crossField/basemapSync.ts`) rejects configurations where `basemapConfig.styleId !== mapStyle.styleType` because Builder's editor and the viewer would render different basemaps.
 
-**Canonical ids** (the 10 CARTO built-ins):
+**Canonical ids** (the 11 CARTO built-ins):
 
 | Group | Ids | Notes |
 |---|---|---|
 | CARTO basemaps | `positron`, `dark-matter`, `voyager` | Always work; no external dependency |
-| Google Maps | `roadmap`, `google-positron`, `google-dark-matter`, `google-voyager`, `satellite`, `hybrid`, `terrain` | |
+| Google Maps | `roadmap`, `google-positron`, `google-dark-matter`, `google-voyager`, `satellite`, `hybrid`, `terrain`, `google-3d` | All require a tenant Google Maps API key. `google-3d` (photorealistic 3D Tiles) additionally requires the `Google3DTiles` feature flag enabled on the org — without the flag, the basemap picker hides it but a saved map with `styleId: "google-3d"` still renders correctly when the flag is on. |
 | Custom basemap | Any organization-defined id (declared under `customBaseMaps.customStyle.id`) | Persist the full style (a MapLibre `style.json`) at `keplerMapConfig.config.customBaseMaps.customStyle` |
 
-**Common typos the CLI catches.** Tier-1 flags near-misses of canonical ids: `"darkmatter"` → suggests `"dark-matter"`; `"darkMatter"` → same; `"dark_matter"` → same. Builder silently falls back to `positron` on any unknown id, so typos are invisible until someone opens the map.
+> **The Google id namespace is inconsistent — don't extrapolate.** Some Google ids carry a `google-` prefix (`google-positron`, `google-dark-matter`, `google-voyager`, `google-3d`), others don't (`roadmap`, `satellite`, `hybrid`, `terrain`). The most common LLM hallucination here is generalising the prefix — emitting `"google-satellite"` / `"google-hybrid"` / `"google-roadmap"` because the prefixed ids are visible. **Those ids do not exist.** Builder falls back silently to `positron` on any unknown id, so the failure is invisible until a viewer opens the map. When in doubt: copy from this table verbatim, don't reconstruct.
+
+> **Persisted shape is just `{styleId, visibleLayerGroups?}` — no `type` field.** The `type` discriminator (`gmaps` / `carto` / `custom`) lives only on Builder's in-memory `BuilderBasemapStyle` after the loader resolves the styleId against `defaultMapStyles[]`. Don't emit `{type: "google", styleId: "satellite"}` or `{type: "carto", styleId: "google-satellite"}` into the saved map — both are wrong; the correct shape is `{styleId: "satellite"}`. The runtime ignores extra fields (Zod `.passthrough()`) so the map will still render, but the canonical authoring shape is styleId-only.
+
+**Common typos the CLI catches.** Tier-1 flags near-misses of canonical ids: `"darkmatter"` → suggests `"dark-matter"`; `"darkMatter"` → same; `"dark_matter"` → same; `"google3d"` → suggests `"google-3d"`. Builder silently falls back to `positron` on any unknown id, so typos are invisible until someone opens the map.
 
 When in doubt start with `"positron"` — the CARTO basemaps have no organization dependency and render identically in any environment.
 
