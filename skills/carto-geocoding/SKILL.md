@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-geocoding
+name: carto-geocoding
 description: Builds geocoding workflows in CARTO that convert street addresses or place names into geographic coordinates. Triggers when the user mentions geocoding, address to coordinates, address resolution, geolocate addresses, "add geometry from addresses", lat/lon from address, place name to point, address matching, forward geocoding, converting addresses to points, or has tabular data with address columns but no spatial geometry column and needs to create one.
 license: MIT
 ---

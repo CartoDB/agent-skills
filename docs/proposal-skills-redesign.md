@@ -96,11 +96,11 @@ Sync scripts keep manifests aligned. A single change ships to all three harnesse
 
 ### Pattern (variable) — recipe skills layered on a Platform skill
 
-Pattern skills encode a specific analytics recipe (e.g. hotspot analysis, GWR) and declare a Platform skill as prerequisite. Their value is in their description: rich trigger-keyword lists let the harness route on user intent (`"build a hotspot analysis"` → `carto-pattern-hotspot-analysis`). Burying them as references defeats automatic routing.
+Pattern skills encode a specific analytics recipe (e.g. hotspot analysis, GWR) and declare a Platform skill as prerequisite. Their value is in their description: rich trigger-keyword lists let the harness route on user intent (`"build a hotspot analysis"` → `carto-hotspot-analysis`). Burying them as references defeats automatic routing.
 
-Naming convention: `carto-pattern-<topic>` — distinct from `carto-<verb>-<object>` so they read as recipes, not new top-level verbs. The first 11 patterns (migrated from the workflows-assistant-skills repo) all attach to `carto-create-workflow`:
+Naming convention: `carto-<topic>` — distinct from `carto-<verb>-<object>` so they read as recipes, not new top-level verbs. The first 11 patterns (migrated from the workflows-assistant-skills repo) all attach to `carto-create-workflow`:
 
-`carto-pattern-hotspot-analysis`, `carto-pattern-spatial-autocorrelation`, `carto-pattern-gwr`, `carto-pattern-spatial-enrichment`, `carto-pattern-trade-area-analysis`, `carto-pattern-site-selection`, `carto-pattern-territory-planning`, `carto-pattern-routing-od-analysis`, `carto-pattern-geocoding`, `carto-pattern-composite-scoring`.
+`carto-hotspot-analysis`, `carto-spatial-autocorrelation`, `carto-gwr`, `carto-spatial-enrichment`, `carto-trade-area-analysis`, `carto-site-selection`, `carto-territory-planning`, `carto-routing-od-analysis`, `carto-geocoding`, `carto-composite-scoring`.
 
 ### Why these boundaries
 

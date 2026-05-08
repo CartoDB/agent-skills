@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-territory-planning
+name: carto-territory-planning
 description: Builds territory planning workflows in CARTO combining territory balancing and location allocation. Triggers when the user mentions territory balancing, territory planning, sales territories, service zones, workload distribution, balanced territories, location allocation, facility placement, optimal locations, maximize coverage, minimize cost, minimize travel distance, depot placement, hub placement, warehouse siting, response time optimization, demand coverage, or wants to divide an area into balanced regions or find optimal facility locations.
 license: MIT
 ---

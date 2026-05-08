@@ -15,16 +15,16 @@ Which skills ship via which harness.
 | `carto-copy-maps` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-copy-workflows` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-create-builder-maps` | platform | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-hotspot-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-spatial-autocorrelation` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-gwr` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-spatial-enrichment` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-trade-area-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-site-selection` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-territory-planning` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-routing-od-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-geocoding` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-pattern-composite-scoring` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-hotspot-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-spatial-autocorrelation` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-gwr` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-spatial-enrichment` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-trade-area-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-site-selection` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-territory-planning` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-routing-od-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-geocoding` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-composite-scoring` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-build-app` | platform | ⏳ deferred | ⏳ deferred | ⏳ deferred | ⏳ deferred |
 | `carto-build-spatial-dashboard` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 | `carto-build-customer-facing-map` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |

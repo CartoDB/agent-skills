@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-spatial-enrichment
+name: carto-spatial-enrichment
 description: Guides the user through spatial enrichment workflows -- triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, "what's around" queries, buffer/isochrone + join patterns, or trade area enrichment.
 license: MIT
 ---

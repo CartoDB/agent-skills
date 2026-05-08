@@ -79,20 +79,20 @@ Skills are organized in three tiers. Pick what's relevant to your work; an agent
 
 ### Use-case patterns — common spatial analyses
 
-Recipe skills that compose the platform skills above. Each carries trigger keywords so the agent routes on user intent (e.g. "find hotspots in this dataset" → `carto-pattern-hotspot-analysis`).
+Recipe skills that compose the platform skills above. Each carries trigger keywords so the agent routes on user intent (e.g. "find hotspots in this dataset" → `carto-hotspot-analysis`).
 
 | Skill | Purpose |
 |---|---|
-| [`carto-pattern-hotspot-analysis`](skills/carto-pattern-hotspot-analysis) | Getis-Ord Gi\* hotspots and spacetime hotspots. |
-| [`carto-pattern-spatial-autocorrelation`](skills/carto-pattern-spatial-autocorrelation) | Moran's I, LISA, HH/HL/LH/LL classification. |
-| [`carto-pattern-gwr`](skills/carto-pattern-gwr) | Geographically Weighted Regression. |
-| [`carto-pattern-spatial-enrichment`](skills/carto-pattern-spatial-enrichment) | Demographics and spatial-features enrichment. |
-| [`carto-pattern-trade-area-analysis`](skills/carto-pattern-trade-area-analysis) | Catchment areas, isochrones, billboard scoring. |
-| [`carto-pattern-site-selection`](skills/carto-pattern-site-selection) | Site selection, cannibalization, twin-area discovery. |
-| [`carto-pattern-territory-planning`](skills/carto-pattern-territory-planning) | Territory balancing and location allocation. |
-| [`carto-pattern-routing-od-analysis`](skills/carto-pattern-routing-od-analysis) | Routing, isolines, OD matrices. |
-| [`carto-pattern-geocoding`](skills/carto-pattern-geocoding) | Address-to-coordinate geocoding. |
-| [`carto-pattern-composite-scoring`](skills/carto-pattern-composite-scoring) | Composite indices, supervised/unsupervised scoring. |
+| [`carto-hotspot-analysis`](skills/carto-hotspot-analysis) | Getis-Ord Gi\* hotspots and spacetime hotspots. |
+| [`carto-spatial-autocorrelation`](skills/carto-spatial-autocorrelation) | Moran's I, LISA, HH/HL/LH/LL classification. |
+| [`carto-gwr`](skills/carto-gwr) | Geographically Weighted Regression. |
+| [`carto-spatial-enrichment`](skills/carto-spatial-enrichment) | Demographics and spatial-features enrichment. |
+| [`carto-trade-area-analysis`](skills/carto-trade-area-analysis) | Catchment areas, isochrones, billboard scoring. |
+| [`carto-site-selection`](skills/carto-site-selection) | Site selection, cannibalization, twin-area discovery. |
+| [`carto-territory-planning`](skills/carto-territory-planning) | Territory balancing and location allocation. |
+| [`carto-routing-od-analysis`](skills/carto-routing-od-analysis) | Routing, isolines, OD matrices. |
+| [`carto-geocoding`](skills/carto-geocoding) | Address-to-coordinate geocoding. |
+| [`carto-composite-scoring`](skills/carto-composite-scoring) | Composite indices, supervised/unsupervised scoring. |
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the rationale behind the three-tier layering.
 

@@ -14,15 +14,15 @@
     "../../../skills/carto-create-builder-maps",
     "../../../skills/carto-copy-maps",
     "../../../skills/carto-copy-workflows",
-    "../../../skills/carto-pattern-hotspot-analysis",
-    "../../../skills/carto-pattern-spatial-autocorrelation",
-    "../../../skills/carto-pattern-gwr",
-    "../../../skills/carto-pattern-spatial-enrichment",
-    "../../../skills/carto-pattern-trade-area-analysis",
-    "../../../skills/carto-pattern-site-selection",
-    "../../../skills/carto-pattern-territory-planning",
-    "../../../skills/carto-pattern-routing-od-analysis",
-    "../../../skills/carto-pattern-geocoding",
-    "../../../skills/carto-pattern-composite-scoring"
+    "../../../skills/carto-hotspot-analysis",
+    "../../../skills/carto-spatial-autocorrelation",
+    "../../../skills/carto-gwr",
+    "../../../skills/carto-spatial-enrichment",
+    "../../../skills/carto-trade-area-analysis",
+    "../../../skills/carto-site-selection",
+    "../../../skills/carto-territory-planning",
+    "../../../skills/carto-routing-od-analysis",
+    "../../../skills/carto-geocoding",
+    "../../../skills/carto-composite-scoring"
   ]
 }

@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-site-selection
+name: carto-site-selection
 description: Builds site selection and cannibalization analysis workflows in CARTO. Triggers when the user mentions site selection, cannibalization, cannibalizing, new store location, where to open, optimal location, facility placement, network impact, overlapping catchments, twin areas, similar locations, look-alike areas, find locations like my best, store overlap, revenue impact of new store, commercial hotspots, demand hotspots, location scoring, location ranking, expand network, new branch, franchise placement, EV charging siting, or wants to evaluate candidate sites, quantify overlap between trade areas, or find areas that resemble top-performing locations.
 license: MIT
 ---
@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that identify optimal locations for new facilities (stores, stations, offices) by combining spatial criteria, and that quantify cannibalization risk from overlapping catchment areas. Also covers twin-area and similar-location discovery.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands. Load `carto-pattern-trade-area-analysis` if the workflow involves isochrones, buffers, or catchment enrichment — that skill covers the catchment pipeline in detail.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands. Load `carto-trade-area-analysis` if the workflow involves isochrones, buffers, or catchment enrichment — that skill covers the catchment pipeline in detail.
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-trade-area-analysis
+name: carto-trade-area-analysis
 description: Builds trade area and catchment analysis workflows in CARTO. Triggers when the user mentions trade area, catchment area, isochrone, site selection, where to open, best location, billboard, OOH, audience targeting, drive time, walk time, coverage area, commercial hotspot, site scoring, location ranking, or wants to generate isochrones, score candidate locations, or identify the best sites for retail, advertising, or services.
 license: MIT
 ---
