@@ -22,7 +22,7 @@ A **tileset** is a pre-aggregated, multi-resolution copy of a geospatial dataset
 
 CARTO ships **tileset SQL functions** in the spatial extension. The pattern:
 
-1. Import or stage the source data via `carto imports create` (or it's already a warehouse table).
+1. Import or stage the source data via `carto import` (or it's already a warehouse table).
 2. Run a `carto sql job` invoking the tileset-creation function — output is a *new* warehouse table.
 3. Reference the tileset table in a map (the map JSON sets `type: "tileset"` on the dataset).
 

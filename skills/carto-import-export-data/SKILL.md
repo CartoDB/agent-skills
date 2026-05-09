@@ -6,7 +6,7 @@ license: MIT
 
 # carto-import-export-data
 
-Move data **into** the warehouse from local files / URLs (`carto imports`), pull data **out** (`carto activity export` for usage data; warehouse-native unloads for everything else), and **prepare tilesets** for performant map rendering of large geospatial datasets.
+Move data **into** the warehouse from local files / URLs (`carto import`), pull data **out** (`carto activity export` for usage data; warehouse-native unloads for everything else), and **prepare tilesets** for performant map rendering of large geospatial datasets.
 
 ## When to use this skill
 
@@ -21,23 +21,23 @@ If the user just wants to query a file already in the warehouse, jump to [`carto
 
 ```bash
 # Import a local file
-carto imports create --file ./data.csv \
+carto import --file ./data.csv \
   --connection carto_dw \
   --destination project.dataset.table
 
 # Import from a URL
-carto imports create --url https://example.com/data.geojson \
+carto import --url https://example.com/data.geojson \
   --connection carto_dw \
   --destination my_project.demo.regions
 
 # Async (return immediately, poll separately)
-carto imports create --file ./big.parquet \
+carto import --file ./big.parquet \
   --connection carto_dw \
   --destination my_project.demo.huge \
   --async
 
 # Overwrite existing table
-carto imports create --file ./data.csv \
+carto import --file ./data.csv \
   --connection carto_dw \
   --destination my_project.demo.t \
   --overwrite
@@ -47,7 +47,7 @@ carto imports create --file ./data.csv \
 
 | Topic | Reference |
 |---|---|
-| `carto imports create` — flags, formats, size limits, async | [references/imports.md](references/imports.md) |
+| `carto import` — flags, formats, size limits, async | [references/imports.md](references/imports.md) |
 | Tileset preparation for large maps | [references/tilesets.md](references/tilesets.md) |
 | Exporting data: warehouse-native unloads vs `activity export` | [references/exports.md](references/exports.md) |
 
