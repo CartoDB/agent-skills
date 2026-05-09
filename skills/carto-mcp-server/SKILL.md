@@ -1,14 +1,14 @@
 ---
 name: carto-mcp-server
-description: Use when the user wants inline/exploratory map visualization, references a saved CARTO Builder map by name/topic, or wants to preview the result of a CLI map creation without leaving the chat. Covers the CARTO MCP server's view_map (ad-hoc deck.gl declarative), load_builder_map (lightweight preview of a saved map), list_maps, get_column_stats, and discovery tools. Distinct from carto-create-builder-maps (CLI authoring of permanent maps) — this skill handles the inline/explorative path. Triggers on "show me X on a map", "visualize Y", "make a heatmap of Z", "open the <name> map", and post-creation preview flows.
+description: Use when the user wants inline/exploratory map visualization, references a saved CARTO Builder map by name/topic, wants to preview the result of a CLI map creation without leaving the chat, or asks to run a saved analysis the MCP server may have exposed as a Workflow tool (dynamic per account — may or may not be present). Covers the CARTO MCP server's view_map (ad-hoc deck.gl declarative), load_builder_map (lightweight preview of a saved map), list_maps, get_column_stats, discovery tools, and any CARTO Workflows registered as MCP tools (e.g. compute trade areas, find hotspots, enrich with demographics). Distinct from carto-create-builder-maps (CLI authoring of permanent maps). Triggers on "show me X on a map", "visualize Y", "make a heatmap of Z", "open the <name> map", post-creation preview flows, and analytical asks where a matching Workflow tool is available.
 license: MIT
 ---
 
 # carto-mcp-server
 
-The CARTO MCP Server is the AI integration into the user's CARTO platform — workspace, saved Builder maps, workflows, and connected data warehouses. It exposes tools that render maps **inline in the chat** for exploratory analysis.
+The CARTO MCP Server is the AI integration into the user's CARTO platform — workspace, saved Builder maps, and connected data warehouses. It exposes tools that render maps **inline in the chat** for exploratory analysis, and the MCP server may also expose CARTO Workflows as MCP tools to execute saved analyses (see "CARTO Workflows exposed as MCP tools" below).
 
-This skill is the **routing and workflow** layer for using the MCP server alongside (or instead of) the CARTO CLI. It does NOT duplicate the MCP tool descriptions — for the deck.gl declarative spec, layer-source compatibility, `aggregationExp` rules, etc., **read the `view_map` tool description directly**. Re-deriving any of that here is a drift risk.
+For the deck.gl declarative spec details — layer-source compatibility, `aggregationExp` rules, `mapStyle`, etc. — read the `view_map` tool description directly. This skill stays focused on routing and workflow recipes.
 
 ## Step 1 — detect what's available
 
@@ -18,15 +18,18 @@ Skills load on user intent, but the actual tools may or may not be attached. Che
 |---|---|
 | **MCP server attached** | Tools named `view_map`, `load_builder_map`, `list_maps`, `list_connections`, `search_resources`, `get_column_stats` are in your tool list. |
 | **CARTO CLI installed** | `carto --version` succeeds in a shell. |
+| **Host supports MCP Apps (interactive widgets)** | The host renders MCP UI resources (e.g., Claude.ai, Claude Desktop, ChatGPT). Hosts WITHOUT MCP Apps support (Gemini CLI, Codex CLI, plain MCP Inspector, current MCPJam) execute the tool but only show a text confirmation — no map widget renders inline. |
 
 | Setup | What this skill does |
 |---|---|
-| **MCP + CLI both available** | Route by intent (next section). |
-| **MCP only** | Stay in MCP. CLI parts of this skill don't apply. |
+| **MCP + CLI both available, MCP Apps supported** | Route by intent (next section). Inline preview renders. |
+| **MCP + CLI both, MCP Apps NOT supported** | `view_map` / `load_builder_map` will run but produce no visible map. Prefer CLI paths for visualization (`carto maps create` + `carto maps screenshot`); use MCP only for discovery (`list_connections`, `search_resources`, `get_column_stats`) and Workflow execution. Tell the user upfront that the host can't render maps inline. |
+| **MCP only, MCP Apps supported** | Stay in MCP. CLI parts don't apply. |
+| **MCP only, MCP Apps NOT supported** | Visualization isn't really possible here — surface that to the user, suggest installing the CLI or switching to a host that supports MCP Apps. Discovery and Workflow execution still work. |
 | **CLI only** | Wrong skill — use `carto-create-builder-maps` instead. |
 | **Neither** | Tell the user they need to install the CLI (`npm install -g @carto/carto-cli`) or attach the CARTO MCP server in their host. Don't proceed silently. |
 
-If MCP is the right path but its tools aren't present, surface that to the user — don't fall back to a generic visualization widget.
+If MCP is the right path but its tools aren't present (or MCP Apps aren't supported and visualization is the goal), surface that to the user — don't fall back to a generic visualization widget.
 
 ## MCP vs CLI routing
 
@@ -36,6 +39,7 @@ If MCP is the right path but its tools aren't present, surface that to the user 
 | "Make a heatmap / cluster of points" — ad-hoc density | **MCP** `view_map` |
 | "Color by quantiles / categories" — data-aware styling | **MCP** `view_map` + `get_column_stats` |
 | "Open my retail-stores map" / saved map by name | **MCP** `list_maps` → `load_builder_map` |
+| Run a saved analytical Workflow ("compute trade areas", "find hotspots", "enrich with demographics") | **MCP** if the matching CARTO Workflow is exposed as a tool — see "CARTO Workflows exposed as MCP tools" below |
 | "Create a permanent / shareable map" | **CLI** (`carto-create-builder-maps`) |
 | "Save / publish / edit a saved map" | **CLI** |
 | Headless / scripted authoring | **CLI** |
@@ -91,6 +95,6 @@ If the user's account has saved workflows published as MCP tools, they appear in
 
 ## Cartography for `view_map` specs
 
-The cartography reference under `carto-create-builder-maps` (`references/cartography.md`) is **Builder-specific** (kepler config) — its JSON shapes do NOT apply to deck.gl declarative specs. For deeper deck.gl declarative cartography (palette choice, scale type, basemap pairing, multi-layer hue separation, anti-patterns), look for a future `carto-cartography-deckgl` skill.
+For cartographic decisions on `view_map` specs (which layer for the story, scale type, palette family, basemap pairing, stroke conventions, drawing order, multi-layer hue separation, picking, anti-patterns, worked recipes), read [`references/cartography.md`](references/cartography.md) in this skill — it's grounded in the actual `@deck.gl/carto` declarative API.
 
-For now, the `view_map` tool description carries the spec rules; this skill only owns the routing and workflow decisions.
+The cartography reference under `carto-create-builder-maps` (`references/cartography.md` there) is **Builder-specific** (kepler config) — its JSON shapes do NOT apply to deck.gl declarative specs. The principles overlap; the encodings don't.
