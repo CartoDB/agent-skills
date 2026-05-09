@@ -14,7 +14,7 @@
 - **§3** *Classify the data* — scale types (§3.1), the quantize-vs-quantile-vs-custom decision (§3.2), what the runtime doesn't offer (§3.3), class count (§3.4), escape hatches (§3.5).
 - **§4** *Pick the palette* — CARTO families (§4.1), measure-character match (§4.2), basemap × narrative decision tree (§4.2a), centring diverging palettes (§4.3), dark-basemap considerations (§4.4), categorical-with-too-many-values (§4.5), numeric-with-too-many-NULLs (§4.5a), naming + borrowing (§4.6), hex-color column mode (§4.7).
 - **§5** *Basemap pairing* — light/dark fill picks, contrast.
-- **§6** *Legend, popup, label* — legend (§6.1), popup defaults (§6.2), label sparseness (§6.3).
+- **§6** *Legend, popup, label, description* — legend (§6.1), popup defaults (§6.2), label sparseness (§6.3), description / right-rail markdown (§6.4).
 - **§7** *Anti-patterns — do not emit these* — rainbow on sequential (§7.1), sequential on signed (§7.2), 3D where it doesn't belong (§7.3), too many classes (§7.4), red/green only (§7.5), quantile on bimodal (§7.6), opacity-as-channel (§7.7), encoding the same column twice (§7.9), palette mono-culture across sessions (§7.10), multi-layer mono-culture within one map (§7.11), point overplotting at low zoom (§7.12), white / contrasting stroke on dense choropleths (§7.13).
 - **§8** *Worked recipes* — population density (§8.1), revenue change YoY (§8.2), and others.
 - **Authoring checklist** — final per-map gate before emit, at the bottom of the file.
@@ -863,6 +863,67 @@ Labels render with their parent layer across all zoom levels where the layer is 
 - `size`: 12–14 at most; 16+ becomes shouting.
 - `offset`: `[0, -8]` for points (label above), `[0, 0]` for polygons (centroid).
 
+### 6.4 Description (right-rail markdown)
+
+The map's `description` field renders in Builder's right-side info panel and in share-link previews. It's viewer-facing markdown — short headings, bullets, ` code spans ` for technical terms — and the right rail has plenty of vertical room. Treat it as **analyst commentary**, not a spec sheet of the layers.
+
+> **The legend, layer panel, and viewport already tell the viewer *what's on the map*. The description's job is *what to take away from it* — the takeaway, the caveats, the source. If the description only restates layer names, palette stops, or zoom thresholds, it adds visual noise without adding information.**
+
+**Template — fill the slots in this order:**
+
+| Slot | Content | Length |
+|---|---|---|
+| Lead paragraph | The takeaway — the question the map answers, or the pattern the viewer is meant to notice | 1–2 sentences |
+| `## What you're seeing` *(only if non-obvious)* | One bullet per layer ONLY when composition isn't already obvious from the legend (zoom-staggered visibility, masked layers, time-dependent behaviour, reference backdrops) | ≤ 3 bullets |
+| `## How to read it` *(only if interactive)* | Click / hover / zoom hints when the viewer has to *do* something to get value | ≤ 2 bullets |
+| `## Source` | Connection + table + vintage as ` code spans ` | 1 line |
+
+The two `*(only if…)*` gates are the discipline — they keep the description from filling with content the legend already shows.
+
+**Length cap:** ~5 lines of body. The right rail is tall, but more than that becomes a wall the viewer skips.
+
+**No tables.** Builder's description renderer supports markdown headings, paragraphs, lists, and embedded images — but not table syntax. For data callouts (top-N, before/after, comparisons) embed a small image, or fold the data into prose. Never bullet-pad in lieu of a table.
+
+**Public-link previews — one carve-out.** When the map's primary surface is a shared public link (the recipient hasn't opened Builder, won't see the layer panel until the page mounts), an extra one-bullet composition recap on the lead paragraph is warranted. Skip it for private / org-internal maps where the viewer already has the panel.
+
+**Worked example — analytical map (choropleth + point overlay):**
+
+```markdown
+US retail density tracks coastal metros, not state population. Inland states cover most of the area but hold a fraction of the stores.
+
+## How to read it
+- Click any state for total store count.
+- Zoom past 8 to see census-tract detail.
+
+## Source
+`carto-demo-data.demo_tables.retail_stores` on the `carto_dw` connection — last refreshed 2026-04.
+```
+
+**Worked example — pure cartography reference map:**
+
+```markdown
+World admin boundaries (level 1) for use as a reference backdrop in dashboards.
+
+## Source
+`carto-demo-data.demo_tables.world_admin1` on the `carto_dw` connection.
+```
+
+Note what's *not* in either: layer names, palette stops, zoom thresholds, classification method. The legend and layer panel already carry that.
+
+**Anti-pattern — the spec-sheet description (do not emit):**
+
+```markdown
+This map shows three layers:
+- Retail stores coloured by storetype (point layer)
+- States — population (zoom 0–5)
+- Counties — population (zoom 5–8)
+- Census tracts — population (zoom 8+)
+
+All zooms: Retail stores (~12K points) coloured by store type.
+```
+
+Every line restates content already visible in the legend and layer panel. The viewer learns nothing they couldn't read off the right side of the map. The fix: lead with the takeaway (*"Retail density tracks coastal metros, not state population"*) and let the legend explain the layers.
+
 ---
 
 ## 7. Anti-patterns — do not emit these
@@ -1046,4 +1107,5 @@ Before you emit the configuration, walk this list. If any answer is "no" or "uns
 - [ ] No rainbow palette on a sequential measure (§7.1).
 - [ ] Hover popup 2–4 columns (cap is 5); click popup has no cap, scope by relevance (§6.2).
 - [ ] Label field is sparse enough that labels don't collide — Builder has no per-label zoom gate (§6.3).
+- [ ] **Description leads with the takeaway**, not a layer recap. Skip `## What you're seeing` unless composition is non-obvious. No tables. Source line uses code spans for connection + table (§6.4).
 - [ ] One column per channel (§7.9).

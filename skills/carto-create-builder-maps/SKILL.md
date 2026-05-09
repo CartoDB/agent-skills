@@ -158,7 +158,7 @@ When asking the Phase 1 intake questions (and on every follow-up turn), **stay i
   - Exploratory analytical map: 3–6 (formula + category/pie + histogram + timeseries + range + table).
   - Dashboard map: 6–8. Past ~8 the panel gets crowded.
 - **SQL parameters — propose when the source has a natural filter axis** (date range, region, category). Wire `{{paramName}}` placeholders + a `sqlParameters[]` entry + `mapSettings.sqlParameterControls: true`. Skip when the source is static.
-- **Description — viewer-facing Markdown.** End users read this in Builder's right-side panel and in share-link previews. Not for authoring notes, agent reasoning, or change history. Use short headings + scannable sections matching the map's narrative — no wall-of-text. When omitted, emit `description: ""` (empty string, never null — null leaks a placeholder); `maps create` auto-fills `""`, `maps update` needs an explicit `""` to clear.
+- **Description — viewer-facing Markdown.** Lead with the takeaway, not a layer recap — the legend and layer panel already show *what's on the map*, so the description's job is *what to take away from it*. See `references/cartography.md` §6.4 for the template (lead paragraph → optional `## What you're seeing` → optional `## How to read it` → `## Source`), the no-tables / 5-line cap rules, and worked examples. Not for authoring notes, agent reasoning, or change history. When omitted, emit `description: ""` (empty string, never null — null leaks a placeholder); `maps create` auto-fills `""`, `maps update` needs an explicit `""` to clear.
 
 ### Opt-in blocks — emit ONLY when the user has explicitly asked
 
