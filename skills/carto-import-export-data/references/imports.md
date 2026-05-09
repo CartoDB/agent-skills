@@ -1,7 +1,7 @@
-# `carto imports create` reference
+# `carto import` reference
 
 ```bash
-carto imports create [options]
+carto import [options]
 ```
 
 ## Required flags
@@ -31,7 +31,7 @@ For larger files:
 
 1. Upload the raw file to cloud storage (S3, GCS, Azure Blob).
 2. Generate a presigned / signed URL.
-3. Run `carto imports create --url <signed-url> --connection ... --destination ...`.
+3. Run `carto import --url <signed-url> --connection ... --destination ...`.
 
 The signed URL must be reachable from CARTO's import workers. CARTO publishes a static IP allowlist for SaaS — verify with support if the bucket is firewalled.
 
@@ -40,7 +40,7 @@ The signed URL must be reachable from CARTO's import workers. CARTO publishes a 
 ### Local CSV
 
 ```bash
-carto imports create \
+carto import \
   --file ./stores.csv \
   --connection carto_dw \
   --destination my_project.demo.stores
@@ -49,7 +49,7 @@ carto imports create \
 ### Remote GeoJSON, overwrite
 
 ```bash
-carto imports create \
+carto import \
   --url https://example.com/regions.geojson \
   --connection carto_dw \
   --destination my_project.demo.regions \
@@ -59,7 +59,7 @@ carto imports create \
 ### Async with explicit schema
 
 ```bash
-carto imports create \
+carto import \
   --file ./events.parquet \
   --connection carto_dw \
   --destination my_project.demo.events \
@@ -72,7 +72,7 @@ carto imports create \
 ```bash
 zip neighborhoods.zip neighborhoods.shp neighborhoods.shx \
                       neighborhoods.dbf neighborhoods.prj
-carto imports create \
+carto import \
   --file ./neighborhoods.zip \
   --connection carto_dw \
   --destination my_project.demo.neighborhoods
