@@ -65,6 +65,13 @@
       "path": "skills/carto-create-builder-maps"
     },
     {
+      "name": "carto-mcp-server",
+      "layer": "platform",
+      "dependencies": [],
+      "description": "Routes inline/exploratory CARTO map visualization workflows. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z', references to saved Builder maps by name, and post-CLI-creation inline preview. The skill detects whether the CARTO MCP server is attached and whether the CLI is installed; uses MCP when present, falls back to or redirects to the CLI when not, and tells the user what's missing if neither is available. Distinct from carto-create-builder-maps (CLI authoring of permanent maps).",
+      "path": "skills/carto-mcp-server"
+    },
+    {
       "name": "carto-copy-maps",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-explore-datawarehouse"],

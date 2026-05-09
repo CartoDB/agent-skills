@@ -12,6 +12,7 @@
     "../../../skills/carto-find-spatial-data",
     "../../../skills/carto-manage-platform",
     "../../../skills/carto-create-builder-maps",
+    "../../../skills/carto-mcp-server",
     "../../../skills/carto-copy-maps",
     "../../../skills/carto-copy-workflows",
     "../../../skills/carto-pattern-hotspot-analysis",
