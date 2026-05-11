@@ -107,4 +107,3 @@ Reviewers focus on:
 - **Description targetedness**: does the description make it clear *when* to route to this skill (not just *what* it does)?
 - **Tier honesty**: does the skill actually only depend on the declared tier?
 - **Reference splitting**: is depth in `references/`, not SKILL.md?
-- **Salvage check** (for Phase 2/3): if your skill maps onto content in `docs/_phase2-salvage/`, you're expected to consume that content rather than re-write it.

@@ -6,7 +6,7 @@ license: MIT
 
 # carto-copy-maps
 
-`maps copy` duplicates a map across CARTO profiles (orgs / environments). The typical use is **dev → prod promotion**, but the same verb covers cross-org relocation (e.g. delivering a customer map into a customer-segregated org). Copy is **mechanical replication**, not creation — for authoring a new map, use the Builder skill (deferred — see [`docs/deferred-skills.md`](../../docs/deferred-skills.md)).
+`maps copy` duplicates a map across CARTO profiles (orgs / environments). The typical use is **dev → prod promotion**, but the same verb covers cross-org relocation (e.g. delivering a customer map into a customer-segregated org). Copy is **mechanical replication**, not creation — for authoring a new map, use [`carto-create-builder-maps`](../carto-create-builder-maps).
 
 `maps clone` is a sibling verb for **same-org duplication** — handy for branching off a working map without touching it.
 
