@@ -12,6 +12,8 @@
     "../../../skills/carto-find-spatial-data",
     "../../../skills/carto-manage-platform",
     "../../../skills/carto-create-builder-maps",
+    "../../../skills/carto-render-inline-map",
+    "../../../skills/carto-preview-builder-map",
     "../../../skills/carto-copy-maps",
     "../../../skills/carto-copy-workflows",
     "../../../skills/carto-hotspot-analysis",

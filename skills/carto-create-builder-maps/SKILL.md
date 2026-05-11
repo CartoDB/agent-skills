@@ -1,6 +1,6 @@
 ---
 name: carto-create-builder-maps
-description: Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps <subcommand>` surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.
+description: Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps` subcommand surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.
 license: MIT
 ---
 
