@@ -68,4 +68,5 @@ Then layer in only what was asked for: [widgets](references/widgets.md), [filter
 - **One `filters` object** is shared by source helpers *and* widget methods. Mutating it triggers re-fetch on both.
 - **Debounce viewport spatial filters ~300 ms** on `onViewStateChange`.
 - **Design** — apply the Meridian-inspired default theme unless the user specifies a different aesthetic. UX layout principles (map as hero, panel discipline, progressive disclosure) always apply. See [`design-and-theming.md`](references/design-and-theming.md).
+- **Never invent logos.** Only render a logo (CARTO, customer, partner, third-party brand) when the user supplied a verified PNG / JPG / SVG asset or pointed to an official source. No verified asset → ask the user, or use a text wordmark / omit the logo entirely. Do not generate SVG marks, fetch from unverified URLs, or substitute a similar-looking brand. Applies even to well-known brands.
 - **End by running the app.** Run `npm install && npm run dev` and report the URL.
