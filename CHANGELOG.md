@@ -20,7 +20,7 @@ Migrates the workflow-builder skill set from the standalone `workflows-assistant
 ### Added
 
 - `carto-create-workflow` — full DAG authoring lifecycle (6-phase process, native-first rule, live CLI fetching, JSON structure, provider notes, pitfalls) plus operating CRUD/scheduling. Replaces the prior `carto-create-analytics-workflow` skill.
-- 10 use-case `carto-pattern-*` skills (hotspot, GWR, Moran's I, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment). Each ships rich trigger-keyword descriptions and bundled `.json` examples.
+- 10 use-case `carto-*` skills (hotspot, GWR, Moran's I, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment). Each ships rich trigger-keyword descriptions and bundled `.json` examples.
 - Provider-specific customsql footguns and the Snowflake uppercase rule live in `references/providers/*.md` under `carto-create-workflow`.
 
 ### Changed
@@ -31,7 +31,7 @@ Migrates the workflow-builder skill set from the standalone `workflows-assistant
 ### Catalog dependencies for new skills
 
 - `carto-create-workflow` → `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`.
-- All `carto-pattern-*` → `carto-create-workflow`.
+- All `carto-*` → `carto-create-workflow`.
 
 ### Note
 

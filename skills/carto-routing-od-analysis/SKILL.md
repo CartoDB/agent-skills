@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-routing-od-analysis
+name: carto-routing-od-analysis
 description: Builds routing and origin-destination analysis workflows in CARTO. Triggers when the user mentions routing, route calculation, travel time, travel distance, OD matrix, origin-destination, isoline, isochrone, isodistance, catchment area, reachable area, drive time polygon, walk time polygon, service area, accessibility analysis, travel time matrix, distance matrix, commute patterns, trip flow, OD flow, mobility patterns, taxi trips, ride patterns, route geometry, shortest path, network distance, or wants to compute routes, generate isolines, build travel matrices, or analyze movement patterns between origins and destinations.
 license: MIT
 ---

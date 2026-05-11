@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-gwr
+name: carto-gwr
 description: Builds Geographically Weighted Regression (GWR) workflows in CARTO. Triggers when the user mentions GWR, geographically weighted regression, spatially varying relationships, local regression, local coefficients, spatial regression, "what drives X in different areas", "why do prices vary spatially", "local factors affecting Y", varying coefficients, coefficient maps, spatial non-stationarity, or wants to model how the relationship between a dependent variable and predictors changes across geography. Produces per-cell regression coefficients that reveal how predictor importance shifts from place to place.
 license: MIT
 ---

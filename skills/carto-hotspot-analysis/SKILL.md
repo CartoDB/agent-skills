@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-hotspot-analysis
+name: carto-hotspot-analysis
 description: Builds Getis-Ord Gi* hotspot analysis workflows in CARTO. Triggers when the user mentions hotspots, coldspots, spatial clusters, Getis-Ord, Gi*, cluster detection, concentration areas, "where do X cluster", spacetime hotspot, temporal clusters, time-varying patterns, hotspot trends, emerging hotspots, Mann-Kendall, or wants to find statistically significant spatial or spatiotemporal patterns in point or grid data.
 license: MIT
 ---

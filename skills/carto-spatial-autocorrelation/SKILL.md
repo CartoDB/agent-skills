@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-spatial-autocorrelation
+name: carto-spatial-autocorrelation
 description: Builds Moran's I spatial autocorrelation workflows in CARTO. Triggers when the user mentions spatial autocorrelation, Moran's I, spatial dependency, spatial correlation, spatial outliers, HH HL LH LL quadrants, high-high clusters, low-low clusters, spatial weight matrix, "is there clustering", "are values spatially correlated", local indicators of spatial association, LISA, spatial randomness test, or wants to determine whether a variable exhibits spatial clustering, dispersion, or randomness across a gridded dataset. Also relevant when the user needs to classify locations into cluster types (HH, HL, LH, LL) rather than just identifying hotspots and coldspots.
 license: MIT
 ---

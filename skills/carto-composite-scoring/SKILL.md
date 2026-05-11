@@ -1,5 +1,5 @@
 ---
-name: carto-pattern-composite-scoring
+name: carto-composite-scoring
 description: Guides the user through building composite score workflows when they ask about composite scores, indexes, multi-variable scores, ranking areas, site scoring, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring.
 license: MIT
 ---

@@ -1,11 +1,11 @@
 description = "Builds Getis-Ord Gi* hotspot analysis workflows in CARTO. Triggers when the user mentions hotspots, coldspots, spatial clusters, Getis-Ord, Gi*, cluster detection, concentration areas, spacetime hotspot, temporal clusters, time-varying patterns, hotspot trends, emerging hotspots, Mann-Kendall, or wants to find statistically significant spatial or spatiotemporal patterns in point or grid data (carto-skills)"
 
 prompt = """
-Apply the `carto-pattern-hotspot-analysis` skill from the carto-skills catalog to the user's request.
+Apply the `carto-hotspot-analysis` skill from the carto-skills catalog to the user's request.
 
 Required behavior:
-- Read the skill's main guidance at `skills/carto-pattern-hotspot-analysis/SKILL.md` first.
-- Follow the skill's reference files (under `skills/carto-pattern-hotspot-analysis/references/`) for depth on specific topics.
+- Read the skill's main guidance at `skills/carto-hotspot-analysis/SKILL.md` first.
+- Follow the skill's reference files (under `skills/carto-hotspot-analysis/references/`) for depth on specific topics.
 - Stay within the skill's stated scope; if the request belongs to a different skill, say which one and stop.
 - For machine-parseable CLI output, always pass `--json`.
 """
