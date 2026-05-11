@@ -77,10 +77,6 @@ SQL snippet validation is **syntactic only** (per-dialect parse via `sqlglot`). 
 
 Per proposal §5, agent-driven CARTO API traffic should be measurable via `custom_user_agent` watermarking using `CARTO_AGENT_HARNESS` and `CARTO_AGENT_LLM` env vars. **This is Phase 2c work** — skills currently emit no watermark.
 
-## Phase 2 / 3 holding
-
-[`docs/_phase2-salvage/`](docs/_phase2-salvage/) contains content extracted from the pre-redesign repo that targets platform/use-case skills not yet built. Kept in-repo so the next PR can fold it in without re-deriving the split.
-
 ## Adding a new skill
 
 See [docs/skill-authoring.md](docs/skill-authoring.md).

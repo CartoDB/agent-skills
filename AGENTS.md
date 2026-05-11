@@ -27,6 +27,3 @@ A skill's `references/*.md` files are *not* always loaded. They're linked from t
 - For machine-parsable output, every command takes `--json`.
 - Destructive commands (`delete`, `batch-delete`) require typing `delete` to confirm; pass `--yes` or `--json` for non-interactive use.
 
-## When something is missing
-
-If a CLI subcommand isn't covered by any utility skill, it's likely Phase 2 platform-tier content. Check `docs/_phase2-salvage/commands-deferred.md` for the staged content.

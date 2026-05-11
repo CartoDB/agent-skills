@@ -125,5 +125,3 @@ LIMIT 5
 - `DATE_TRUNC('month', ts)`, not `date_trunc('month', ts::date)`.
 - Cast string→date with `::DATE`.
 - Window functions and CTEs are supported (DuckDB is highly Postgres-compatible).
-
-For the deeper schema reference and the full event-type catalog, see [`docs/_phase2-salvage/activity.md`](../../../docs/_phase2-salvage/activity.md) — those land in `carto-manage-platform` in Phase 2.

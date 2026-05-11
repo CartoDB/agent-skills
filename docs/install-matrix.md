@@ -30,7 +30,7 @@ Which skills ship via which harness.
 | `carto-build-customer-facing-map` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 | `carto-migrate-to-carto` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 
-One platform skill (`carto-build-app`) is owned by another PM — see [deferred-skills.md](deferred-skills.md). The Phase 3 build-oriented use-case skills depend on it, so they wait too.
+One platform skill (`carto-build-app`) is owned by another PM and not yet built. The Phase 3 build-oriented use-case skills depend on it, so they wait too.
 
 ## Per-harness install
 
