@@ -423,4 +423,4 @@ Before emitting a `view_map` spec where styling is in scope:
 - [ ] `mapStyle` set explicitly to a CARTO basemap URL?
 - [ ] `getTooltip` uses `layer.id` for multi-layer dispatch (not `object.layer.id`)?
 - [ ] Bucket / category count within legibility limits (≤ 7 numeric buckets, ≤ 12 categories — eye distinguishability cap)?
-- [ ] Did I plan to describe the encoding (layer, column, palette, thresholds/categories) in my chat reply, since the renderer doesn't show an inline legend?
+- [ ] Did I plan to emit an HTML legend after the render — via a widget tool (e.g., `show_widget`) if available, else inline HTML in the chat reply — per the `view_map` tool description's LEGEND section?
