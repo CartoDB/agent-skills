@@ -37,6 +37,7 @@
         "./skills/carto-create-builder-maps",
         "./skills/carto-render-inline-map",
         "./skills/carto-preview-builder-map",
+        "./skills/carto-build-app",
         "./skills/carto-hotspot-analysis",
         "./skills/carto-spatial-autocorrelation",
         "./skills/carto-gwr",
