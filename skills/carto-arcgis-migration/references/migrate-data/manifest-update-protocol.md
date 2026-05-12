@@ -179,7 +179,7 @@ Failed (1):
   - Sales                               row count mismatch (source=8421, target=8420)
                                         re-run to retry, or migrate manually
 
-Next step: invoke carto-arcgis-migrate-maps to migrate Web Maps that depend on
+Next step: run the maps migration phase to migrate Web Maps that depend on
 the migrated datasets. The manifest now reflects all updated states.
 ```
 

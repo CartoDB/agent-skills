@@ -115,7 +115,7 @@ Every H3 entry has these keys (lines starting with `- <key>: <value>`):
 | `Item ID` | item id | Always populated; appears even when `Source` is a URL, so the agent can re-fetch item details. |
 | `Type` | item `type` field | Verbatim from `/search`. |
 | `State` | state machine | One of `pending` / `in-progress` / `done` / `skipped` / `failed`. |
-| `Recommended path` | classifier | The `carto-arcgis-migrate-*` skill, or `gap`. |
+| `Recommended path` | classifier | A `carto-arcgis-migrate-*` routing token (kept verbatim for forward compatibility — the data and maps phases of this skill key off these labels), or `gap`. |
 
 ## Optional keys (per state)
 

@@ -1,4 +1,4 @@
-# Lessons from the field — `carto-arcgis-migrate-data`
+# Lessons from the field — data migration phase
 
 Patterns discovered during real migrations. The agent **reads this file before writing any extraction or import script** and follows the documented patterns. New lessons are surfaced via `SESSION_LESSONS.md` in the working directory at end-of-batch and merged here when the user confirms.
 
@@ -275,7 +275,7 @@ These skills already encode the right flag combinations, JSON-shape conventions,
 
 If a recipe seems wrong or out-of-date for what you're observing on disk, the next-best move is `carto <subcommand> --json` and inspect the structured output (most subcommands self-describe) — but only after the relevant carto-skill is consulted.
 
-This is a hard rule for `carto-arcgis-migrate-data`: we don't reimplement CARTO platform mechanics, we delegate. The migration-specific logic (paged ArcGIS extraction, GeoParquet writing, manifest updates) is what lives in *this* skill; everything CARTO-side is borrowed.
+This is a hard rule for the data migration phase: we don't reimplement CARTO platform mechanics, we delegate. The migration-specific logic (paged ArcGIS extraction, GeoParquet writing, manifest updates) is what lives in *this* phase; everything CARTO-side is borrowed.
 
 ---
 

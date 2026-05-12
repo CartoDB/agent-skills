@@ -1,8 +1,8 @@
 # ArcGIS item types → CARTO migration target
 
-Authoritative mapping from ArcGIS Portal / AGOL `type` field (sometimes refined by `typeKeywords`) to the migration path the discover skill records in `MIGRATION_MANIFEST.md`.
+Authoritative mapping from ArcGIS Portal / AGOL `type` field (sometimes refined by `typeKeywords`) to the migration path the discover phase records in `MIGRATION_MANIFEST.md`. The `Recommended path: carto-arcgis-migrate-*` values are routing-token labels carried verbatim on every manifest entry — the data and maps migration phases key off them when filtering work.
 
-When the source portal returns a `type` not in this table, classify the entry as a gap with reason `unknown type: <type>` and surface it to the user in the Phase 5 summary.
+When the source portal returns a `type` not in this table, classify the entry as a gap with reason `unknown type: <type>` and surface it to the user in the A.6 summary.
 
 ## Datasets → `carto-arcgis-migrate-data`
 
@@ -35,7 +35,7 @@ When the source portal returns a `type` not in this table, classify the entry as
 
 ## Services → `carto-arcgis-migrate-services`
 
-> **Dedup before classifying as Services.** Map Service / WFS items that are alternate endpoints over the same underlying data as a Feature Service should be **collapsed into the Feature Service's Datasets entry as `Source aliases`**, not duplicated as Service entries. See [`manifest-format.md`](manifest-format.md) for the alias field; see Phase 4 of `SKILL.md` for the dedup logic. Only items that genuinely expose data the migrated table doesn't already serve land under Services.
+> **Dedup before classifying as Services.** Map Service / WFS items that are alternate endpoints over the same underlying data as a Feature Service should be **collapsed into the Feature Service's Datasets entry as `Source aliases`**, not duplicated as Service entries. See [`manifest-format.md`](manifest-format.md) for the alias field; see phase A.4 of [`../discover.md`](../discover.md) for the dedup logic. Only items that genuinely expose data the migrated table doesn't already serve land under Services.
 
 | ArcGIS `type` | Notes |
 |---|---|
@@ -50,7 +50,7 @@ When the source portal returns a `type` not in this table, classify the entry as
 
 ## Apps → `carto-arcgis-migrate-apps` or `carto-arcgis-migrate-maps` (conditional)
 
-Apps route **conditionally**. The `discover` skill fetches the item's `data` payload and applies the rubric in [`app-routing-rubric.md`](app-routing-rubric.md):
+Apps route **conditionally**. The discover phase fetches the item's `data` payload and applies the rubric in [`app-routing-rubric.md`](app-routing-rubric.md):
 
 - **Simple apps** — all detected widgets available in Builder, ≤ 4 visible simultaneously → `carto-arcgis-migrate-maps`. The embedded Web Map becomes a Builder map; standard map controls and analytical widgets are enabled on the resulting map. No custom app code is generated.
 - **Custom apps** — any non-Builder widget OR > 4 visible widgets → `carto-arcgis-migrate-apps`. Becomes a Vite + React + deck.gl + ECharts app.

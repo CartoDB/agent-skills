@@ -1,6 +1,6 @@
-# Lessons from the field — `carto-arcgis-migrate-maps`
+# Lessons from the field — maps migration phase
 
-Patterns discovered during real Web Map → Builder map migrations. The agent **reads this file before writing any translation code** and follows the documented patterns. New lessons surface via `SESSION_LESSONS.md` at end-of-batch and merge here when the user confirms (maintainer-only step — see `CLAUDE.md` and `carto-arcgis-migrate-data/references/lessons.md` for the merge protocol).
+Patterns discovered during real Web Map → Builder map migrations. The agent **reads this file before writing any translation code** and follows the documented patterns. New lessons surface via `SESSION_LESSONS.md` at end-of-batch and merge here when the user confirms (maintainer-only step — see `CLAUDE.md` and [`../migrate-data/lessons.md`](../migrate-data/lessons.md) for the merge protocol).
 
 The point: every renderer corner case, every popup-shape surprise, every Arcade quirk that bit a previous run — captured once, never re-discovered.
 
@@ -10,7 +10,7 @@ The point: every renderer corner case, every popup-shape surprise, every Arcade 
 
 ### CARTO session expired during a long batch
 
-Same pattern as [`carto-arcgis-migrate-data/references/lessons.md`](../../carto-arcgis-migrate-data/references/lessons.md) "CARTO session expired" — `carto maps create`, `carto maps validate`, or `carto sql query` returning a 401/403 in `--json` output stops the entire batch (not just the current item). Leave the in-progress Web Map as `in-progress`; resumption after `carto auth login` and a re-invocation handles it cleanly via the manifest precheck.
+Same pattern as [`../migrate-data/lessons.md`](../migrate-data/lessons.md) "CARTO session expired" — `carto maps create`, `carto maps validate`, or `carto sql query` returning a 401/403 in `--json` output stops the entire batch (not just the current item). Leave the in-progress Web Map as `in-progress`; resumption after `carto auth login` and a re-invocation handles it cleanly via the manifest precheck.
 
 **Detection in script** — same pattern as migrate-data:
 
@@ -678,7 +678,7 @@ When the user has Builder open in another tab and the agent updates a map, Build
 
 ## How to add a lesson
 
-When the agent encounters a non-obvious pattern during a run, append to `SESSION_LESSONS.md` in the working directory using the template at the bottom of [`carto-arcgis-migrate-data/references/lessons.md`](../../carto-arcgis-migrate-data/references/lessons.md). The same maintainer / end-user merge paths apply at end of Phase 7:
+When the agent encounters a non-obvious pattern during a run, append to `SESSION_LESSONS.md` in the working directory using the template at the bottom of [`../migrate-data/lessons.md`](../migrate-data/lessons.md). The same maintainer / end-user merge paths apply at end of phase C.7:
 
 - **Maintainer** (source repo cloned, write access): append to this file under the matching section, bump `version` in `skills/catalog.json`, run `make sync && make validate`, commit per `CLAUDE.md`.
 - **End-user** (plugin installed via marketplace): keep `SESSION_LESSONS.md` for the engagement; share with the skill maintainer if a pattern is widely useful.

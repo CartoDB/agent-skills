@@ -5,7 +5,7 @@ ArcGIS Dashboards, Web Experiences (Experience Builder), and Web Mapping Applica
 - **Simple apps** — the entire interactive surface is a map plus widgets that CARTO Builder offers natively (legend, layer list, basemap switcher, search, measurement, plus a small number of analytical widgets like pie / histogram / range / timeseries / table / formula).
 - **Custom apps** — the app uses widgets Builder doesn't cover, OR shows more than 4 widgets simultaneously, OR has a layout that doesn't reduce to a single Builder map.
 
-The `discover` skill applies this rubric to every Dashboard, Web Experience, and Web Mapping Application item it finds, records the decision on the manifest entry, and routes simple apps to `carto-arcgis-migrate-maps` (absorbed into the embedded Web Map's Builder map) and custom apps to `carto-arcgis-migrate-apps`.
+The discover phase applies this rubric to every Dashboard, Web Experience, and Web Mapping Application item it finds, records the decision on the manifest entry, and routes simple apps to the maps migration phase (absorbed into the embedded Web Map's Builder map) and custom apps to the future app migration phase.
 
 ## Decision
 
@@ -30,7 +30,7 @@ By type:
 
 - **Dashboards** typically fail the rubric (≥ 5 widgets is the design intent).
 - **Experience Builder** experiences pass more often, especially when the app's purpose is "show a map with standard controls and one or two analytical widgets."
-- **Web Mapping Applications** vary widely. **Instant Apps** and **Map Viewer-based templates** are usually wrappers over a Web Map with map controls and a search bar — they pass the rubric. **Configurable Apps** (older "Basic Viewer", "Public Information", etc.) are similar. **Web AppBuilder (WAB)** apps are heavier — they often include Edit, Geoprocessing, 3D, or custom widgets that have no Builder equivalent and route to `migrate-apps`.
+- **Web Mapping Applications** vary widely. **Instant Apps** and **Map Viewer-based templates** are usually wrappers over a Web Map with map controls and a search bar — they pass the rubric. **Configurable Apps** (older "Basic Viewer", "Public Information", etc.) are similar. **Web AppBuilder (WAB)** apps are heavier — they often include Edit, Geoprocessing, 3D, or custom widgets that have no Builder equivalent and route to the future app migration phase.
 
 ## ArcGIS widget → CARTO Builder equivalent
 

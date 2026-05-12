@@ -1,13 +1,13 @@
 # App absorption — simple Dashboard / Web Experience / Web Mapping App → Builder map
 
-When `carto-arcgis-discover` flags an app entry with `Routing decision: builder` (per the rubric in [`carto-arcgis-discover/references/app-routing-rubric.md`](../../carto-arcgis-discover/references/app-routing-rubric.md)), this skill **absorbs the app into a single Builder map** rather than scaffolding a custom Vite + React + deck.gl app. The absorbed map gets:
+When the discover phase flags an app entry with `Routing decision: builder` (per the rubric in [`../discover/app-routing-rubric.md`](../discover/app-routing-rubric.md)), the maps phase **absorbs the app into a single Builder map** rather than scaffolding a custom Vite + React + deck.gl app. The absorbed map gets:
 
 - The embedded Web Map's layers, renderers, popups (translated per the standard Web Map flow).
 - Builder map controls (legend, layer list, search, basemap switcher, measurement, bookmarks) toggled to mirror the app's UI.
 - Builder analytical widgets (`formula`, `pie`, `histogram`, `range`, `timeseries`, `table`) for each app analytical widget that has a Builder equivalent.
 - The app's title and (optionally) source-type tag.
 
-Complex apps (`Routing decision: custom-app`) take a different path — they go through `carto-arcgis-migrate-apps` and become standalone Vite apps. This skill only handles the `builder` branch.
+Complex apps (`Routing decision: custom-app`) take a different path — a future app-migration phase will generate a standalone Vite + React + deck.gl scaffold. The maps phase only handles the `builder` branch.
 
 ## Detection
 
