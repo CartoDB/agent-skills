@@ -223,16 +223,158 @@ Translation:
 
 ## Size and offset
 
-ArcGIS `symbol.width` / `symbol.height` are typographic points; kepler `radius` is pixels (half the symbol size). 1pt ≈ 1px for marker icons is a good-enough approximation:
+**`radius` is the rendered icon size**, NOT `customMarkerSize`. The live schema documents `radius` as `[0, 200] when customMarkers: true` (vs `[0, 100]` for plain circles). `customMarkerSize` is a legacy mirror that current Builder builds ignore at view time — set both, but `radius` is the source of truth.
+
+ArcGIS `symbol.width` / `symbol.height` are typographic points; kepler `radius` is pixels. 1pt ≈ 1px for marker icons is a good-enough approximation, but **don't halve** the source size like the legacy "radius = size_px / 2" formula did — that produces 7–12 px icons on screen when the source intent was 14–24 px. Use `max(width, height)` directly, with a sensible floor (24 px is a reasonable city-scale default):
 
 ```python
 size_px = max(symbol.get("width", 24), symbol.get("height", 24))
-radius = size_px / 2
+target = max(int(size_px), 24)            # 24-px floor for legibility
+vc["radius"] = target                       # Builder reads this
+vc["customMarkerSize"] = target             # legacy mirror, harmless
 ```
 
 `symbol.xoffset` / `symbol.yoffset` are rarely meaningful and not preserved by kepler — skip silently.
 
 `symbol.angle` (rotation) is supported by some kepler subtypes via `visConfig.iconRotation` or similar — set it if the live schema exposes the field; otherwise drop with `Notes: marker-rotation-dropped: <angle>` if `angle != 0`.
+
+## Multi-color icons: upload via `POST /assets` + set `visConfig.filled: false`
+
+Two things must happen together to preserve a multi-color source PNG (Underground roundel = red outline + WHITE interior + BLUE crossing line, etc.):
+
+1. **Upload the PNG to the workspace-api `/assets` endpoint** and reference it on the layer via `customMarkersId` (the server hydrates a fresh presigned `customMarkersUrl` on every map read — see `workspace-api/src/serializers/kepler-map-config-serializer.ts`).
+2. **Set `visConfig.filled: false` on the icon layer.** Kepler's TileLayer applies its `getFillColor` accessor only when `visConfig.filled` is truthy (see `workspace-www/src/features/builder/ui/KeplerGl/layers/TileLayer.ts`, the color channel's `condition`). With `filled: true`, every non-transparent icon pixel is replaced by `getFillColor` (derived from `layer.config.color`) and the icon collapses into a single shade. With `filled: false`, the tint is skipped and the icon renders with its source PNG colors.
+
+**Either alone is insufficient.** A data URI in `customMarkersUrl` with `filled: false` still renders monochromatic. An uploaded asset with `filled: true` (the kepler default) also renders monochromatic. Both fixes have to be applied to the same layer.
+
+Verified via the TfL PTAL LSOA migration (rounds 5–7):
+
+- Round 5: set `visConfig.fillColor` to white. Server zeroed `fillColor` to `null` for icon layers; Builder fell back to `layer.config.color` → uniformly red.
+- Round 6: set `layer.config.color` to white. Builder rendered every pixel **white** — proves it's a color REPLACE, not a multiplicative tint.
+- Round 7: uploaded each PNG to `/assets`, set `customMarkersId`, set `filled: false` → multi-color icons render with their source colors. **Working state.**
+
+### Endpoint and request shape
+
+`POST {workspaceApiUrl}/assets` — the workspace-api base URL comes from the tenant's `/config.yaml` under `apis.workspaceUrl`. For the `clausa.app.carto.com` tenant it's `https://workspace-gcp-us-east1.app.carto.com`. Resolve once per migration:
+
+```bash
+curl -sS https://<tenant>.app.carto.com/config.yaml | grep workspaceUrl
+# apis:
+#   workspaceUrl: "https://workspace-gcp-us-east1.app.carto.com"
+```
+
+Request:
+
+```bash
+curl -sS -X POST "${WORKSPACE_URL}/assets" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -F "type=mapMarker" \
+  -F "file=@icon.png;type=image/png"
+```
+
+**Casing matters.** The `type` enum is **`mapMarker`** (camelCase, lowercase first letter) — the docs / older lessons that said `MapMarker` are wrong. The server returns `400 Invalid enum value … Expected 'accountLogo' | 'mapMarker'` if you send `MapMarker`.
+
+Response: `{ id: "<uuid>", url: "<presigned-GET-7-day-TTL>" }`. Persist **only the `id`** on the layer — the server-side serializer hydrates `customMarkersUrl` on every map read, so storing the URL is unnecessary and the URL will expire after 7 days.
+
+Accepted file types: `png`, `svg` only (`workspace-api/src/services/assets-service.ts` `hasValidExtension`). JPEG → convert to PNG first (PIL: `Image.open(buf).convert("RGBA").save(out, "PNG")`).
+
+**Sniff the bytes header** before trusting the source's `contentType`. ArcGIS occasionally lies — National Rail's PNG bytes were declared `image/jpeg` in the source, which the workspace-api 400'd on. Sniff:
+
+```python
+if raw_bytes.startswith(b"\x89PNG\r\n\x1a\n"):       ct, ext = "image/png", "png"
+elif raw_bytes.startswith(b"<svg") or \
+     raw_bytes.startswith(b"<?xml"):                  ct, ext = "image/svg+xml", "svg"
+elif raw_bytes.startswith(b"\xff\xd8\xff"):           # JPEG — convert to PNG via PIL
+    img = Image.open(io.BytesIO(raw_bytes)).convert("RGBA")
+    buf = io.BytesIO(); img.save(buf, format="PNG", optimize=True)
+    raw_bytes = buf.getvalue(); ct, ext = "image/png", "png"
+```
+
+### Worked composer pattern
+
+```python
+import json, subprocess, hashlib
+from pathlib import Path
+
+ASSETS_ENDPOINT = "https://workspace-gcp-us-east1.app.carto.com/assets"
+
+def _carto_token():
+    creds = json.load(open(Path.home() / ".carto_credentials.json"))
+    return creds["profiles"][creds["current_profile"]]["token"]
+
+_ASSET_CACHE = {}  # hash -> {id, url}
+
+def upload_marker_asset(raw_bytes, name="icon"):
+    # ...sniff content_type + extension from header (see above)...
+    h = hashlib.sha256(raw_bytes).hexdigest()[:16]
+    if h in _ASSET_CACHE:
+        return _ASSET_CACHE[h]
+    tmp = f"/tmp/marker_{h}.{ext}"
+    open(tmp, "wb").write(raw_bytes)
+    r = subprocess.run([
+        "curl", "-sS", "-X", "POST", ASSETS_ENDPOINT,
+        "-H", f"Authorization: Bearer {_carto_token()}",
+        "-F", "type=mapMarker",
+        "-F", f"file=@{tmp};type={ct}",
+    ], capture_output=True, text=True)
+    resp = json.loads(r.stdout)
+    if "id" in resp:
+        _ASSET_CACHE[h] = resp
+        return resp
+    return None
+
+# In the per-layer post-build step:
+if vc.get("customMarkers"):
+    vc["filled"] = False                                 # <-- required for non-monochromatic
+    if vc.get("customMarkersUrl", "").startswith("data:"):
+        raw = base64.b64decode(vc["customMarkersUrl"].split(",", 1)[1])
+        asset = upload_marker_asset(raw, layer_label)
+        if asset:
+            vc["customMarkersId"]  = asset["id"]
+            vc["customMarkersUrl"] = asset["url"]        # nice-to-have; server overwrites on read
+```
+
+### Content-hash dedup is still important
+
+A single Web Map often shares one icon across multiple layers (per-region store icons, etc.). Hash the bytes, key the upload cache on the hash, upload once per unique PNG. The workspace-api creates a new asset record per call, so client-side dedup is the only thing preventing duplicate uploads. Truncated sha256 (16 chars) is fine.
+
+### Brand color stays in `strokeColor`
+
+With `filled: false`, the layer's fill never renders. Put the brand color in `visConfig.strokeColor` and `initialStrokeColor` so the icon gets a brand-colored outline ring around it, and so the data-panel chip in Builder's sidebar still reads "Underground" / "Elizabeth Line" / etc. (Builder also uses `strokeColor` as the chip color when fill is disabled on point layers.)
+
+## Aspect-ratio preservation — pad non-square PNGs to square
+
+Kepler tileset's icon layer has **a single size knob**, no per-axis width/height pair. deck.gl scales the source PNG into a square box; a non-square source gets visibly distorted (a 2560×1611 National Rail PNG rendered as a stretched 24×24 box, etc.).
+
+**Pad the PNG to square at acquisition time** with transparent fill — the original content keeps its aspect ratio inside the canvas, and Builder renders the padded square at `radius` px. Apply BEFORE computing the content-hash so two layers sharing the same source dedupe to one padded version.
+
+```python
+import io, base64, hashlib
+from PIL import Image
+
+def pad_png_to_square(raw_bytes: bytes) -> bytes:
+    img = Image.open(io.BytesIO(raw_bytes)).convert("RGBA")
+    w, h = img.size
+    if w == h:
+        return raw_bytes
+    side = max(w, h)
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    canvas.paste(img, ((side - w) // 2, (side - h) // 2))
+    out = io.BytesIO()
+    canvas.save(out, format="PNG", optimize=True)
+    return out.getvalue()
+
+def acquire_with_padding(raw_bytes: bytes, content_type: str):
+    padded = pad_png_to_square(raw_bytes) if raw_bytes.startswith(b"\x89PNG") else raw_bytes
+    b64 = base64.b64encode(padded).decode("ascii")
+    data_uri = f"data:{content_type};base64,{b64}"
+    h = hashlib.sha256(padded).hexdigest()[:16]
+    return data_uri, h
+```
+
+Apply to both `esriPMS` (decoded from `imageData`) and `CIMPictureMarker` (decoded from the `data:` URI in `url`). If PIL is unavailable, fall back to the raw bytes and record `Notes: aspect-ratio-may-distort: PIL not installed`.
+
+Verified failure mode: pre-fix National Rail (1.59 ratio) rendered visibly squashed at any zoom; post-fix the same icon renders at correct proportions.
 
 ## Failure modes
 

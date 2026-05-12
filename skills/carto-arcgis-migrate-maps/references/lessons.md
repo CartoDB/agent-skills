@@ -335,6 +335,123 @@ elif data.startswith(b"\xff\xd8\xff"):                     ext = "jpg"
 
 Use the sniff result over `contentType` when they disagree. Saves debug time on uploads that fail with cryptic format errors.
 
+### `radius` is the rendered icon-size knob, NOT `customMarkerSize`
+
+When `visConfig.customMarkers: true`, Builder uses **`visConfig.radius`** as the on-screen pixel size of the icon. The live schema documents this: `radius` has `[0, 200]` range "when `customMarkers: true`" vs the plain-circle `[0, 100]`. `customMarkerSize` is a legacy knob that's mostly cosmetic now — older Builder builds read it, current builds don't.
+
+**Symptom**: you set `customMarkerSize: 24`, validate clean, screenshot looks fine (the light engine doesn't render icons), Builder loads — and renders the icon at ~12 px. The `radius` you left at the default 6 (or 12 from a circle-fallback path) is what Builder picked up.
+
+**Fix**: set both, with `radius` as the source of truth.
+
+```python
+if vc.get("customMarkers"):
+    target_size = 24
+    vc["radius"] = target_size             # Builder reads this
+    vc["customMarkerSize"] = target_size   # legacy mirror
+```
+
+Verified on the TfL PTAL LSOA migration — icons displayed at ~12 px (the `radius` value) until we promoted `radius` to 24, after which they rendered correctly.
+
+### Multi-color icons: upload via `POST /assets` AND set `visConfig.filled: false`
+
+Two independent changes must be made together to preserve a multi-color source PNG (Underground roundel = red outline + white interior + blue line; Elizabeth Line = purple outline + dark-blue line):
+
+1. **Upload the PNG** to `${workspaceApiUrl}/assets` (the workspace-api endpoint Builder UI itself uses) and store the returned asset id in `visConfig.customMarkersId`. The server-side map serializer hydrates `customMarkersUrl` from the asset id on every map read (7-day presigned GET) — see `workspace-api/src/serializers/kepler-map-config-serializer.ts`. Persist only the id, not the URL.
+2. **Set `visConfig.filled: false`** on every icon layer. Kepler's `TileLayer` applies its `getFillColor` accessor only when `visConfig.filled` is truthy (see `workspace-www/src/features/builder/ui/KeplerGl/layers/TileLayer.ts`, the color channel `condition`). With `filled: true`, every non-transparent icon pixel is replaced by `getFillColor` (derived from `layer.config.color`) and the icon collapses into a single shade. With `filled: false`, the tint is skipped and the icon renders with its source colors.
+
+**Both are required.** A data URI in `customMarkersUrl` with `filled: false` still renders monochromatic (deck.gl handles data URIs differently from /assets-hosted URLs). An uploaded asset id with `filled: true` (the default) also renders monochromatic because the tint accessor still fires. Apply both fixes to the same layer.
+
+Test progression on TfL PTAL LSOA (rounds 5–7):
+
+| round | change | result |
+|---|---|---|
+| 5 | `visConfig.fillColor = white` | server zeroed `fillColor`, no change — uniformly red |
+| 6 | `layer.config.color = white` | icons rendered uniformly **white** — proves color is a REPLACE, not a multiplicative tint |
+| 7 | `customMarkersId` (uploaded) + `filled: false` | source PNG colors render correctly |
+
+Endpoint: `POST {workspaceApiUrl}/assets`, multipart with `type=mapMarker` (camelCase — `MapMarker` is rejected) and `file=<binary>`. Accepted extensions: `png`, `svg`. Returns `{id, url}`.
+
+Worked composer pattern: see [`marker-upload.md`](marker-upload.md) "Multi-color icons" — full helper with content-hash dedup, byte-header sniffing (source PNG bytes are sometimes declared `image/jpeg` — the workspace-api validates mimetype against the accepted-extensions list and 400s on a mismatch), and JPEG→PNG conversion via PIL.
+
+```python
+if vc.get("customMarkers"):
+    vc["filled"] = False                                       # disable tint accessor
+    if vc.get("customMarkersUrl", "").startswith("data:"):
+        raw = base64.b64decode(vc["customMarkersUrl"].split(",", 1)[1])
+        asset = upload_marker_asset(raw, layer_label)           # POST /assets
+        if asset:
+            vc["customMarkersId"]  = asset["id"]                # the durable reference
+            vc["customMarkersUrl"] = asset["url"]               # nice-to-have; server overwrites
+```
+
+Brand color goes in `visConfig.strokeColor` / `initialStrokeColor` — with `filled: false` the fill never renders, but Builder's sidebar chip uses strokeColor for icon layers, so brand identity is preserved there.
+
+This rule applies ONLY when `customMarkers: true`. Plain circle layers (no icon) follow the normal pattern: `layer.config.color` and `visConfig.fillColor` both = brand color, `filled: true`.
+
+### Aspect-ratio preservation requires padding the source PNG to square
+
+Kepler tileset's icon layer has a **single** size knob (`radius` / `customMarkerSize`), no per-axis width/height. deck.gl scales the source PNG into a square box, so a 2560×1611 PNG (1.59 ratio) renders as a stretched 24×24 box — same visual mass on screen but the icon's shape gets distorted.
+
+**Fix at acquisition time**: pad the PNG to `max(w, h)` on both axes with transparent fill BEFORE encoding the data URI. The original content keeps its aspect ratio inside the transparent canvas; Builder renders the padded square at `radius` px and the icon looks correct.
+
+```python
+import io, base64
+from PIL import Image
+
+def pad_png_to_square(raw):
+    img = Image.open(io.BytesIO(raw)).convert("RGBA")
+    w, h = img.size
+    if w == h:
+        return raw
+    side = max(w, h)
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    canvas.paste(img, ((side - w) // 2, (side - h) // 2))
+    out = io.BytesIO()
+    canvas.save(out, format="PNG", optimize=True)
+    return out.getvalue()
+```
+
+Apply to both `esriPMS.imageData` and `CIMPictureMarker.url` (after base64-decode). Compute the content-hash AFTER padding so layers sharing the same source dedupe to a single padded version. PIL is the cleanest dependency; fall back to the raw PNG with a `Notes:` entry if it's not installed.
+
+Verified on TfL PTAL LSOA — pre-fix National Rail (PNG 2560×1611, ratio 1.59) rendered visibly squashed; post-fix the padded version is 2560×2560 and the icon's correct proportions are preserved.
+
+### `labelingInfo` lives at `layerDefinition.drawingInfo.labelingInfo`, not `layerDefinition.labelingInfo`
+
+Two paths in the WebMap JSON look like they could hold label config:
+
+- `operationalLayer.layerDefinition.labelingInfo` — usually empty `[]` on WebMap-overrides.
+- `operationalLayer.layerDefinition.drawingInfo.labelingInfo` — **this is where halo'd labels actually live** in modern WebMaps (and CIM-symbol-source layers in particular).
+
+A composer that reads only the first path silently skips all labels on every map that uses CIM symbols. The bug looks like "labels weren't translated" rather than a hard error — `validate` passes, `create` passes, the map looks fine in the screenshot light engine — but in Builder you see icons without their station names.
+
+**Always read `(ld.get("drawingInfo") or {}).get("labelingInfo")` first**, then fall back to `ld.get("labelingInfo")`. The FeatureServer's own `drawingInfo.labelingInfo` is a third fallback (use only when the WebMap doesn't specify either).
+
+Caught on the TfL PTAL LSOA re-migration — every TfL station sublayer plus National Rail had populated `layerDefinition.drawingInfo.labelingInfo` (NAME, halo'd) that the original composer missed entirely.
+
+### Source label font sizes don't always render well at city zoom — accept an override
+
+ArcGIS publishers tune label font sizes for ArcGIS Pro's print-quality renderer. deck.gl text rendering looks smaller for the same `size` value. For a faithful migration, accept a `font_size_override` per layer in the label translator and bump it for layers where the source's 9-px label disappears at the target zoom. Common bumps: TfL stations 9 → 12, retail "site name" labels 7 → 10. Smaller font (8 px) is appropriate for dense, single-glyph point labels like Bus Stops' `POINT_LETTER`.
+
+### Label vertical placement: `alignment` drives it, NOT `offset`
+
+ArcGIS's `labelPlacement: esriServerPointLabelPlacementAboveCenter` means "label sits above the icon, horizontally centered on it." The naive translation is `anchor: "middle"` (horizontal center) + `alignment: "center"` (vertical center) + `offset: [0, -(size + 6)]` (nudge up by font height + clearance).
+
+**That doesn't work.** Builder anchors the text *center* at the data point when `alignment: "center"`, regardless of the offset. The offset is effectively ignored at the alignment level — the label ends up sitting on top of (centered on) the icon. Verified failure on TfL PTAL LSOA round 4.
+
+**The fix is `alignment`, not `offset`.** In Builder/kepler `alignment` describes WHERE the label sits relative to the data point — NOT which edge of the text-box anchors at the point (the latter is the deck.gl `getAlignmentBaseline` semantic; Builder/kepler uses the simpler "label position" reading):
+
+| `alignment` | Where label appears |
+|---|---|
+| `"top"` | ABOVE the data point (above the icon) |
+| `"center"` | ON the data point (overlay) |
+| `"bottom"` | BELOW the data point |
+
+So `AboveCenter → alignment: "top"`, `BelowCenter → alignment: "bottom"`, `CenterCenter → alignment: "center"`. **Leave `offset: [0, 0]`** — alignment alone positions the label flush to the icon, and even a small offset (±4 px) visibly detaches the label. Don't try to use offset alone with `alignment: "center"` either.
+
+**Easy to get backwards.** The semantic looks like deck.gl's `getAlignmentBaseline` (which is "which edge anchors at the point") but it's the inverted reading. First implementation on the TfL PTAL LSOA round-4 fix had it flipped (`AboveCenter → "bottom"`) — labels still rendered visually wrong, indistinguishable from the alignment-ignored bug. Always verify the result in Builder (not the light-engine screenshot — text doesn't render there) before declaring labels done.
+
+Same `anchor: "middle"` (horizontal middle) applies to all three vertical placements unless the source uses a left/right placement variant.
+
 ---
 
 ## CIM symbols (ArcGIS Pro)
@@ -378,6 +495,33 @@ The closest Builder pattern is one row per dot rendered as small points — but 
 ### Multi-field `uniqueValue`
 
 ArcGIS `uniqueValue` renderers can key on `field1` + `field2` + `field3` (concatenated). Builder's ordinal scale binds to a single field. Fall back to `field1` only and record `Notes: renderer-fallback: uniqueValue multi-field collapsed to <field1>`.
+
+### When the WebMap renderer is empty, sample the FeatureServer-side icon's dominant color for the fallback circle
+
+A WebMap operationalLayer can have `layerDefinition: {}` (or `drawingInfo: {}`) with no renderer override at all. The composer then falls through to the geometry-type default (a generic colored circle for point layers). Default colors (e.g. `[80, 80, 80]` grey) end up generic and don't match the source intent.
+
+Better: when the WebMap renderer is empty AND the FeatureServer-side renderer exposes an `esriPMS` / `CIMPictureMarker` icon, sample the icon's dominant opaque color and use that as the fallback circle's fill. This keeps the layer recognizable even when the icon itself doesn't render (deck.gl `data:image/png` rendering can fail silently on some Builder paths).
+
+```python
+from PIL import Image
+from collections import Counter
+import io, base64
+
+def dominant_color(b64_image):
+    raw = base64.b64decode(b64_image)
+    img = Image.open(io.BytesIO(raw)).convert("RGBA")
+    pixels = [img.getpixel((x, y))
+              for x in range(0, img.size[0], max(1, img.size[0] // 10))
+              for y in range(0, img.size[1], max(1, img.size[1] // 10))]
+    opaque = [p[:3] for p in pixels if p[3] > 200]
+    if not opaque:
+        return None
+    return list(Counter(opaque).most_common(1)[0][0])
+```
+
+Use the dominant color directly, OR map to the layer's known brand color when the source has one (TfL bus red `#dc241f`, London Underground red `#e4001b`, etc.). Document the choice in `Notes:`.
+
+Caught on TfL PTAL LSOA — `Bus Stops` WebMap layer had empty renderer; the FeatureServer-side icon was a red picture marker (dominant color [255, 0, 0]) but the migration emitted a grey circle. Sampling the source PNG dominant color produces a more faithful fallback when the icon path isn't taken.
 
 ---
 

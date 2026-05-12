@@ -288,6 +288,127 @@ def normalize_layer_defaults(layer):
     return layer
 ```
 
+## Custom-marker icon sizing — `radius` is the knob, NOT `customMarkerSize`
+
+When `visConfig.customMarkers: true`, **Builder reads `visConfig.radius`** as the icon's rendered pixel size (the schema documents `radius` as `[0, 200]` when `customMarkers: true`, vs `[0, 100]` for plain circles). `customMarkerSize` was the legacy knob on older kepler builds and is now mostly cosmetic — it does not control the rendered size in current Builder.
+
+**Symptom of getting this wrong**: you set `customMarkerSize: 24` and Builder still renders the icon at ~12 px (it picks `radius`, which we left at its default 6 or whatever the circle fallback was using). Verified on the TfL PTAL LSOA migration — pre-fix icons rendered at ~12 px despite `customMarkerSize: 24`; post-fix with `radius: 24`, icons render at the target size.
+
+Pattern:
+
+```python
+if vc.get("customMarkers"):
+    target_size = 24                       # px on screen
+    vc["radius"] = target_size             # Builder reads this
+    vc["customMarkerSize"] = target_size   # mirror for older Builder paths
+```
+
+**Multi-color source PNGs require BOTH: asset upload + `filled: false`.** Two independent changes have to land on the same layer:
+
+1. Upload the icon via `POST {workspaceApiUrl}/assets` (multipart `type=mapMarker`, `file=<binary>`) and store the returned asset id in `visConfig.customMarkersId`. The server hydrates `customMarkersUrl` (a 7-day presigned GET) on every map read.
+2. Set `visConfig.filled = false`. Kepler's TileLayer skips its `getFillColor` accessor (the color-replace path) when `filled` is falsy. With `filled: true`, the icon collapses into a single shade regardless of how it was sourced.
+
+Either alone leaves the icon monochromatic. See [`marker-upload.md`](marker-upload.md) "Multi-color icons" for the worked composer pattern (endpoint lookup, byte-header sniffing, JPEG→PNG conversion, content-hash dedup) and the round-5/6/7 progression that established the requirement.
+
+```python
+if vc.get("customMarkers"):
+    vc["filled"] = False
+    if vc.get("customMarkersUrl", "").startswith("data:"):
+        raw = base64.b64decode(vc["customMarkersUrl"].split(",", 1)[1])
+        asset = upload_marker_asset(raw, layer_label)
+        if asset:
+            vc["customMarkersId"] = asset["id"]
+```
+
+Brand color stays in `visConfig.strokeColor` (Builder uses it for the sidebar chip when fill is off) — and as the layer's fallback color if the asset URL ever 404s.
+
+## Aspect ratio for non-square icons — pad the PNG to square at acquisition time
+
+Kepler's tileset layer schema exposes a single `customMarkerSize` / `radius` value — there is **no per-axis width/height control**. deck.gl IconLayer scales the source PNG to fit a square box of that size, which distorts the icon when the source is rectangular (e.g. a 2560×1611 National Rail PNG renders as a stretched 24×24 square).
+
+**Fix at acquisition time**: pad the source PNG to a square (`max(w, h)` on both axes) with transparent fill before encoding the data URI. The original content keeps its aspect ratio inside a square canvas — Builder renders the padded square at `radius` px and the icon visually preserves its proportions.
+
+```python
+import base64, io
+from PIL import Image
+
+def pad_png_to_square(raw_bytes):
+    img = Image.open(io.BytesIO(raw_bytes)).convert("RGBA")
+    w, h = img.size
+    if w == h:
+        return raw_bytes
+    side = max(w, h)
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    canvas.paste(img, ((side - w) // 2, (side - h) // 2))
+    out = io.BytesIO()
+    canvas.save(out, format="PNG", optimize=True)
+    return out.getvalue()
+```
+
+Apply this inside both `esriPMS` (via `imageData`) and `CIMPictureMarker` (via `url` data URI) acquisition paths. If PIL is unavailable, fall back to the raw PNG and record a `Notes:` entry; non-square icons will still render but with distortion. The content-hash dedup cache key should be computed AFTER padding so two layers that share the same source PNG share a single padded version.
+
+Verified on TfL PTAL LSOA — pre-fix National Rail (1.59 ratio) rendered squashed; post-fix it renders at the source's correct aspect.
+
+## Labels with halo — translate `labelingInfo` to kepler `textLabel[]`
+
+Live shape on a kepler tileset layer: `config.textLabel[]`. Each entry: `{size, color, field:{name,type}, anchor, offset, alignment, outlineColor}`. `outlineColor` is the **halo** color — Builder renders a contrasting outline around each glyph so labels read against any background.
+
+Source-side `labelingInfo` lives at **`operationalLayer.layerDefinition.drawingInfo.labelingInfo[]`** — NOT at `layerDefinition.labelingInfo` directly. This trips people up on first read of the WebMap JSON (the latter path is empty even when the former is populated). The FeatureServer's own `drawingInfo.labelingInfo` is a separate fallback used only when the WebMap doesn't override.
+
+Per-field mapping (single-attribute label expressions only; complex Arcade falls back to `arcade-skipped`):
+
+| ArcGIS `symbol.X` | Kepler `textLabel.X` |
+|---|---|
+| `font.size` | `size` (px) |
+| `color` | `color` ([r, g, b]) |
+| `haloColor` | `outlineColor` ([r, g, b]) |
+| `labelPlacement: esriServerPointLabelPlacementAboveCenter` | `anchor: "middle"`, `alignment: "top"`, `offset: [0, 0]` |
+| `labelPlacement: esriServerPointLabelPlacementBelowCenter` | `anchor: "middle"`, `alignment: "bottom"`, `offset: [0, 0]` |
+| `labelPlacement: esriServerPointLabelPlacementCenterCenter` | `anchor: "middle"`, `alignment: "center"`, `offset: [0, 0]` |
+| `labelExpression` `[NAME]` or `labelExpressionInfo.expression` `$feature["NAME"]` | `field: {name: "name", type: "string"}` |
+
+**Critical**: `alignment` (vertical) is what drives above/below placement, NOT `offset`. Earlier guidance used `alignment: "center"` plus `offset: [0, -(size + 6)]` to push labels above the icon — that **doesn't work** because Builder anchors text at its center on the data point regardless of the offset, so the offset is effectively ignored. The label ends up centered on the icon.
+
+**`alignment` describes WHERE the label sits relative to the data point** — not which edge of the text-box anchors at the point (the latter is the deck.gl `getAlignmentBaseline` semantic; Builder/kepler uses the simpler "label position" reading):
+
+- `alignment: "top"` → label appears ABOVE the data point (above the icon)
+- `alignment: "center"` → label CENTERED on the data point (overlay)
+- `alignment: "bottom"` → label appears BELOW the data point
+
+**Leave `offset: [0, 0]`** for above/below placements — `alignment` already positions the label flush to the icon, and even a few extra pixels of offset visibly detach the label from the icon. Verified on TfL PTAL LSOA round 4 — pre-fix labels rendered on top of station icons despite `offset: [0, -18]`; with `alignment: "top"` and no offset they sit immediately above the icon, as in the source.
+
+**Sanity-check after the first label translation** by inspecting the Builder render: if labels are visually below their icons when the source says `AboveCenter`, the `alignment` value is inverted — flip it and re-test. The semantic is small enough that getting it backwards rendered a label-on-icon look indistinguishable from the alignment-ignored bug, so verifying in Builder (not just light-engine screenshot — text doesn't render there) is required.
+
+Use `re.match(r'^\$feature\["?(\w+)"?\]$', expr) or re.match(r"^\[(\w+)\]$", expr)` to extract the field name from the two ArcGIS expression syntaxes, then lower-case it (BigQuery / DW imports lowercase all column names). Skip and record `Notes: label-skipped: <expr>` for any expression that isn't a bare field reference — these would need Arcade-to-SQL translation per `arcade-translation.md`.
+
+**Source font size doesn't always render well at city zoom.** ArcGIS map publishers tune font sizes for print-quality rendering; deck.gl renders them smaller. For migration, accept a per-layer `font_size_override` parameter so the caller can bump labels that don't read at the target zoom (TfL stations at 9 px → 12 px is a common bump). Document the bump in `Notes:`.
+
+Keep `offset` at `[0, 0]` — `alignment: "top"` / `"bottom"` already places the label adjacent to the icon at any font size. Adding an offset pushes the label visibly away from the icon.
+
+## Visibility by zoom — translate ArcGIS `minScale`/`maxScale` to kepler
+
+ArcGIS uses scale denominators (`minScale: 300000` = "visible when zoomed in tighter than 1:300000"). Kepler uses **zoom level** (`visibilityByZoom.min`, `.max`). The conversion (Web Mercator, 256-px tiles, zoom 0 scale = 559082264):
+
+```python
+import math
+SCALE_AT_ZOOM_0 = 559082264.0288
+
+def visibility_from_scales(min_scale, max_scale):
+    zmin = 0
+    zmax = 21
+    if min_scale and min_scale > 0:
+        zmin = max(0, int(math.ceil(math.log2(SCALE_AT_ZOOM_0 / float(min_scale)))))
+    if max_scale and max_scale > 0:
+        zmax = min(21, int(math.floor(math.log2(SCALE_AT_ZOOM_0 / float(max_scale)))))
+    return {"min": zmin, "max": zmax}
+```
+
+ArcGIS semantics: layer is visible WHEN `scale <= minScale AND scale >= maxScale`. Translates to: kepler shows the layer when `zoom >= zmin AND zoom <= zmax`. So `minScale: 300000` → `zmin: 11` (don't show beyond city zoom).
+
+**Read both sources of truth**: the WebMap's `operationalLayer.layerDefinition.minScale` overrides the FeatureServer layer's own `minScale`. Fetch both per layer and use the WebMap override when present. Cache FeatureServer JSON responses per layer URL to avoid refetching during a batch.
+
+Skipping this step is faithful only when source layers have no scale limit. The Bus Routes / PTAL LSOA migrations both needed it — TfL station sublayers (minScale 300000 → zmin 11), National Rail (55667 → zmin 14), Bus Stops (25000 → zmin 15). Without the translation, Builder shows all points at every zoom and the city-wide view becomes a sea of dots.
+
 ## Iterative validation
 
 After composing each layer's JSON fragment:
