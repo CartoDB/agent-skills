@@ -3,6 +3,9 @@
   "description": "CARTO skills bundle for Claude Code — see skills/catalog.json for the layered tier breakdown.",
   "version": "2.4.0-phase2d",
   "skills": [
+    "../../../skills/carto-arcgis-discover",
+    "../../../skills/carto-arcgis-migrate-data",
+    "../../../skills/carto-arcgis-migrate-maps",
     "../../../skills/carto-basics",
     "../../../skills/carto-connect-datawarehouse",
     "../../../skills/carto-query-datawarehouse",

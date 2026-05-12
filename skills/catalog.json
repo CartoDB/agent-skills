@@ -2,6 +2,27 @@
   "version": "2.4.0-phase2d",
   "skills": [
     {
+      "name": "carto-arcgis-discover",
+      "layer": "use-case",
+      "dependencies": [],
+      "description": "Enumerate ArcGIS Portal / AGOL items, classify by type, and write MIGRATION_MANIFEST.md so the agent and the user know what to migrate and how. Use this first when starting a Portal-to-CARTO migration.",
+      "path": "skills/carto-arcgis-discover"
+    },
+    {
+      "name": "carto-arcgis-migrate-data",
+      "layer": "use-case",
+      "dependencies": [],
+      "description": "Migrate Hosted Feature Layers and Hosted Tables from an ArcGIS Portal/AGOL to CARTO data warehouse tables. Walks the manifest's Datasets section, extracts each pending entry as GeoParquet, imports via `carto import`, and updates per-item state. Default mode is batch (all pending Datasets entries in one run). Use after carto-arcgis-discover.",
+      "path": "skills/carto-arcgis-migrate-data"
+    },
+    {
+      "name": "carto-arcgis-migrate-maps",
+      "layer": "use-case",
+      "dependencies": [],
+      "description": "Migrate ArcGIS Web Maps to CARTO Builder maps. Walks the manifest's Web Maps section AND simple-app entries (Dashboards / Web Experiences / Web Mapping Apps with `Routing decision: builder`); translates drawingInfo (simple/uniqueValue/classBreaks renderers) + popupInfo + supported Arcade subset (attribute reference, per-row math, simple aggregations) + basemap into a keplerMapConfig JSON; for simple-app entries, also enables Builder map controls and emits Builder analytical widgets to mirror the source app's UI; validates with `carto maps validate`; creates with `carto maps create`; tags every migrated map `From ArcGIS` for organization. Default mode is batch. Always private. Use after carto-arcgis-migrate-data.",
+      "path": "skills/carto-arcgis-migrate-maps"
+    },
+    {
       "name": "carto-basics",
       "layer": "utility",
       "dependencies": [],
