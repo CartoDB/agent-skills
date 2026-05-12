@@ -6,7 +6,7 @@ license: MIT
 
 # carto-create-workflow
 
-CARTO Workflows is a visual DAG builder that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file) plus operating it via the CLI (CRUD, schedules). Cross-profile copying is owned by [`carto-copy-workflows`](../carto-copy-workflows).
+CARTO Workflows is a visual DAG builder that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file), operating it via the CLI (CRUD, schedules), and **cross-profile copy** (`dev → prod` promotion, customer-segregated workspaces via `carto workflows copy`) — see the references below.
 
 For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) — workflows are for repeatable, scheduled, multi-step DAGs.
 
@@ -37,8 +37,8 @@ References (only for what the CLI doesn't serve):
 - [`references/providers/`](references/providers/) — per-warehouse details (BigQuery, Snowflake, Databricks): identifier quoting, column casing, AT path.
 - [`references/scheduling.md`](references/scheduling.md) — `add` vs `update` semantics, bundle-level schedule warning, activity-log verification.
 - [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — publishing a workflow as an MCP tool or callable API endpoint: bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
-
-For copying a workflow across profiles (dev → prod, customer-segregated workspaces), use [`carto-copy-workflows`](../carto-copy-workflows).
+- [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `workflows copy` mechanics, connection mapping (`--connection-mapping` / `--connection`), `--skip-source-validation`, why copies are always new workflows.
+- [`references/schedule-readd.md`](references/schedule-readd.md) — schedules don't transfer across `workflows copy`; how to re-add them, including dialect translation when source and destination engines differ.
 
 > **`connectionProvider` must match the connection.** `config.connectionProvider` (enum in `schema enums`) must match the connection's actual provider — mismatches generate the wrong SQL dialect and error at runtime. Look it up with `carto connections list --search <name> --json` (`connections get` requires a UUID).
 
@@ -231,7 +231,7 @@ Always-on guidance:
 
 - **Workflows run on the connection's warehouse.** A workflow with a BigQuery connection cannot use Snowflake-specific SQL.
 - **Schedule expression syntax depends on the engine** — natural-language for BQ/CARTO DW (`"every day 08:00"`), cron for Snowflake/Postgres (`"0 8 * * *"`), Quartz cron for Databricks (`"0 0 8 * * ?"`). See [`references/scheduling.md`](references/scheduling.md). Picking the wrong dialect fails at schedule-add time.
-- **Copying a workflow across profiles** (dev → prod, customer-segregated workspaces) is owned by [`carto-copy-workflows`](../carto-copy-workflows) — connection mapping and schedule re-add live there.
+- **Copying a workflow across profiles** (dev → prod, customer-segregated workspaces) is covered in [`references/cross-profile-copy.md`](references/cross-profile-copy.md). Schedules don't transfer — see [`references/schedule-readd.md`](references/schedule-readd.md).
 - **Deleting a workflow doesn't delete its outputs.** Tables/views the workflow created in the warehouse persist; clean them up with `carto sql job` if needed.
 - **`workflows update` replaces the whole DAG.** There's no per-node patch. Always `get` first, edit, then `update`.
 - **Workflow execution status** lives in the activity log (`WorkflowRun`, `WorkflowExecutionComplete` event types). For health monitoring of scheduled workflows, query that log via [`carto-query-datawarehouse`](../carto-query-datawarehouse) — see `references/activity-queries.md` in that skill.

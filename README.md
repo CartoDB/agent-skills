@@ -70,12 +70,10 @@ Skills are organized in three tiers. Pick what's relevant to your work; an agent
 | Skill | Purpose |
 |---|---|
 | [`carto-import-export-data`](skills/carto-import-export-data) | Imports, tilesets, and warehouse-native exports. |
-| [`carto-create-workflow`](skills/carto-create-workflow) | Build, schedule, and operate analytics DAGs in CARTO Workflows. |
-| [`carto-copy-workflows`](skills/carto-copy-workflows) | Cross-org / cross-profile workflow copy. |
+| [`carto-create-workflow`](skills/carto-create-workflow) | Build, schedule, operate, and cross-profile-copy analytics DAGs in CARTO Workflows. |
 | [`carto-find-spatial-data`](skills/carto-find-spatial-data) | Discover and subscribe to Data Observatory datasets. |
 | [`carto-manage-platform`](skills/carto-manage-platform) | Org admin: users, quotas, audit, bulk ops. |
-| [`carto-create-builder-maps`](skills/carto-create-builder-maps) | Author maps in CARTO Builder: layers, basemaps, styling, AI Agents. |
-| [`carto-copy-maps`](skills/carto-copy-maps) | Cross-org / cross-profile map copy and validation. |
+| [`carto-create-builder-maps`](skills/carto-create-builder-maps) | Author maps in CARTO Builder (layers, basemaps, styling, AI Agents) and copy them across orgs / profiles. |
 
 ### Use-case patterns — common spatial analyses
 

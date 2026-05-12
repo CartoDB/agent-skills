@@ -14,8 +14,6 @@
     "../../../skills/carto-create-builder-maps",
     "../../../skills/carto-render-inline-map",
     "../../../skills/carto-preview-builder-map",
-    "../../../skills/carto-copy-maps",
-    "../../../skills/carto-copy-workflows",
     "../../../skills/carto-build-app",
     "../../../skills/carto-hotspot-analysis",
     "../../../skills/carto-spatial-autocorrelation",

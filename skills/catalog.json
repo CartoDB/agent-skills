@@ -79,20 +79,6 @@
       "path": "skills/carto-preview-builder-map"
     },
     {
-      "name": "carto-copy-maps",
-      "layer": "platform",
-      "dependencies": ["carto-basics", "carto-explore-datawarehouse"],
-      "description": "Copy maps across CARTO organizations or profiles, with connection mapping and AI-agent reference handling.",
-      "path": "skills/carto-copy-maps"
-    },
-    {
-      "name": "carto-copy-workflows",
-      "layer": "platform",
-      "dependencies": ["carto-basics", "carto-explore-datawarehouse"],
-      "description": "Copy CARTO Workflows across organizations or profiles, with connection mapping and schedule re-add.",
-      "path": "skills/carto-copy-workflows"
-    },
-    {
       "name": "carto-build-app",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
