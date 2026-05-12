@@ -50,6 +50,12 @@ def parse_info_string(info: str) -> tuple[str, dict[str, str]]:
 
 
 def dispatch(lang: str, attrs: dict[str, str], code: str) -> str | None:
+    # Authors can opt a fenced block out of validation with `lang=... skip`.
+    # Use sparingly — for fragments that aren't valid standalone (e.g. JSON
+    # excerpts inside a TS block, or partial syntax used purely to illustrate
+    # a concept).
+    if attrs.get("skip"):
+        return None
     if lang in ("python", "py"):
         return validate_python(code)
     if lang in ("bash", "sh", "shell"):
@@ -65,7 +71,9 @@ def dispatch(lang: str, attrs: dict[str, str], code: str) -> str | None:
         )
         return validate_sql(code, dialect)
     if lang in ("ts", "typescript"):
-        return validate_typescript(code)
+        return validate_typescript(code, jsx=False)
+    if lang == "tsx":
+        return validate_typescript(code, jsx=True)
     # Unknown / untagged: skip silently. Untagged blocks are allowed in prose.
     return None
 

@@ -13,8 +13,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install dependencies
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Python dependencies
         run: pip install pyyaml sqlglot
+      - name: Install TypeScript (for snippet validation)
+        run: npm install -g typescript@5
       - name: Validate skills catalog and manifests
         run: make validate-skills
       - name: Validate code snippets
