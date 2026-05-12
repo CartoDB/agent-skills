@@ -31,7 +31,7 @@ The agent's model is stored as `"<account-id>::<provider>::<model-name>"`, e.g. 
 
 ## `UNAVAILABLE_TOOL`
 
-The agent's `config.tools` array references workflow IDs (the agent invokes them as tools). After copy, those IDs still point at the **source** org's workflows. Even if you ran `carto-copy-workflows` for those workflows first — getting fresh IDs in the destination — the agent still references the old IDs.
+The agent's `config.tools` array references workflow IDs (the agent invokes them as tools). After copy, those IDs still point at the **source** org's workflows. Even if you copied those workflows first — getting fresh IDs in the destination — the agent still references the old IDs.
 
 ```json
 { "issue": "UNAVAILABLE_TOOL", "toolId": "ed642f16-7718-4e3d-ad41-ec854a9b4854" }
@@ -43,7 +43,7 @@ The agent's `config.tools` array references workflow IDs (the agent invokes them
 
 ## Recommended sequence for maps with agents
 
-1. **Copy the workflow(s) the agent references first**, using [`carto-copy-workflows`](../../carto-copy-workflows). Note each new workflow ID — you'll need them for the manual tool re-binding.
+1. **Copy the workflow(s) the agent references first** — see [`../../carto-create-workflow/references/cross-profile-copy.md`](../../carto-create-workflow/references/cross-profile-copy.md). Note each new workflow ID — you'll need them for the manual tool re-binding.
 2. **Copy the map** with `carto maps copy`. The agent config comes along automatically.
 3. **Inspect issues**:
    ```bash
@@ -53,10 +53,6 @@ The agent's `config.tools` array references workflow IDs (the agent invokes them
    - Re-select an available model (resolves `UNAVAILABLE_MODEL`).
    - Re-bind each tool to the corresponding new workflow ID (resolves `UNAVAILABLE_TOOL`).
 5. **Verify** — chat with the agent in the destination. Confirm the tools execute successfully (i.e., they actually invoke the destination workflows, not error out).
-
-## Why this is in carto-copy-maps, not carto-create-builder-maps
-
-These caveats apply only when a map is copied across orgs — they don't surface when an agent is creating a fresh map from scratch. Splitting `copy` from `create` puts the gotcha where it's discoverable: an agent doing copy work hits this skill; an agent doing creation doesn't.
 
 ## What instruction text *does* transfer cleanly
 
