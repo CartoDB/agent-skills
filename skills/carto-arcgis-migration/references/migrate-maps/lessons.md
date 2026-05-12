@@ -208,6 +208,134 @@ carto maps datasets update <map-id> <dataset-id> --unique-id-property <real-colu
 
 **Prevention at compose time** — resolve per-dataset against the actual `columns[]`; never hardcode `"objectid"` (see `dataset-config.md` `uniqueIdProperty` row for the full rule + worked example). File Geodatabase / Shapefile / GeoPackage extracts frequently land with `fid` instead of `objectid` after the ArcGIS → GeoParquet → warehouse round-trip — the MCIL2 Rates migration's Isle of Dogs dataset was a real example.
 
+### ArcGIS field names don't survive the warehouse import verbatim — resolve every renderer / popup column reference via `connections describe`
+
+The same "never hardcode" rule that applies to `uniqueIdProperty` extends to **every** column reference the composer emits: `visualChannels.colorField.name`, `visualChannels.strokeColorField.name`, `popupSettings.layers.<id>.click.fields[].name`, `textLabel[].field.name`, and any Arcade-derived SQL. ArcGIS field names are normalized during `carto import` and may not match the source verbatim, so a translation that mirrors ArcGIS's `drawingInfo.renderer.field` directly binds to a column that doesn't exist — the layer then renders in its fallback color with no visible error.
+
+Two normalizations seen on real migrations:
+
+- **Lowercasing**: every column lowercases. `OBJECTID` → `objectid`, `NAME` → `name`, `Shape__Length` → `shape__length`.
+- **SQL-keyword-suffix stripping**: ArcGIS Pro appends `_` to fields whose names collide with SQL reserved words (`COUNT` → `COUNT_`, `ROW` → `ROW_`). The CARTO import normalizer strips the trailing underscore, so `COUNT_` lands in BigQuery as `count`. Verified on the TfL `Bus Route Overlap Map` migration — both layers' classBreaks renderer used `field: "Count_"` / `"COUNT_"` server-side; the warehouse columns were `count`, and a `colorField.name: "count_"` binding would silently render all 46K polygons in the fallback fill.
+
+**Symptom**: `carto maps validate` passes, `carto maps create` returns empty `warnings[]`, `--render-engine light` screenshot looks right except the data binding is missing — every feature draws in the layer's default `fillColor` / `strokeColor`. No console error, no failed XHR. The bug is silent because the renderer falls back to constant color when the field can't be resolved.
+
+**Detection** — after import, diff source field names against warehouse columns:
+
+```python
+import subprocess, json
+
+service_fields = [f["name"] for f in arcgis_service_meta["fields"]]
+desc = json.loads(subprocess.check_output(
+    ["carto", "connections", "describe", connection_name, fqn, "--json"]))
+warehouse_cols = [c["name"] for c in desc["schema"]]
+
+# Any source field whose lowercase form isn't in warehouse_cols was renamed.
+for f in service_fields:
+    if f.lower() not in {c.lower() for c in warehouse_cols}:
+        # f was renamed in the warehouse — resolve to actual name before using it.
+        ...
+```
+
+**Prevention** — build a `source_field → warehouse_column` resolver early in Phase 4 / 5 and pass every column reference through it:
+
+```python
+def resolve_column(source_field: str, warehouse_cols: list[str]) -> str | None:
+    """Map an ArcGIS field name to its warehouse column. Returns None if no match."""
+    s = source_field.lower()
+    by_lower = {c.lower(): c for c in warehouse_cols}
+    if s in by_lower:
+        return by_lower[s]
+    # Try stripping trailing underscore (SQL-keyword suffix)
+    if s.endswith("_") and s.rstrip("_") in by_lower:
+        return by_lower[s.rstrip("_")]
+    return None
+```
+
+Apply this everywhere the composer references a column by name. If `resolve_column` returns `None`, record `Notes: column-not-resolved: <source-field>` on the manifest entry and either drop that styling/popup field or fall back to a sensible default. **Don't** silently emit the lowercased source name and hope — that's the bug.
+
+The `connections describe` call is already mandatory in Phase 5 #1 (for `dataset.columns`); this lesson extends its scope: the column list it returns is also the source of truth for every downstream column reference, not just the dataset block.
+
+### Discrete numeric categorical columns need `colorScale: "custom"` + `colorRange.colorMap` with thresholds — `colorDomain` is NOT used
+
+When the source ArcGIS renderer is `uniqueValue` on a column that the warehouse types as numeric (`integer` / `real`), the composer cannot use `colorScale: "ordinal"` to pin each value to a color. **The kepler schema accepts ordinal as a string enum value, so `validate` passes and the map renders correctly at create-time, BUT Builder's Style panel exposes only the four continuous scales for numeric color fields: `quantile` / `quantize` / `logarithmic` / `custom`.** The instant a user opens the Style panel, Builder silently re-fits the binding to one of those four — most commonly `quantize` — and the carefully-pinned value→color mapping is gone. There is no UI-level path to "set color X for value Y" on a numeric color field. `custom` is the only scale Builder's numeric-UI offers that supports per-bin pinning.
+
+**Symptom progression on the TfL Average PTAL LSOA migration** (`average_ptal_2023_num`, integer 1..8 pinned to PTAL bands "1a","1b","2","3","4","5","6a","6b"):
+
+1. First pass: composer typed `colorField` as `"string"` → silent binding failure, all polygons rendered in the fallback fill color (grey).
+2. After retyping to `"integer"` with `colorScale: "ordinal"` + `colorMap`: binding worked, polygons rendered with PTAL colors at create-time and in `--render-engine light` screenshots. The map looked correct **until** the user opened Style panel in Builder — picker showed quantile/quantize/log/custom only, the ordinal binding was gone.
+3. Switched to `colorScale: "custom"` with `colorDomain: [0.5, 1.5, …, 8.5]` (N+1 breakpoints): Builder crashed. The N+1 shape and the d3.scaleThreshold-style N-1 shape are both wrong — Builder doesn't read `colorDomain` for custom scale at all.
+4. Correct shape (diffed against a manually-built custom-scale map in Builder): the thresholds live in `colorRange.colorMap`, not `colorDomain`. `colorDomain` is omitted entirely. **Working state.**
+
+**Correct shape** — `colorMap` is a list of `[upper_threshold, color]` pairs with **N entries** (one per color). The final entry's threshold is `null`, the sentinel for "no upper bound" — it catches every value above the previous threshold. For integer values `1..N`, thresholds at `[1.5, 2.5, …, (N-1)+0.5]` followed by a `null` isolate each integer into its own bin:
+
+```python
+values = [1, 2, 3, 4, 5, 6, 7, 8]
+colors_hex = ["#9a9cce", "#bccff5", "#8ff5f5", "#94fa64",
+              "#fafa94", "#f5bca8", "#f58f8f", "#c79494"]
+
+# N entries — each [upper_threshold, color]. Last threshold is null.
+color_map = [
+    [v + 0.5, c] for v, c in zip(values[:-1], colors_hex[:-1])
+] + [[None, colors_hex[-1]]]
+
+layer["config"]["visConfig"]["colorRange"] = {
+    "name": "PTAL bands (ArcGIS)",
+    "type": "qualitative",   # NOT "custom" — the colorRange.type enum is sequential/qualitative/diverging
+    "category": "Custom",
+    "colors": colors_hex,
+    "colorMap": color_map,   # the threshold→color pinning lives here
+}
+layer["visualChannels"] = {
+    "colorField": {"name": "average_ptal_2023_num", "type": "integer"},
+    "colorScale": "custom",  # signals to read colorRange.colorMap thresholds
+    # NO colorDomain — Builder reads thresholds from colorRange.colorMap only
+}
+```
+
+Each colorMap entry semantically reads as: "if `value < upper_threshold`, render with `color`". For the last entry (threshold `null`), the rule is "everything else gets this color." Concretely for PTAL:
+
+| colorMap entry | Catches values | Renders as |
+|---|---|---|
+| `[1.5,  "#9a9cce"]` | `value < 1.5` | PTAL 1 (1a) |
+| `[2.5,  "#bccff5"]` | `1.5 ≤ value < 2.5` | PTAL 2 (1b) |
+| `[3.5,  "#8ff5f5"]` | `2.5 ≤ value < 3.5` | PTAL 3 (2) |
+| ... | ... | ... |
+| `[7.5,  "#f58f8f"]` | `6.5 ≤ value < 7.5` | PTAL 7 (6a) |
+| `[null, "#c79494"]` | `value ≥ 7.5` | PTAL 8 (6b) |
+
+Builder's Style panel shows `Color scale: Custom` with the thresholds visible and editable. The user sees fractional break edges (1.5, 2.5, …) — slightly unusual but legible and clearly the right semantics. Each integer category gets exactly one color; the binding survives every UI round-trip.
+
+**Why this works where ordinal doesn't**: Builder's scale-picker for numeric color fields is hard-gated to the four continuous scales — internally `numeric_field → continuous_only`. The schema-level `ordinal` value isn't reachable from the UI, so any map that ships with ordinal on a numeric field is in a state Builder can't restore after edit. `custom` is the ONLY scale Builder's numeric-UI offers that supports an explicit per-value pinning (via `colorRange.colorMap` thresholds).
+
+**Why `colorDomain` is not used**: the kepler schema documents `colorDomain` for `quantize` / `custom` as "length is usually N+1 where N is the number of color classes" — but Builder's custom-scale renderer ignores it. The thresholds are sourced exclusively from `colorRange.colorMap`. Setting `colorDomain` with N-1 OR N+1 entries either crashes Builder or is silently ignored depending on shape; either way, the data shape Builder writes when a user manually builds a custom-scale map is `colorDomain` absent + `colorMap` populated. Diff a hand-built custom-scale map against the migrator's output as the canonical check.
+
+**Detection**:
+
+```python
+def needs_custom_color_map(renderer, warehouse_col_type):
+    if renderer.get("type") != "uniqueValue":
+        return False
+    return warehouse_col_type in (
+        "number", "integer", "real",
+        "INT64", "INTEGER", "FLOAT64", "NUMERIC",
+    )
+```
+
+When this returns True, emit `colorScale: "custom"` + `colorMap` with N entries (last threshold `null`) + N colors in source order. **Do not emit `colorDomain`**.
+
+**Non-integer discrete numerics** (e.g. categories at `1.5`, `3.0`, `4.5`): same approach, but compute thresholds as the midpoints between sorted unique values. `thresholds[i] = (values[i] + values[i+1]) / 2` for `i = 0..N-2`; last entry stays `[null, last_color]`.
+
+**Caveat — legend chip labels**: Builder's default legend shows the threshold ranges (`< 1.5`, `1.5 – 2.5`, …, `≥ 7.5`) rather than the source `uniqueValueInfos[].label` strings ("1a", "1b", …). For migrations where the source labels matter, leave the threshold labels to manual relabeling in Builder. There's no JSON-level fix that ships both correct binning AND correct legend labels in one pass on a numeric color field. The binding is the data-correctness gate; legend labels are a follow-up.
+
+**Anti-patterns**:
+
+- **`colorScale: "ordinal"` on a numeric color field.** Passes validate, renders correctly at create-time, breaks on first user edit. The most common misdiagnosis: "but the schema accepts ordinal!" — yes, but Builder's UI doesn't.
+- **`colorDomain` populated with thresholds under `colorScale: "custom"`.** Builder doesn't read it for the custom scale; either crashes or is silently ignored depending on length. Emit `colorMap` only.
+- **`colorRange.type: "custom"`.** Not in the colorRange.type enum (`sequential` / `qualitative` / `diverging`). Validate may pass via `additionalProperties: true` but Builder's palette renderer doesn't recognize it. Use `qualitative` for categorical-ramp custom scales; `sequential` is for continuous ramps and pre-selects the `quantize` picker.
+- **Swapping the binding to a string sibling column** (e.g. `<X>_cat` next to `<X>_num`). Works cosmetically when a friendly string sibling exists, but doesn't generalize — not every dataset has one, and the lesson the migrator needs is a rule that works on every uniqueValue+numeric pair. Use the custom-scale colorMap approach as the default; the string-sibling path is a hand-tuned post-migration cleanup the user can do in Builder if they prefer.
+
+**Boundary case — string columns are safe by default.** Builder's UI for string color fields exposes `ordinal` as the primary scale; `colorScale: "ordinal"` + `colorDomain` works there as expected. The trap is exclusively on numeric columns. If the source renderer is `uniqueValue` on a column that the warehouse types as `string`, the natural ordinal path is correct (with `colorRange.colorMap` of `[value, color]` pairs, all values present — no `null` sentinel for strings).
+
 ### `dataset.color` is an int array, not a stringified curly-brace form
 
 `dataset.color` should be `[128, 128, 128]` (RGB ints 0-255) or `null`. The legacy / wrong form emitted by some translations — `"{\"128\",\"128\",\"128\"}"` (curly-brace-wrapped strings) — is accepted cosmetically by Builder (the data-panel chip still renders grey) but is wrong per the kepler schema. Easiest correct behavior: omit the field, or set explicitly to `null`. If you want a specific chip color, use the int-array form.
@@ -282,6 +410,48 @@ Failure: depends-on-skipped-data: <layer-name> (exceeds-1gb-staging-not-implemen
 ```
 
 Once the staging-fallback feature ships and the dataset transitions to `done`, re-running the Web Map's batch will pick it up.
+
+---
+
+## Layer order
+
+### ArcGIS `operationalLayers` and kepler `visState.layers` use OPPOSITE array conventions — reverse on emission
+
+**Same array shape, opposite semantics.** Easy to miss because both formats put layers in an array and both render bottom-up — but the array end that's "the bottom" differs.
+
+- **ArcGIS Web Map JSON** (`operationalLayers[]`): `[0]` is the **bottom** of the visual stack (drawn first, painted over by subsequent layers). The last element is the **top**. The AGOL Map Viewer layer-list panel displays the array in **reverse**: top of the panel = top of the map = last array element.
+- **kepler.gl / Builder** (`visState.layers[]`): `[0]` is the **top** of the visual stack (drawn last, on top of previous layers). The last element is the **bottom**. Builder's layer-list panel displays the array in array order: top of the panel = top of the map = `[0]`.
+
+**Result if you forget**: the composer that just copies `operationalLayers[]` into `visState.layers[]` in source order produces a map where **every layer's z-position is inverted** from the source — choropleth polygons that were the source's basemap-style background end up on top of point layers (obscuring them with their fill, however translucent), and reference outlines (boroughs, GLA) that were the topmost framing in the source end up underneath the choropleth at the bottom.
+
+**Caught on the TfL `Average PTAL LSOA Web Map` migration**: source `operationalLayers` was `[PTAL polygons, Bus Stops, National Rail, TfL stations group, London Boroughs, GLA]` — PTAL at index 0 = **bottom** in AGOL, GLA at index 5 = **top**. Composer emitted them in the same order into `visState.layers`, putting PTAL at index 0 = **top** in Builder. The user noticed: the translucent PTAL choropleth (opacity 0.85) sat on top of the bus stops and station icons in the migrated map, while in the source AGOL map the points and boundary outlines sat on top of the polygons as a sensible cartographic stack.
+
+**Hard to detect from screenshots alone.** With translucent layers (opacity 0.5–0.85, the common case for choropleths), the visual blend is roughly commutative — a screenshot rendered with the layer order inverted looks similar enough to the source that a human reviewer doesn't immediately register the bug. The light-engine screenshot in particular doesn't reliably show the difference. The reliable diagnostic is **comparing the layer-panel order in Builder against the AGOL map's layer-panel order**: AGOL panel top-down = Builder panel bottom-up; if both panels show the same top-down sequence, the migration is flipped.
+
+**Fix**: emit `visState.layers` as the **reverse** of the flattened source `operationalLayers` sequence. GroupLayers expand into their sublayers in source order (sublayers within a group stack the same way as top-level layers — `layers[0]` of a group is the bottom of the group), then the whole flattened list reverses:
+
+```python
+def flatten_operational_layers(ops):
+    """Walk operationalLayers including GroupLayer sublayers; preserve source order."""
+    flat = []
+    for l in ops:
+        if l.get("layerType") == "GroupLayer" and l.get("layers"):
+            flat.extend(flatten_operational_layers(l["layers"]))
+        else:
+            flat.append(l)
+    return flat
+
+source_flat = flatten_operational_layers(webmap_json["operationalLayers"])
+# Reverse for kepler's opposite array convention:
+kepler_layers = [translate_layer(l) for l in reversed(source_flat)]
+keplerMapConfig["config"]["visState"]["layers"] = kepler_layers
+```
+
+The reversal is the **only** structural transformation needed for ordering; per-layer rendering, popups, labels, etc. are unchanged. The reversal also fixes the popupSettings mapping naturally because the popup-keys are `layer.id`s, not array positions.
+
+**Detection in script** when reviewing an existing migrated map (no source available): cross-reference the `visState.layers[]` order against any AGOL screenshot or the public Map Viewer URL. If the topmost layer in Builder's panel is what was the bottommost in AGOL, the order is flipped.
+
+**Anti-pattern**: don't try to "preserve source array order for traceability" — the array is internal; nothing downstream reads it as a stable identifier. The visible stack order is what matters, and that requires the reverse.
 
 ---
 
@@ -451,6 +621,46 @@ So `AboveCenter → alignment: "top"`, `BelowCenter → alignment: "bottom"`, `C
 **Easy to get backwards.** The semantic looks like deck.gl's `getAlignmentBaseline` (which is "which edge anchors at the point") but it's the inverted reading. First implementation on the TfL PTAL LSOA round-4 fix had it flipped (`AboveCenter → "bottom"`) — labels still rendered visually wrong, indistinguishable from the alignment-ignored bug. Always verify the result in Builder (not the light-engine screenshot — text doesn't render there) before declaring labels done.
 
 Same `anchor: "middle"` (horizontal middle) applies to all three vertical placements unless the source uses a left/right placement variant.
+
+### Plain-circle marker with a centered label needs floors: `radius >= 10`, label `size >= 10`
+
+When a point layer renders as a **plain circle** (no `customMarkers`) AND the same layer's `textLabel[]` has `alignment: "center"` (label sits **inside** the circle, not above/below), Builder needs the circle big enough to contain the label and the label big enough to be legible. Source ArcGIS sizes are often print-tuned (4-6 px radius, 6-7 pt label font) and produce a circle that clips the label, or a label too small to read.
+
+**Floors** to apply at composition time when this combination is detected:
+
+- `visConfig.radius` ≥ **10 px** (overrides any smaller value from the source — a 4-6 px circle can't contain even a 1-character label)
+- `textLabel[i].size` ≥ **10 px** (overrides any smaller font from the source — 6-8 px loses anti-aliasing on most displays and the label becomes a grey smudge; 10 px is the legibility floor for in-circle text on a typical web viewport)
+
+Detection — applies only when **both** conditions hold:
+
+1. The layer is a point tileset whose marker is the default circle (`visConfig.customMarkers` is unset or `false`). Custom picture-marker layers don't get this floor — the marker is whatever the source PNG dictates.
+2. The layer has at least one `textLabel[i]` entry with `alignment: "center"` AND a `field` resolving to a column. (`alignment: "top"` / `"bottom"` labels sit outside the marker — no clipping concern; the existing font-size override rule covers their legibility.)
+
+Worked example — Bus Stops layer (source font 6 px, label `POINT_LETTER` rendered centered inside the marker; default circle):
+
+```python
+def normalize_circle_with_centered_label(layer):
+    cfg = layer["config"]
+    vc = cfg.get("visConfig", {})
+    if vc.get("customMarkers"):
+        return layer
+    tls = cfg.get("textLabel", [])
+    has_centered = any(t.get("alignment") == "center" and t.get("field") for t in tls)
+    if not has_centered:
+        return layer
+    if (vc.get("radius") or 0) < 10:
+        vc["radius"] = 10
+    for t in tls:
+        if t.get("alignment") == "center" and (t.get("size") or 0) < 10:
+            t["size"] = 10
+    return layer
+```
+
+Caught on TfL `Average PTAL LSOA Web Map` (Bus Stops layer): source `font.size = 6`, composer emitted `radius = 4`, `label.size = 8`. The 4-px circle was visibly smaller than the label glyph; even after flooring radius to 10, the 8 px label was still hard to read against the red fill. Final floors are `radius = 10` / `label.size = 10`.
+
+**Don't apply the floor universally.** A heatmap-style scatter of 21K bus stops at city zoom would be unreadable at 10 px per dot — but it's also unreadable at 4 px with text inside; the bug is symptom of "trying to label every dot at city zoom" rather than the floor itself. The right pattern is: floors here + the existing `visibilityByZoom` rule (zmin 15 for Bus Stops) so the labelled circles only appear when there are few enough on screen to actually read. The two rules are complementary.
+
+Generalization: the floor specifically defends the **`alignment: "center"`** case (label inside marker). For `alignment: "top"` / `"bottom"` (label outside), the marker radius can stay small — the existing "Source label font sizes don't always render well at city zoom — accept an override" rule covers the font-size half independently.
 
 ---
 
