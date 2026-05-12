@@ -34,7 +34,7 @@ Translation: SQL expression in a derived field on the layer's source query. Repl
 ```sql
 SELECT *,
        (population / NULLIF(area, 0)) * 1000 AS _density
-FROM <migrated_fqn>
+FROM migrated_fqn
 ```
 
 The synthetic field name (`_density`) is `_` + slug of the `expressionInfos[].title` (or `name` if title is absent). The popup property references the synthetic field.
@@ -172,7 +172,7 @@ When one or more per-row-math expressions translate to derived fields, the layer
 SELECT *,
        (pop / NULLIF(area, 0)) * 1000 AS _density,
        (revenue - cost) AS _profit
-FROM <migrated_fqn>
+FROM migrated_fqn
 ```
 
 Reference this query as the layer's `source` in the kepler dataset config:

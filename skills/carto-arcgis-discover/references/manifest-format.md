@@ -11,13 +11,11 @@ Always written to `MIGRATION_MANIFEST.md` in the working directory the agent was
 ## Front matter
 
 ```yaml
----
 portal_url: https://demo.arcgis.com/portal
 generated_at: 2026-05-06T14:32:00Z
 target_connection: demo-bq
 target_warehouse: bigquery
 discover_scope: org-owned        # or: shared / group:<id> / user:<name> / folder:<name>
----
 ```
 
 All five fields are required. `target_warehouse` is read from `carto connections list --json | jq '.[] | select(.name=="<connection>") | .provider'` — never asked of the user.
