@@ -145,15 +145,18 @@ A contrasting stroke is correct when polygons are large and few (countries on a 
 - `filled`, `stroked`, `thickness`, `opacity` — same as polygons (§1.3)
 - `enable3d` + `heightField` + `heightAggregation` → volumetric hex
 
-**Opacity is a design lever, not a fixed setting.** It does three jobs on cell and polygon layers (h3, quadbin, polygon tilesets, heatmap, cluster):
+**Opacity is a design lever — `0.7` is the safe default; deviate when you have a reason.** On cell and polygon layers (h3, quadbin, polygon tilesets, heatmap, cluster), opacity does three jobs:
 
 1. **Lets the basemap breathe** — at default `opacity: 1` the basemap disappears and the map reads as data floating in void.
-2. **Sets visual weight and hierarchy** — a saturated `0.9` layer feels heavy and dominant; a `0.5` layer recedes into the design. In multi-layer maps, use opacity to choose which layer the eye lands on first.
-3. **Reveals density through overlap** — where features overlap, lower opacity blends them so the eye reads "more here". Useful on layered choropleths and point clouds.
+2. **Sets visual weight and hierarchy** — a saturated `0.9` layer feels heavy and dominant; a `0.5` layer recedes. In multi-layer maps, use opacity to choose which layer the eye lands on first.
+3. **Reveals density through overlap** — where features overlap, lower opacity blends them so the eye reads "more here".
 
-Typical range `0.4–0.8`. Go to `0.4–0.5` when the basemap carries critical orientation (city grid, coastline, roads), when you want the layer to recede in the design, or when overlap density is itself the signal. Go to `0.7–0.8` when the layer is the hero and the basemap is purely backdrop. Resist defaulting to a single number — fit opacity to the layer's role in the map.
+**Default to `0.7`** when you have no specific reason to deviate — basemap breathes enough, layer reads as primary. The full range `0.4–0.8` is available when you have a reason:
 
-This applies to every fill layer (see also §1.1 points, §1.3 polygons). The numbers in the per-layer sections are starting points, not floors.
+- `0.4–0.5` when the basemap carries critical orientation (city grid, coastline, roads), when the layer should recede in the design (e.g. background context layer), or when overlap density is itself the signal.
+- `0.7–0.8` when the layer is the unambiguous hero and the basemap is purely backdrop.
+
+This applies to every fill layer (see also §1.1 points, §1.3 polygons). The per-layer numbers below are starting points; the `0.7` anchor is the no-context fallback.
 
 **Aggregation heuristic:** `count` for *"how many?"*, `sum` for totalling, `average` for intensity per event, `maximum` for *"worst case in cell"*. String columns: `mode` (most common) or `any_value`.
 
@@ -359,14 +362,23 @@ Default to **5**. Drop to 3 for overview / executive maps. Up to 7 for detailed 
 
 ### 4.2 Fit the palette to the measure
 
-Once the family is right (§4 principle), the specific palette is a fit decision — not a reflex. Consider:
+Once the family is right (§4 principle), the specific palette is a fit decision. Consider in order:
 
-- **Hue connotation.** Warm hues (red, orange) carry *severity / heat / alarm*; cool hues (blue, green) carry *calm / magnitude / safe*; purple is neutral. Reach for the connotation only when the measure actually supports it — *"risk of flood"* is warm-appropriate, *"population count"* is not.
+- **Hue connotation.** Warm hues (red, orange) carry *severity / heat / alarm*; cool hues (blue, green) carry *calm / magnitude / safe*; purple is neutral. Reach for the connotation only when the measure supports it — *"risk of flood"* is warm-appropriate, *"population count"* is not.
 - **Basemap tone.** Light basemap (positron, voyager) → palettes with a dark high-end stand out. Dark basemap (dark-matter) → palettes with a bright high-end stand out (see §4.4).
 - **Colorblind safety.** Use the subset above when audience is public or unknown.
 - **Within-map distinguishability.** Multiple layers in one map need different *families*, not different shades of one (§7.11).
 
-**Don't reach for a named palette by reflex.** "What did I use last time?" is the wrong prompt — the answer should be a fresh fit-by-character each map (§7.10).
+**Default if uncertain — one safe pick per family.** When none of the above factors push you to a specific palette, use these as a fallback. They're colorblind-safe, work on light basemaps (default `positron`), and have neutral connotations that don't impose meaning the data may not carry:
+
+| Family | Default if uncertain | Why |
+|---|---|---|
+| Sequential — magnitude | `Teal` | Colorblind-safe, calm, dark high-end on light basemap |
+| Diverging — signed | `Temps` (cool ↔ warm) or `Geyser` | Both colorblind-safe; midpoint reads as neutral |
+| Qualitative — 2–6 categories | `Bold` (or `Safe` for colorblind-safety) | Distinct hues, not shades-of-one |
+| Qualitative — 7–12 categories | `Prism` or `Pastel` | More distinct hues; collapse to top-N + `Other` past 12 |
+
+**Don't reach for a named palette by reflex.** "What did I use last time?" is the wrong prompt — the answer should be a fresh fit-by-character each map (§7.10). The defaults above are a *fallback when reasoning gives no preference*, not a reflex.
 
 For categorical data, the goal is **distinct hues**. CARTO qualitative palettes are tuned for that. A custom palette is fine as long as adjacent categories are visually separable; shades of one hue are not (that's a sequential palette, and using it for categories implies an order that isn't there).
 
@@ -581,8 +593,8 @@ Quantile assumes unimodal. Bimodal data gets chopped into classes that match nei
 ### 7.7 Opacity as a data channel
 Opacity entangles with overlap — two faint points look like one solid. Reserve `opacity` as a global dimmer (0.6–0.9), not per-feature encoding.
 
-### 7.8 Sequential / diverging on an unordered string column
-Most string columns have no inherent order — brand names, product types, country codes. A sequential ramp on those implies *more in one direction* the data doesn't carry; a diverging ramp implies a midpoint that doesn't exist. **Default to qualitative (distinct hues) for string columns.** Exception: when the strings ARE ordered (sentiment low/med/high, grades A–F, severity levels) sequential is correct — lock the order via `visualChannels.colorDomain`. The principle is about matching the family to the data's actual shape, not the column's type.
+### 7.8 Sequential / diverging on a string column
+String columns → **qualitative palette, distinct hues.** Sequential implies *more in one direction*; diverging implies a midpoint. String values rarely carry either reliably. Default to qualitative; the rare exception (truly ordered strings like grades A–F) is documented in §3.5 — but unless the user names that ordering explicitly, qualitative is right.
 
 ### 7.9 Encoding the same column twice
 Color + height driven by the same column is redundant. One column per channel.
@@ -663,7 +675,7 @@ Walk this list before emit. If any answer is *"no"* or *"unsure"*, fix it or not
 - [ ] Primary channel is color unless there's a specific reason otherwise (§2.1).
 - [ ] Attribution matches the geometry — point fields on points, line on lines, polygon on polygons (§1.1–§1.3).
 - [ ] Scale type matches data shape AND meaning: `quantize` + `colorDomain` for bounded with semantic landmarks; `custom` + log10 for heavy-tailed; `quantile` only for skewed-unbounded where viewers want rank; cast-to-STRING + `ordinal` for categorical-looking integers; `custom` colorMap for stakeholder-agreed breaks (§3.2). **`quantile` is NOT the safe default.**
-- [ ] **Palette family matches measure character.** Sequential for magnitude, diverging for signed, qualitative for categorical (§4). For unordered string columns, default to qualitative — only use sequential when the strings carry an inherent order (§7.8).
+- [ ] **Palette family matches measure character.** Sequential for magnitude, diverging for signed, qualitative for categorical (§4). String columns → qualitative (§7.8). If uncertain on the specific palette: `Teal` (sequential), `Temps` / `Geyser` (diverging), `Bold` / `Safe` (qualitative) — see §4.2 defaults.
 - [ ] Palette is a fresh fit per map — not a reflex from the prior session (§7.10).
 - [ ] Palette is colorblind-safe if audience is public or unknown (§4.1).
 - [ ] Palette is named exactly as the runtime knows it, or built via the borrow pattern (§4.6).

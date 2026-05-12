@@ -116,11 +116,14 @@ Opacity is set via the layer-level `opacity` prop. It does three jobs on fill la
 
 1. **Lets the basemap breathe** — at default `opacity: 1` cell layers cover the basemap entirely; the map reads as data floating in void.
 2. **Sets visual weight and hierarchy** — a saturated `0.9` layer feels heavy and dominant; a `0.5` layer recedes. In multi-layer maps, use opacity to choose which layer the eye lands on first.
-3. **Reveals density through overlap** — where features overlap, lower opacity blends them so the eye reads "more here". Useful on layered choropleths and point clouds.
+3. **Reveals density through overlap** — where features overlap, lower opacity blends them so the eye reads "more here".
 
-Typical range `0.4–0.8`. Go to `0.4–0.5` when the basemap carries critical orientation (city grid, coastline, road network), when you want the layer to recede in the design, or when overlap density is itself the signal. Go to `0.7–0.8` when the layer is the hero and the basemap is purely backdrop. Resist defaulting to a single number — fit opacity to the layer's role.
+**Default to `0.7`** when you have no specific reason to deviate — basemap breathes enough, layer reads as primary. The full range `0.4–0.8` opens up when you have a reason:
 
-For points, opacity is set via the alpha channel in the color array (`[r, g, b, alpha]`) rather than a layer-level prop. Same principles: lower alpha (~`150`/255) when points overlap heavily so density reads through blending.
+- `0.4–0.5` when the basemap carries critical orientation (city grid, coastline, roads), when the layer should recede (e.g. background context layer in a multi-layer stack), or when overlap density is itself the signal.
+- `0.7–0.8` when the layer is the unambiguous hero.
+
+For points, opacity is set via the alpha channel in the color array (`[r, g, b, alpha]`) rather than a layer-level prop. Same principles: default to ~`220` (≈0.85); lower to ~`150` when points overlap heavily so density reads through blending.
 
 ---
 
@@ -198,14 +201,23 @@ CARTO palettes (resolved by name in `colors`):
 
 **Pick by character, not by reflex.** Once the family is right (per the §0 principle), the specific palette is a fit decision:
 
-- **Hue connotation.** Warm hues carry *severity / heat / alarm*; cool hues carry *calm / magnitude / safe*; purple is neutral. Reach for connotation only when the measure actually supports it — *"risk of flood"* is warm-appropriate, *"population count"* is not.
+- **Hue connotation.** Warm hues carry *severity / heat / alarm*; cool hues carry *calm / magnitude / safe*; purple is neutral. Reach for connotation only when the measure supports it — *"risk of flood"* is warm-appropriate, *"population count"* is not.
 - **Basemap tone.** Light basemap → palettes with a dark high-end stand out. Dark basemap → palettes with a bright high-end stand out (see §7).
 - **Colorblind safety.** Use the subset above when audience is public or unknown.
 - **Within-map distinguishability.** Multiple layers in one map need different *families*, not different shades of one (§9).
 
-**Custom palettes are valid.** Any RGBA array of the right length works — `"colors": [[60, 80, 200, 220], [120, 140, 230, 220], …]`. Use when CARTO palettes don't fit the brand / domain / luminance constraint, or when the dataset carries its own colour semantics. The named palettes are tuned for luminance ordering and colorblind safety; a custom palette needs to be checked for the same properties.
+**Default if uncertain — one safe pick per family.** When no specific factor pushes you to another choice, use these as a fallback. All colorblind-safe, work on the default `positron` basemap, neutral connotations:
 
-**Don't reflex on a palette name.** *"What did I pick last time?"* is the wrong prompt — re-derive each map from the family principle (§0) and the data character.
+| Family | Default if uncertain |
+|---|---|
+| Sequential — magnitude | `Teal` |
+| Diverging — signed | `Temps` or `Geyser` |
+| Qualitative — 2–6 categories | `Bold` (or `Safe` for colorblind audiences) |
+| Qualitative — 7–12 categories | `Prism` (collapse to top-N + `Other` past 12) |
+
+**Custom palettes are valid.** Any RGBA array of the right length works — `"colors": [[60, 80, 200, 220], [120, 140, 230, 220], …]`. Use when CARTO palettes don't fit the brand / domain / luminance constraint. Named palettes are tuned for luminance ordering and colorblind safety; custom needs to be checked for the same.
+
+**Don't reflex on a palette name.** *"What did I pick last time?"* is the wrong prompt — re-derive each map from the family principle (§0) and the data character. The defaults above are a *fallback when reasoning gives no preference*, not a reflex.
 
 **Multi-layer hue separation:**
 - One sequential + one categorical → fine.
@@ -267,7 +279,7 @@ Use `layer.id` (hoisted as a sibling in PickingInfo), NOT `object.layer.id`.
 ## 9. Anti-patterns — do not emit these
 
 - **Hardcoded `colorBins` domain values without `get_column_stats` first.** You can't pick informed breakpoints for an unknown distribution.
-- **Palette family mismatched to data character.** Sequential on signed data hides the sign; diverging on unsigned implies a midpoint that doesn't exist; sequential on an unordered string column implies an ordering. Default unordered string columns to qualitative; deviate only when the strings carry inherent order (sentiment low/med/high, grades A–F).
+- **Palette family mismatched to data character.** Sequential on signed data hides the sign; diverging on unsigned implies a midpoint that doesn't exist; sequential / diverging on a string column implies an ordering or midpoint string data rarely carries. String columns → qualitative palette.
 - **Rainbow palette (`Prism`, `Vivid`) on ordered data.** Hue order doesn't match value order — readers misread.
 - **More than 7 `colorBins` buckets, or more than 12 `colorCategories` values.** Eye stops distinguishing.
 - **Palette reflex across sessions.** If your previous spec ended on a given palette, re-derive from the family principle this time. The answer may legitimately be the same palette, but should be a fresh fit — not a reach.
@@ -421,8 +433,8 @@ Different palette families per layer (sequential cool vs. categorical warm) keep
 Before emitting a `view_map` spec where styling is in scope:
 
 - [ ] Did I call `get_column_stats` for any unfamiliar numeric column I'm binning on?
-- [ ] **Does the palette family match the data character?** Sequential ↔ ordered magnitude, diverging ↔ signed, qualitative ↔ unordered. For string columns: default qualitative; only sequential when strings carry inherent order (§6, §9).
-- [ ] Is the specific palette a fresh fit per map — not a reflex from the previous spec? Named from the registry OR custom RGBA — both valid (§6).
+- [ ] **Does the palette family match the data character?** Sequential ↔ ordered magnitude, diverging ↔ signed, qualitative ↔ unordered. String columns → qualitative (§6, §9).
+- [ ] Is the specific palette a fresh fit per map — not a reflex from the previous spec? If uncertain: `Teal` (sequential), `Temps` / `Geyser` (diverging), `Bold` / `Safe` (qualitative) — see §6 defaults. Custom RGBA arrays also valid.
 - [ ] Colorblind-safe palette if audience is public or unknown (§6 subset)?
 - [ ] Does the basemap pair well with the palette (no light colors lost on light basemap, no dark colors lost on dark) (§7)?
 - [ ] Are layer-source schemes compatible (per the `view_map` tool description's matrix)?
