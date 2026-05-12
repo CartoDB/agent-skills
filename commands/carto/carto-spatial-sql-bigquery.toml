@@ -1,0 +1,11 @@
+description = "Write spatial SQL on BigQuery using CARTO's Analytics Toolbox. Covers the full AT module catalog (the BQ flagship), the GEOGRAPHY-only type system, H3 / quadbin / S2 indexing, and BQ-specific LLM traps (STRING H3 vs INT64 quadbin, longitude-first constructors, project-ID + backtick call form) (carto-skills)"
+
+prompt = """
+Apply the `carto-spatial-sql-bigquery` skill from the carto-skills catalog to the user's request.
+
+Required behavior:
+- Read the skill's main guidance at `skills/carto-spatial-sql-bigquery/SKILL.md` first.
+- Follow the skill's reference files (under `skills/carto-spatial-sql-bigquery/references/`) for depth on specific topics.
+- Stay within the skill's stated scope; if the request belongs to a different skill, say which one and stop.
+- For machine-parseable CLI output, always pass `--json`.
+"""

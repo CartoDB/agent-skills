@@ -61,9 +61,22 @@ Skills are organized in three tiers. Pick what's relevant to your work; an agent
 | Skill | Purpose |
 |---|---|
 | [`carto-basics`](skills/carto-basics) | First-time setup: install, auth, profiles, global flags. |
-| [`carto-connect-datawarehouse`](skills/carto-connect-datawarehouse) | Connect BigQuery / Snowflake / Redshift / Postgres / Databricks. |
-| [`carto-query-datawarehouse`](skills/carto-query-datawarehouse) | Spatial SQL with dialect-specific guidance. |
+| [`carto-connect-datawarehouse`](skills/carto-connect-datawarehouse) | Connect BigQuery / Snowflake / Redshift / Postgres / Databricks / Oracle. |
 | [`carto-explore-datawarehouse`](skills/carto-explore-datawarehouse) | Discover schemas, tables, columns, named sources. |
+| [`carto-query-datawarehouse`](skills/carto-query-datawarehouse) | Run SQL: `sql query` vs `sql job`, caching — and dispatch to the per-engine spatial-SQL skill below. |
+
+#### Per-engine spatial SQL (Analytics Toolbox)
+
+Engine-specific skills that teach the agent CARTO's Analytics Toolbox per warehouse — AT modules shipped, type-system quirks, and spatial-index patterns. The dispatcher above routes here based on the connection's provider.
+
+| Skill | Purpose |
+|---|---|
+| [`carto-spatial-sql-bigquery`](skills/carto-spatial-sql-bigquery) | AT flagship — every module ships. GEOGRAPHY-only type system, STRING H3, INT64 quadbin. |
+| [`carto-spatial-sql-snowflake`](skills/carto-spatial-sql-snowflake) | Most AT modules. GEOGRAPHY vs GEOMETRY split. Native App + manual install. |
+| [`carto-spatial-sql-databricks`](skills/carto-spatial-sql-databricks) | Narrow AT (enrichment + LDS + quadbin + statistics). H3 / ST_* come from Databricks-native, not CARTO. Beta. |
+| [`carto-spatial-sql-postgres`](skills/carto-spatial-sql-postgres) | Thin AT (h3, quadbin, tiler). PostGIS for everything else. `plv8` required for H3. |
+| [`carto-spatial-sql-redshift`](skills/carto-spatial-sql-redshift) | AT minus standalone H3 — use quadbin. Sort-key / dist-style for spatial joins. |
+| [`carto-spatial-sql-oracle`](skills/carto-spatial-sql-oracle) | **No AT today.** Connection target only. Steers to native `SDO_GEOMETRY` / `SDO_*`. |
 
 ### Platform — CARTO product surfaces
 

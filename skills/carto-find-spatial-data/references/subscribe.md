@@ -84,7 +84,7 @@ carto sql query carto_dw \
   "SELECT geoid, total_pop FROM my_project.do.acs_tracts_2022 LIMIT 10"
 ```
 
-To **enrich** the user's internal data with the DO data, spatial-join in SQL — see the dialect-specific examples in [`../../carto-query-datawarehouse/references/spatial-sql-*.md`](../../carto-query-datawarehouse).
+To **enrich** the user's internal data with the DO data, spatial-join in SQL — pick the per-engine dialect skill that matches the connection's provider: [`carto-spatial-sql-bigquery`](../../carto-spatial-sql-bigquery), [`carto-spatial-sql-snowflake`](../../carto-spatial-sql-snowflake), [`carto-spatial-sql-databricks`](../../carto-spatial-sql-databricks), [`carto-spatial-sql-postgres`](../../carto-spatial-sql-postgres), or [`carto-spatial-sql-redshift`](../../carto-spatial-sql-redshift). CARTO Data Observatory enrichment is not available on Oracle.
 
 ## Unsubscribing
 

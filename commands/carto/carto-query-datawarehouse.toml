@@ -1,4 +1,4 @@
-description = "Write spatial SQL against the connected warehouse engine, with dialect-specific guidance and performance defaults (carto-skills)"
+description = "Run SQL against any CARTO-connected warehouse: `sql query` vs `sql job` execution model, caching, and a dispatcher table that routes to the per-engine spatial-SQL skill (BigQuery, Snowflake, Databricks, Postgres, Redshift, Oracle) for dialect-specific Analytics Toolbox content (carto-skills)"
 
 prompt = """
 Apply the `carto-query-datawarehouse` skill from the carto-skills catalog to the user's request.

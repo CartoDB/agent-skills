@@ -19,8 +19,50 @@
       "name": "carto-query-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Write spatial SQL against the connected warehouse engine, with dialect-specific guidance and performance defaults.",
+      "description": "Run SQL against any CARTO-connected warehouse: `sql query` vs `sql job` execution model, caching, and a dispatcher table that routes to the per-engine spatial-SQL skill (BigQuery, Snowflake, Databricks, Postgres, Redshift, Oracle) for dialect-specific Analytics Toolbox content.",
       "path": "skills/carto-query-datawarehouse"
+    },
+    {
+      "name": "carto-spatial-sql-bigquery",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Write spatial SQL on BigQuery using CARTO's Analytics Toolbox. Covers the full AT module catalog (the BQ flagship), the GEOGRAPHY-only type system, H3 / quadbin / S2 indexing, and BQ-specific LLM traps (STRING H3 vs INT64 quadbin, longitude-first constructors, project-ID + backtick call form).",
+      "path": "skills/carto-spatial-sql-bigquery"
+    },
+    {
+      "name": "carto-spatial-sql-snowflake",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Write spatial SQL on Snowflake using CARTO's Analytics Toolbox. Covers the AT modules shipped (and missing — no cpg/geohash/telco), Snowflake's GEOGRAPHY vs GEOMETRY split, Search Optimization vs clustering-key tradeoffs, and the Native App marketplace install path.",
+      "path": "skills/carto-spatial-sql-snowflake"
+    },
+    {
+      "name": "carto-spatial-sql-databricks",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Write spatial SQL on Databricks (Lakehouse, Photon). CARTO's AT here is narrow — enrichment + LDS + quadbin + statistics only — and delegates H3 and ST_* primitives to Databricks-native spatial SQL. Covers the split, string-form vs BIGINT H3, and Z-order / liquid-clustering patterns.",
+      "path": "skills/carto-spatial-sql-databricks"
+    },
+    {
+      "name": "carto-spatial-sql-postgres",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Write spatial SQL on PostgreSQL / PostGIS. CARTO's AT here is thin (h3, quadbin, tiler only) — PostGIS native covers everything else, with no AT-based enrichment / statistics / LDS available. Covers install gotchas (plv8 for H3), lowercase identifier folding, and GiST / SP-GiST / BRIN index choice.",
+      "path": "skills/carto-spatial-sql-postgres"
+    },
+    {
+      "name": "carto-spatial-sql-redshift",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Write spatial SQL on Amazon Redshift using CARTO's Analytics Toolbox. The headline gotcha: no standalone H3 module on Redshift — use quadbin for binning. Covers AT modules that DO ship, Redshift's 2D-only GEOMETRY history, SRID-0 default, and the sort-key / dist-style pattern for spatial joins.",
+      "path": "skills/carto-spatial-sql-redshift"
+    },
+    {
+      "name": "carto-spatial-sql-oracle",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Write spatial SQL on Oracle. CARTO's Analytics Toolbox is NOT available on Oracle today — Oracle is supported only as a connection target for Builder / Workflows / Maps. This skill documents the gap and steers the agent to native Oracle Spatial (SDO_GEOMETRY, SDO_RELATE, SDO_GEOM.*) instead of failing-silently with carto.* calls.",
+      "path": "skills/carto-spatial-sql-oracle"
     },
     {
       "name": "carto-explore-datawarehouse",
