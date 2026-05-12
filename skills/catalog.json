@@ -68,7 +68,7 @@
       "name": "carto-render-inline-map",
       "layer": "platform",
       "dependencies": ["carto-basics"],
-      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-build-app (developer app from scratch).",
+      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-develop-app (developer app from scratch).",
       "path": "skills/carto-render-inline-map"
     },
     {
@@ -79,11 +79,11 @@
       "path": "skills/carto-preview-builder-map"
     },
     {
-      "name": "carto-build-app",
+      "name": "carto-develop-app",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
       "description": "Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, or M2M).",
-      "path": "skills/carto-build-app"
+      "path": "skills/carto-develop-app"
     },
     {
       "name": "carto-hotspot-analysis",

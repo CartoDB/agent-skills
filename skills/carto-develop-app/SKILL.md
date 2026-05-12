@@ -1,10 +1,10 @@
 ---
-name: carto-build-app
+name: carto-develop-app
 description: Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, or M2M).
 license: MIT
 ---
 
-# carto-build-app
+# carto-develop-app
 
 Generate a working CARTO + [deck.gl](https://deck.gl) app from a prompt. Four decisions — **app type**, **framework**, **auth model**, **data shape** — then assemble layers, widgets, filters, inputs, a legend, and (optionally) an embedded map agent.
 

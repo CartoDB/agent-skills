@@ -74,6 +74,7 @@ Skills are organized in three tiers. Pick what's relevant to your work; an agent
 | [`carto-find-spatial-data`](skills/carto-find-spatial-data) | Discover and subscribe to Data Observatory datasets. |
 | [`carto-manage-platform`](skills/carto-manage-platform) | Org admin: users, quotas, audit, bulk ops. |
 | [`carto-create-builder-maps`](skills/carto-create-builder-maps) | Author maps in CARTO Builder (layers, basemaps, styling, AI Agents) and copy them across orgs / profiles. |
+| [`carto-develop-app`](skills/carto-develop-app) | Generate from-scratch CARTO + deck.gl apps in TypeScript / JavaScript with auth, layers, widgets, and filters. |
 
 ### Use-case patterns — common spatial analyses
 
