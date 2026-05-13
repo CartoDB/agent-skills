@@ -2,6 +2,13 @@
   "version": "2.4.0-phase2d",
   "skills": [
     {
+      "name": "carto-arcgis-migration",
+      "layer": "use-case",
+      "dependencies": [],
+      "description": "End-to-end ArcGIS Portal / AGOL → CARTO migration. Runs three phases over a shared MIGRATION_MANIFEST.md: discover (enumerate + classify items), migrate-data (Hosted Feature Layers / Tables → CARTO tables), migrate-maps (Web Maps + simple Dashboard / Web Experience / Web Mapping Application entries → CARTO Builder maps). Default mode is batch; migrated maps are tagged `From ArcGIS` and created as private. Triggers when the user wants to migrate ArcGIS content to CARTO, asks 'what's in my Portal', or names a Portal/AGOL URL.",
+      "path": "skills/carto-arcgis-migration"
+    },
+    {
       "name": "carto-basics",
       "layer": "utility",
       "dependencies": [],

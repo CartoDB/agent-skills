@@ -26,6 +26,7 @@
       ],
       "strict": false,
       "skills": [
+        "./skills/carto-arcgis-migration",
         "./skills/carto-basics",
         "./skills/carto-connect-datawarehouse",
         "./skills/carto-query-datawarehouse",
