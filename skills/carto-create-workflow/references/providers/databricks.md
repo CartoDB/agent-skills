@@ -11,7 +11,7 @@ Format: `` `catalog`.schema.table ``
 Catalogs with special characters (hyphens, spaces) **must** be backtick-quoted:
 
 ```
-`engineering-catalog-default`.dvicente_workflows_data.madrid_bike_accidents
+`acme-catalog`.workflows_data.madrid_bike_accidents
 ```
 
 Schemas and tables with only alphanumeric/underscore characters do not need quoting.
@@ -49,7 +49,7 @@ Databricks uses the Analytics Toolbox installed as stored procedures in a dedica
 
 Example AT procedure call (from generated SQL):
 ```sql
-CALL `engineering-catalog-default`.`dedicated_1061_carto`.ENRICH_POLYGONS_WEIGHTED(...)
+CALL `acme-catalog`.`<at_schema>`.ENRICH_POLYGONS_WEIGHTED(...)
 ```
 
 ---
@@ -108,7 +108,7 @@ Set `"connectionProvider": "databricksWarehouse"` in the workflow JSON top-level
 Catalog names with special characters (hyphens) do **not** need backtick-quoting inside workflow JSON input values. The engine adds quoting automatically in generated SQL. For example, use:
 
 ```json
-{ "name": "source", "type": "Table", "value": "engineering-catalog-default.dvicente_workflows_data.my_table" }
+{ "name": "source", "type": "Table", "value": "acme-catalog.workflows_data.my_table" }
 ```
 
 **Exception**: In `native.customsql`, when using `$a`/`$b` placeholders and the catalog contains hyphens, wrap them as `` `$a` `` and `` `$b` `` so the expanded temp table name gets backtick-quoted in the generated SQL.

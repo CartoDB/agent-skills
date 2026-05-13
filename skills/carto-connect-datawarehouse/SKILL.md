@@ -61,4 +61,4 @@ carto connections list --json             # machine-readable
 
 - Browsing tables/schemas of an existing connection — that's [`carto-explore-datawarehouse`](../carto-explore-datawarehouse).
 - Running SQL against the warehouse — that's [`carto-query-datawarehouse`](../carto-query-datawarehouse).
-- Importing files into the warehouse — Phase 2 (`carto-import-export-data`).
+- Importing files into the warehouse — that's [`carto-import-export-data`](../carto-import-export-data).

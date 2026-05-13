@@ -115,7 +115,7 @@ const mapState: MapState = {
 
 const system = buildSystemPrompt({
   mapState,
-  userContext: { user: 'atena', org: 'cartodb' },
+  userContext: { user: 'alice', org: 'acme' },
 });
 ```
 

@@ -1,7 +1,7 @@
 {
   "name": "carto-skills",
   "description": "CARTO skills bundle for Claude Code — see skills/catalog.json for the layered tier breakdown.",
-  "version": "2.4.0-phase2d",
+  "version": "2.5.0",
   "skills": [
     "../../../skills/carto-basics",
     "../../../skills/carto-connect-datawarehouse",

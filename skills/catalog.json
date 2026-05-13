@@ -1,32 +1,32 @@
 {
-  "version": "2.4.0-phase2d",
+  "version": "2.5.0",
   "skills": [
     {
       "name": "carto-basics",
       "layer": "utility",
       "dependencies": [],
-      "description": "Start here for first-time CARTO CLI use: install, authenticate, switch profiles, understand JSON output and async job patterns.",
+      "description": "Start here for first-time CARTO use — install the CLI, authenticate, switch profiles, understand JSON output and async job patterns. Also orients on the two parallel access paths into the CARTO platform (CLI for authoring/scripting, MCP server for inline interactions in chat hosts) and which skills cover each.",
       "path": "skills/carto-basics"
     },
     {
       "name": "carto-connect-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Choose and configure the data warehouse engine connection (BigQuery, Snowflake, Redshift, Postgres, Databricks).",
+      "description": "Choose and configure the data warehouse engine connection for CARTO (BigQuery, Snowflake, Redshift, Postgres, Databricks).",
       "path": "skills/carto-connect-datawarehouse"
     },
     {
       "name": "carto-query-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Write spatial SQL against the connected warehouse engine, with dialect-specific guidance and performance defaults.",
+      "description": "Write spatial SQL against the connected warehouse — dialect-specific guidance, performance defaults, and CARTO's query/job execution model.",
       "path": "skills/carto-query-datawarehouse"
     },
     {
       "name": "carto-explore-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Discover what's in the connected warehouse: schemas, tables, columns, named sources.",
+      "description": "Discover what's in the connected warehouse — schemas, tables, columns, and CARTO named sources.",
       "path": "skills/carto-explore-datawarehouse"
     },
     {
@@ -40,7 +40,7 @@
       "name": "carto-create-workflow",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-query-datawarehouse"],
-      "description": "Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, or schedule a DAG. For copying workflows across profiles, see carto-copy-workflows.",
+      "description": "Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, schedule a DAG, or copy a workflow across profiles or orgs.",
       "path": "skills/carto-create-workflow"
     },
     {
@@ -61,7 +61,7 @@
       "name": "carto-create-builder-maps",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
-      "description": "Author maps in CARTO Builder: layers, basemaps, styling, sharing, and AI Agents.",
+      "description": "Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps` subcommand surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.",
       "path": "skills/carto-create-builder-maps"
     },
     {
@@ -110,7 +110,7 @@
       "name": "carto-spatial-enrichment",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Guides the user through spatial enrichment workflows — triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, or trade-area enrichment.",
+      "description": "Guides the user through spatial enrichment workflows — triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, \"what's around\" queries, buffer/isochrone + join patterns, or trade area enrichment.",
       "path": "skills/carto-spatial-enrichment"
     },
     {
@@ -152,7 +152,7 @@
       "name": "carto-composite-scoring",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Guides the user through building composite-score workflows when they ask about composite scores, indexes, multi-variable rankings, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring.",
+      "description": "Guides the user through building composite score workflows when they ask about composite scores, indexes, multi-variable scores, ranking areas, site scoring, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring.",
       "path": "skills/carto-composite-scoring"
     }
   ]

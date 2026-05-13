@@ -109,6 +109,7 @@ plugins/                   # Claude plugin manifest
 gemini-extension.json      # Gemini extension manifest
 commands/carto/            # one TOML per skill (Gemini)
 scripts/                   # validate_skills.py, sync_manifests.py
+tests/                     # validate_snippets.py
 docs/                      # authoring + install matrix
 ```
 

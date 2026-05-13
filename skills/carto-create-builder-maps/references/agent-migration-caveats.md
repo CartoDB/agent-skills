@@ -27,7 +27,7 @@ The agent's model is stored as `"<account-id>::<provider>::<model-name>"`, e.g. 
 
 **Manual fix.** Open the copied map in Builder in the destination org. Open the agent panel and select an available model. The provider + model-name part (`anthropic::claude-sonnet-4-5`) is portable; you're effectively just re-binding to the destination's account ID.
 
-> The CLI gap that prevents auto-fixing this is tracked separately on the CLI team's backlog (see also Ana Manzanares's findings from PR #2). Possible future fixes: auto-swap account-ID prefix during copy; `--model` flag override on `maps copy`; `maps update` support for agent config.
+> The CLI does not currently auto-fix this. Until it does, the manual re-bind in Builder is the only path. Plausible future automations: auto-swap the account-ID prefix during copy; a `--model` flag override on `maps copy`; `maps update` support for agent config.
 
 ## `UNAVAILABLE_TOOL`
 
