@@ -1,4 +1,4 @@
-description = "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-build-app (developer app from scratch) (carto-skills)"
+description = "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-develop-app (developer app from scratch) (carto-skills)"
 
 prompt = """
 Apply the `carto-render-inline-map` skill from the carto-skills catalog to the user's request.

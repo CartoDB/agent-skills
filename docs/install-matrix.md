@@ -13,6 +13,9 @@ Which skills ship via which harness.
 | `carto-find-spatial-data` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-manage-platform` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-create-builder-maps` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-render-inline-map` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-preview-builder-map` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-develop-app` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-hotspot-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-spatial-autocorrelation` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-gwr` | use-case | ✅ | ✅ | ✅ | ✅ |
@@ -23,12 +26,11 @@ Which skills ship via which harness.
 | `carto-routing-od-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-geocoding` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-composite-scoring` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-build-app` | platform | ⏳ deferred | ⏳ deferred | ⏳ deferred | ⏳ deferred |
 | `carto-build-spatial-dashboard` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 | `carto-build-customer-facing-map` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 | `carto-migrate-to-carto` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 
-One platform skill (`carto-build-app`) is owned by another PM and not yet built. The Phase 3 build-oriented use-case skills depend on it, so they wait too.
+The Phase 3 build-oriented use-case skills layer on top of `carto-develop-app` and remain pending.
 
 ## Per-harness install
 
@@ -39,7 +41,7 @@ One platform skill (`carto-build-app`) is owned by another PM and not yet built.
 /plugin install carto-skills@carto-agent-skills
 ```
 
-All 19 skills (4 utility + 5 platform + 10 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
+All 22 skills (4 utility + 8 platform + 10 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
 
 ### Skills CLI
 
