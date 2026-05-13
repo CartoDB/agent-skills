@@ -1,6 +1,6 @@
 ---
 name: carto-connect-datawarehouse
-description: Choose and configure the data warehouse engine connection for CARTO (BigQuery, Snowflake, Redshift, Postgres, Databricks).
+description: Choose and configure the data warehouse engine connection for CARTO (BigQuery, Snowflake, Redshift, Postgres, Databricks, Oracle).
 license: MIT
 ---
 
@@ -38,6 +38,7 @@ carto connections delete <id>             # remove (irreversible)
 | **Redshift** | AWS-shop customers on Redshift Serverless or RA3 clusters. | [references/redshift.md](references/redshift.md) |
 | **Postgres** | Self-hosted or RDS Postgres with PostGIS; common for small/medium deployments. | [references/postgres.md](references/postgres.md) |
 | **Databricks** | Lakehouse / Unity Catalog users; SQL Warehouses recommended for interactive workloads. | [references/databricks.md](references/databricks.md) |
+| **Oracle** | Oracle Database with Spatial; on-prem or OCI / Autonomous Database deployments. | [references/oracle.md](references/oracle.md) |
 
 > If the user already has a connection (`connections list` returns at least one), don't push a new one — use the existing one.
 

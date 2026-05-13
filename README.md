@@ -61,7 +61,7 @@ Skills are organized in three tiers. Pick what's relevant to your work; an agent
 | Skill | Purpose |
 |---|---|
 | [`carto-basics`](skills/carto-basics) | First-time setup: install, auth, profiles, global flags. |
-| [`carto-connect-datawarehouse`](skills/carto-connect-datawarehouse) | Connect BigQuery / Snowflake / Redshift / Postgres / Databricks. |
+| [`carto-connect-datawarehouse`](skills/carto-connect-datawarehouse) | Connect BigQuery / Snowflake / Redshift / Postgres / Databricks / Oracle. |
 | [`carto-query-datawarehouse`](skills/carto-query-datawarehouse) | Spatial SQL with dialect-specific guidance. |
 | [`carto-explore-datawarehouse`](skills/carto-explore-datawarehouse) | Discover schemas, tables, columns, named sources. |
 

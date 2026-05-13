@@ -9,7 +9,7 @@ This file is loaded as context whenever the `carto-skills` extension is active i
 **Utility tier** — foundational, no dependencies:
 
 - `carto-basics` — install, auth, profiles, global flags.
-- `carto-connect-datawarehouse` — BigQuery / Snowflake / Redshift / Postgres / Databricks connections.
+- `carto-connect-datawarehouse` — BigQuery / Snowflake / Redshift / Postgres / Databricks / Oracle connections.
 - `carto-query-datawarehouse` — spatial SQL, dialect-specific guidance, execution model.
 - `carto-explore-datawarehouse` — schema discovery, named sources.
 

@@ -12,7 +12,7 @@
       "name": "carto-connect-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Choose and configure the data warehouse engine connection for CARTO (BigQuery, Snowflake, Redshift, Postgres, Databricks).",
+      "description": "Choose and configure the data warehouse engine connection for CARTO (BigQuery, Snowflake, Redshift, Postgres, Databricks, Oracle).",
       "path": "skills/carto-connect-datawarehouse"
     },
     {
