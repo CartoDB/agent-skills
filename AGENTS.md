@@ -1,6 +1,6 @@
 # Notes for AI agents
 
-Generic guidance for any agent harness that loads this repo's skills (Claude Code today; Codex and Gemini in Phase 2).
+Generic guidance for any agent harness that loads this repo's skills (Claude Code, Codex, Gemini CLI, Skills CLI).
 
 ## Reading order for a fresh CARTO session
 
@@ -18,7 +18,7 @@ A skill's `references/*.md` files are *not* always loaded. They're linked from t
 ## Three-tier discipline
 
 - Utility skills are foundational. They have no dependencies on other CARTO skills.
-- Don't synthesize behavior across two utility skills as if they were composable — they're orthogonal primitives. Composition is the platform/use-case tiers' job (Phase 2/3).
+- Don't synthesize behavior across two utility skills as if they were composable — they're orthogonal primitives. Composition is the platform and use-case tiers' job.
 
 ## Conventions every skill assumes
 

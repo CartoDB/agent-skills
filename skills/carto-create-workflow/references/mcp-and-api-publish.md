@@ -96,7 +96,7 @@ The compiled procedure is a regular BigQuery (or Snowflake/Databricks) stored pr
 
 ```bash
 TOKEN=...   # API access token from `carto credentials create token`
-CONN=...    # connection name (e.g. 000-dvicente-bq)
+CONN=...    # connection name (e.g. acme-bq)
 WFHASH=...  # sha1(workflowId)[:16] — find via `mcp describe` or INFORMATION_SCHEMA.ROUTINES
 BILLING=... # billing project / database for the connection
 
@@ -118,7 +118,7 @@ carto credentials create token \
   --apis sql
 ```
 
-The token's `--source` grant must include the procedure FQN **and** every table the procedure body reads from. Wildcards (`<billing>.dvicente.*`) are accepted at creation time but, in practice, may not be honoured at SQL-API call time depending on tenant configuration — when in doubt, list the exact FQNs. If a fresh token returns `403 You don't have permissions to read this resource` even on `SELECT 1`, the issue is the token itself (or tenant-level token-acceptance policy), not the grant list — surface this back to the workflow author rather than re-scoping endlessly.
+The token's `--source` grant must include the procedure FQN **and** every table the procedure body reads from. Wildcards (`<billing>.<dataset>.*`) are accepted at creation time but, in practice, may not be honoured at SQL-API call time depending on tenant configuration — when in doubt, list the exact FQNs. If a fresh token returns `403 You don't have permissions to read this resource` even on `SELECT 1`, the issue is the token itself (or tenant-level token-acceptance policy), not the grant list — surface this back to the workflow author rather than re-scoping endlessly.
 
 The `mcp describe <id>` output includes the full canonical CALL statement and the procedure FQN, so it is the authoritative source for `WFHASH` and the exact `q` body.
 

@@ -1,4 +1,4 @@
-description = "Write spatial SQL against the connected warehouse engine, with dialect-specific guidance and performance defaults (carto-skills)"
+description = "Write spatial SQL against the connected warehouse — dialect-specific guidance, performance defaults, and CARTO's query/job execution model (carto-skills)"
 
 prompt = """
 Apply the `carto-query-datawarehouse` skill from the carto-skills catalog to the user's request.

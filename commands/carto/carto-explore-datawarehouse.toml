@@ -1,4 +1,4 @@
-description = "Discover what's in the connected warehouse: schemas, tables, columns, named sources (carto-skills)"
+description = "Discover what's in the connected warehouse — schemas, tables, columns, and CARTO named sources (carto-skills)"
 
 prompt = """
 Apply the `carto-explore-datawarehouse` skill from the carto-skills catalog to the user's request.

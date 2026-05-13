@@ -1,4 +1,4 @@
-description = "Guides the user through spatial enrichment workflows — triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, or trade-area enrichment (carto-skills)"
+description = "Guides the user through spatial enrichment workflows — triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, "what's around" queries, buffer/isochrone + join patterns, or trade area enrichment (carto-skills)"
 
 prompt = """
 Apply the `carto-spatial-enrichment` skill from the carto-skills catalog to the user's request.

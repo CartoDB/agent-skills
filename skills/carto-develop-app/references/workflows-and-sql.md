@@ -85,7 +85,7 @@ dataSource = vectorQuerySource({
 deck.setProps({ layers: rebuildLayers(dataSource) });
 ```
 
-For Workflow API specifics — endpoint format, naming, async polling — see the [Executing Workflows via API](https://docs.carto.com/carto-user-manual/workflows/executing-workflows-via-api) guide. The CLI surface is in [`carto-create-analytics-workflow`](../../carto-create-analytics-workflow).
+For Workflow API specifics — endpoint format, naming, async polling — see the [Executing Workflows via API](https://docs.carto.com/carto-user-manual/workflows/executing-workflows-via-api) guide. The CLI surface is in [`carto-create-workflow`](../../carto-create-workflow).
 
 ## Async / long-running queries
 

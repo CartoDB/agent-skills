@@ -5,8 +5,8 @@
     "email": "support@carto.com"
   },
   "metadata": {
-    "version": "2.4.0-phase2d",
-    "description": "CARTO skills catalog — utility, platform, and use-case tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources, modeled on the MotherDuck agent-skills pattern."
+    "version": "2.5.0",
+    "description": "CARTO skills catalog — utility, platform, and use-case tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources."
   },
   "plugins": [
     {

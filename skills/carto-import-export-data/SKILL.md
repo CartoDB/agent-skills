@@ -54,7 +54,7 @@ carto import --file ./data.csv \
 ## Always-on guidance
 
 - **`--connection` is the connection *name*** (from `connections list`), not the warehouse project ID. If you only know the project, run `carto connections list --json` first to find the matching connection.
-- **`--destination` is the fully-qualified target name** in the warehouse's syntax: `project.dataset.table` (BigQuery), `DATABASE.SCHEMA.TABLE` (Snowflake), `schema.table` (Postgres/Redshift), `catalog.schema.table` (Databricks).
+- **`--destination` is the fully-qualified target name** in the warehouse's syntax: `project.dataset.table` (BigQuery), `DATABASE.SCHEMA.TABLE` (Snowflake), `schema.table` (Postgres/Redshift), `catalog.schema.table` (Databricks), `SCHEMA.TABLE` (Oracle).
 - **1GB hard limit per file**. For larger files, split or pre-stage to cloud storage and use `--url` to a presigned URL.
 - **`--no-autoguessing` skips column type detection** — use it when you've prepared a precise schema and don't want CARTO to second-guess types (especially for columns that look numeric but should stay string, like ZIP codes).
 - **Imports are async at the API level**. The CLI defaults to polling-to-completion; pass `--async` to return immediately. The CLI prints a job ID in async mode that you can use to check progress.

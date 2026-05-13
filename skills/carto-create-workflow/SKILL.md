@@ -1,6 +1,6 @@
 ---
 name: carto-create-workflow
-description: Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, or schedule a DAG. For copying workflows across profiles, see carto-copy-workflows.
+description: Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, schedule a DAG, or copy a workflow across profiles or orgs.
 license: MIT
 ---
 

@@ -16,7 +16,7 @@ Apps follow the [CartoDB/deck.gl-examples](https://github.com/CartoDB/deck.gl-ex
 - Builder map ID supplied → [`fetchmap.md`](references/fetchmap.md).
 - Storymap / scrollytelling / narrative map / guided tour → [`storymap.md`](references/storymap.md) (composes on top of the React scaffold below).
 - Chat-with-map / embedded AI agent → [`agentic-variant.md`](references/agentic-variant.md).
-- *Authoring* maps in Builder → `carto-create-builder-maps` (deferred). *Migrating* a Builder map → [`carto-copy-maps`](../carto-copy-maps).
+- *Authoring* maps in Builder → [`carto-create-builder-maps`](../carto-create-builder-maps). *Migrating* a Builder map across orgs / profiles → [`cross-profile-copy.md`](../carto-create-builder-maps/references/cross-profile-copy.md).
 
 ## Operating mode — autonomous by default
 

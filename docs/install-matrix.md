@@ -26,11 +26,8 @@ Which skills ship via which harness.
 | `carto-routing-od-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-geocoding` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-composite-scoring` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-build-spatial-dashboard` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
-| `carto-build-customer-facing-map` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
-| `carto-migrate-to-carto` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 
-The Phase 3 build-oriented use-case skills layer on top of `carto-develop-app` and remain pending.
+All 22 skills are available identically across every harness. See [`skills/catalog.json`](../skills/catalog.json) for the source of truth.
 
 ## Per-harness install
 

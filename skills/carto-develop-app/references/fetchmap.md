@@ -141,5 +141,5 @@ const visibleLayers = mapInfo.layers.filter((l) => l.id !== 'optional-layer');
 - **`fetchMap` is a one-shot fetch by default.** Layers won't update when the underlying warehouse data changes unless you set `autoRefresh` or re-call.
 - **Custom Maps API URL with regional base** — `apiBaseUrl` must match the org that owns the map. Wrong region → 404.
 - **`mapInfo.layers` includes ALL layers**, including hidden / optional ones. Check `layer.props.visible` if you want to honor Builder's visibility toggles.
-- **No way to *write* a map.** `fetchMap` is read-only. Authoring lives in `carto-create-builder-maps` (deferred).
+- **No way to *write* a map.** `fetchMap` is read-only. Authoring lives in [`carto-create-builder-maps`](../../carto-create-builder-maps).
 - **Large maps with many layers** — deck.gl creates a layer per Builder layer. If the map has 30 layers, all 30 spin up at once. Filter `mapInfo.layers` before passing to `Deck` if perf matters.

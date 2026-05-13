@@ -1,4 +1,4 @@
-description = "Start here for first-time CARTO CLI use: install, authenticate, switch profiles, understand JSON output and async job patterns (carto-skills)"
+description = "Start here for first-time CARTO use — install the CLI, authenticate, switch profiles, understand JSON output and async job patterns. Also orients on the two parallel access paths into the CARTO platform (CLI for authoring/scripting, MCP server for inline interactions in chat hosts) and which skills cover each (carto-skills)"
 
 prompt = """
 Apply the `carto-basics` skill from the carto-skills catalog to the user's request.
