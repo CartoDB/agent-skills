@@ -1,6 +1,5 @@
 {
   "name": "carto-skills",
-  "version": "2.5.0",
   "description": "CARTO skills for agents and developers: connect to a data warehouse, explore schemas, write spatial SQL, build analytics workflows, subscribe to Data Observatory data, and administer the platform.",
   "author": {
     "name": "CARTO",

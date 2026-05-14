@@ -11,7 +11,7 @@ Claude Code reads this file automatically when working in this repo.
 
 ## When users ask "how do I install"
 
-Direct them to the README's "Installation" section. The Claude Code plugin ID is `carto-skills@carto-agent-skills`.
+Direct them to the official docs at [docs.carto.com/carto-for-agents/agent-skills](https://docs.carto.com/carto-for-agents/agent-skills). The Claude Code plugin ID is `carto-skills@carto-agent-skills`.
 
 ## Tier discipline
 
