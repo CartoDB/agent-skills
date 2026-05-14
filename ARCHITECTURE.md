@@ -20,7 +20,6 @@ Every skill belongs to exactly one tier. Tiers enforce dependency direction.
 
 ```json
 {
-  "version": "2.5.0",
   "skills": [
     {
       "name": "carto-basics",

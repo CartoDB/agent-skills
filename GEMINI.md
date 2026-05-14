@@ -4,7 +4,7 @@ This file is loaded as context whenever the `carto-skills` extension is active i
 
 ## What's installed
 
-22 skills in three layered tiers — see [`skills/catalog.json`](skills/catalog.json) for the source of truth.
+23 skills in three layered tiers — see [`skills/catalog.json`](skills/catalog.json) for the source of truth.
 
 **Utility tier** — foundational, no dependencies:
 
@@ -26,6 +26,7 @@ This file is loaded as context whenever the `carto-skills` extension is active i
 
 **Use-case patterns** — compose the platform skills above:
 
+- `carto-arcgis-migration` — ArcGIS Portal / AGOL → CARTO migration (discover, data, maps).
 - `carto-hotspot-analysis` — Getis-Ord Gi\*, spacetime hotspots.
 - `carto-spatial-autocorrelation` — Moran's I, LISA, HH/HL/LH/LL classification.
 - `carto-gwr` — Geographically Weighted Regression.

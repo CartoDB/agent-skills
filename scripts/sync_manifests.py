@@ -48,7 +48,6 @@ def write_claude_plugin() -> None:
     manifest = {
         "name": "carto-skills",
         "description": "CARTO skills bundle for Claude Code — see skills/catalog.json for the layered tier breakdown.",
-        "version": cat.version,
         "skills": [relative_skill_path(CLAUDE_PLUGIN_DIR, s.path) for s in cat.skills],
     }
     _write_json(CLAUDE_PLUGIN_PATH, manifest)
@@ -58,10 +57,8 @@ def write_claude_plugin() -> None:
 
 
 def write_codex_plugin() -> None:
-    cat = load_catalog()
     manifest = {
         "name": "carto-skills",
-        "version": cat.version,
         "description": "CARTO skills for agents and developers: connect to a data warehouse, explore schemas, write spatial SQL, build analytics workflows, subscribe to Data Observatory data, and administer the platform.",
         "author": {
             "name": "CARTO",
@@ -112,10 +109,8 @@ def write_codex_plugin() -> None:
 
 
 def write_gemini_extension() -> None:
-    cat = load_catalog()
     manifest = {
         "name": "carto-skills",
-        "version": cat.version,
         "description": "CARTO skills for Gemini CLI: connect, explore live schemas, write spatial SQL, manage workflows, subscribe to Data Observatory data, and administer the org.",
         "contextFileName": "GEMINI.md",
         "plan": {

@@ -4,6 +4,7 @@ Which skills ship via which harness.
 
 | Skill | Tier | Claude Code | Skills CLI | Codex | Gemini |
 |---|---|---|---|---|---|
+| `carto-arcgis-migration` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-basics` | utility | ✅ | ✅ | ✅ | ✅ |
 | `carto-connect-datawarehouse` | utility | ✅ | ✅ | ✅ | ✅ |
 | `carto-query-datawarehouse` | utility | ✅ | ✅ | ✅ | ✅ |
@@ -27,7 +28,7 @@ Which skills ship via which harness.
 | `carto-geocoding` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-composite-scoring` | use-case | ✅ | ✅ | ✅ | ✅ |
 
-All 22 skills are available identically across every harness. See [`skills/catalog.json`](../skills/catalog.json) for the source of truth.
+All 23 skills are available identically across every harness. See [`skills/catalog.json`](../skills/catalog.json) for the source of truth.
 
 ## Per-harness install
 
@@ -38,7 +39,7 @@ All 22 skills are available identically across every harness. See [`skills/catal
 /plugin install carto-skills@carto-agent-skills
 ```
 
-All 22 skills (4 utility + 8 platform + 10 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
+All 23 skills (4 utility + 8 platform + 11 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
 
 ### Skills CLI
 

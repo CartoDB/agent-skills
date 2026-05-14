@@ -5,7 +5,6 @@
     "email": "support@carto.com"
   },
   "metadata": {
-    "version": "2.5.0",
     "description": "CARTO skills catalog — utility, platform, and use-case tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources."
   },
   "plugins": [

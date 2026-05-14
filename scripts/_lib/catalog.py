@@ -34,7 +34,6 @@ class SkillEntry:
 
 @dataclass
 class Catalog:
-    version: str
     skills: list[SkillEntry]
 
     def by_name(self) -> dict[str, SkillEntry]:
@@ -54,7 +53,7 @@ def load_catalog(path: Path = CATALOG_PATH) -> Catalog:
         )
         for s in data["skills"]
     ]
-    return Catalog(version=data["version"], skills=skills)
+    return Catalog(skills=skills)
 
 
 FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
