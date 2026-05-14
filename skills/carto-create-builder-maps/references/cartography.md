@@ -883,8 +883,6 @@ The `*(only if…)*` gates are the discipline — they keep the description from
 
 **No tables.** Builder's description renderer supports markdown headings, paragraphs, lists, and embedded images — but not table syntax. For data callouts (top-N, before/after, comparisons) embed a small image, or fold the data into prose. Never bullet-pad in lieu of a table.
 
-**Public-link viewers — no layer panel, and previews flatten to plain text.** On public/shared maps the layer panel is disabled entirely (not just collapsed behind a toggle, verified in `workspace-www/src/features/builder/ui/BuilderPublic/BuilderPublicLayout.tsx`), so a public viewer's only handles on composition are the legend and the description. Share-link previews (Slack, social) flatten the description to plain text for `og:description`, collapsing headings and lists. Treatment when the public link is the primary surface: keep the lead paragraph self-contained — one sentence that lands the takeaway in prose, so it survives the plain-text flatten and reads without the layer panel. Skip for private/org-internal maps.
-
 **Worked example — analytical map (choropleth + point overlay):**
 
 ```markdown
