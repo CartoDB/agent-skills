@@ -865,9 +865,9 @@ Labels render with their parent layer across all zoom levels where the layer is 
 
 ### 6.4 Description (right-rail markdown)
 
-The map's `description` field renders in Builder's right-side info panel and in share-link previews. It's viewer-facing markdown — short headings, bullets, ` code spans ` for technical terms — and the right rail has plenty of vertical room. Treat it as **analyst commentary**, not a spec sheet of the layers.
+The map's `description` field is **optional**. When empty, the right-rail info button is hidden entirely (the viewer sees nothing) — so don't emit a description just to fill the slot. When emitted, it renders as viewer-facing markdown (short headings, bullets, ` code spans ` for technical terms) in Builder's right-side info panel. Treat it as **analyst commentary**, not a spec sheet of the layers.
 
-> **The legend, layer panel, and viewport already tell the viewer *what's on the map*. The description's job is *what to take away from it* — the takeaway, the caveats, the source. If the description only restates layer names, palette stops, or zoom thresholds, it adds visual noise without adding information.**
+> **The legend, layer panel, and viewport already tell the viewer *what's on the map*. The description's job is *what to take away from it* — the takeaway, the caveats, the interaction hints. If the description would only restate layer names, palette stops, or zoom thresholds, emit no description at all — empty is better than noise.**
 
 **Template — fill the slots in this order:**
 
@@ -876,15 +876,14 @@ The map's `description` field renders in Builder's right-side info panel and in 
 | Lead paragraph | The takeaway — the question the map answers, or the pattern the viewer is meant to notice | 1–2 sentences |
 | `## What you're seeing` *(only if non-obvious)* | One bullet per layer ONLY when composition isn't already obvious from the legend (zoom-staggered visibility, masked layers, time-dependent behaviour, reference backdrops) | ≤ 3 bullets |
 | `## How to read it` *(only if interactive)* | Click / hover / zoom hints when the viewer has to *do* something to get value | ≤ 2 bullets |
-| `## Source` | Connection + table + vintage as ` code spans ` | 1 line |
 
-The two `*(only if…)*` gates are the discipline — they keep the description from filling with content the legend already shows.
+The `*(only if…)*` gates are the discipline — they keep the description from filling with content the legend already shows. Don't include a "Source" section — connection / table identifiers are author-side plumbing, not analyst commentary, and viewers don't care which warehouse the data sits in.
 
 **Length cap:** ~5 lines of body. The right rail is tall, but more than that becomes a wall the viewer skips.
 
 **No tables.** Builder's description renderer supports markdown headings, paragraphs, lists, and embedded images — but not table syntax. For data callouts (top-N, before/after, comparisons) embed a small image, or fold the data into prose. Never bullet-pad in lieu of a table.
 
-**Public-link previews — one carve-out.** When the map's primary surface is a shared public link (the recipient hasn't opened Builder, won't see the layer panel until the page mounts), an extra one-bullet composition recap on the lead paragraph is warranted. Skip it for private / org-internal maps where the viewer already has the panel.
+**Public-link viewers — no layer panel, and previews flatten to plain text.** On public/shared maps the layer panel is disabled entirely (not just collapsed behind a toggle, verified in `workspace-www/src/features/builder/ui/BuilderPublic/BuilderPublicLayout.tsx`), so a public viewer's only handles on composition are the legend and the description. Share-link previews (Slack, social) flatten the description to plain text for `og:description`, collapsing headings and lists. Treatment when the public link is the primary surface: keep the lead paragraph self-contained — one sentence that lands the takeaway in prose, so it survives the plain-text flatten and reads without the layer panel. Skip for private/org-internal maps.
 
 **Worked example — analytical map (choropleth + point overlay):**
 
@@ -894,21 +893,15 @@ US retail density tracks coastal metros, not state population. Inland states cov
 ## How to read it
 - Click any state for total store count.
 - Zoom past 8 to see census-tract detail.
-
-## Source
-`carto-demo-data.demo_tables.retail_stores` on the `carto_dw` connection — last refreshed 2026-04.
 ```
 
-**Worked example — pure cartography reference map:**
+**Worked example — pure cartography reference map (lead-only is enough):**
 
 ```markdown
 World admin boundaries (level 1) for use as a reference backdrop in dashboards.
-
-## Source
-`carto-demo-data.demo_tables.world_admin1` on the `carto_dw` connection.
 ```
 
-Note what's *not* in either: layer names, palette stops, zoom thresholds, classification method. The legend and layer panel already carry that.
+Note what's *not* in either: layer names, palette stops, zoom thresholds, classification method, connection IDs. The legend and layer panel carry the first four; the last is author plumbing.
 
 **Anti-pattern — the spec-sheet description (do not emit):**
 
@@ -1107,5 +1100,5 @@ Before you emit the configuration, walk this list. If any answer is "no" or "uns
 - [ ] No rainbow palette on a sequential measure (§7.1).
 - [ ] Hover popup 2–4 columns (cap is 5); click popup has no cap, scope by relevance (§6.2).
 - [ ] Label field is sparse enough that labels don't collide — Builder has no per-label zoom gate (§6.3).
-- [ ] **Description leads with the takeaway**, not a layer recap. Skip `## What you're seeing` unless composition is non-obvious. No tables. Source line uses code spans for connection + table (§6.4).
+- [ ] **Description is optional** — only emit when it adds value (takeaway, caveat, or interaction hint); empty is better than a layer recap. When emitted, lead with the takeaway; skip `## What you're seeing` unless composition is non-obvious; no `## Source` section; no tables (§6.4).
 - [ ] One column per channel (§7.9).
