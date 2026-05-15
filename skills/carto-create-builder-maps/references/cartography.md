@@ -877,11 +877,13 @@ The map's `description` field is **optional**. When empty, the right-rail info b
 | `## What you're seeing` *(only if non-obvious)* | One bullet per layer ONLY when composition isn't already obvious from the legend (zoom-staggered visibility, masked layers, time-dependent behaviour, reference backdrops) | ≤ 3 bullets |
 | `## How to read it` *(only if interactive)* | Click / hover / zoom hints when the viewer has to *do* something to get value | ≤ 2 bullets |
 
-The `*(only if…)*` gates are the discipline — they keep the description from filling with content the legend already shows. Don't include a "Source" section — connection / table identifiers are author-side plumbing, not analyst commentary, and viewers don't care which warehouse the data sits in.
+The `*(only if…)*` gates are the discipline — they keep the description from filling with content the legend already shows. Don't include a "Source" section — connection / table identifiers are author-side plumbing, not analyst commentary.
 
 **Length cap:** ~5 lines of body. The right rail is tall, but more than that becomes a wall the viewer skips.
 
-**No tables.** Builder's description renderer supports markdown headings, paragraphs, lists, and embedded images — but not table syntax. For data callouts (top-N, before/after, comparisons) embed a small image, or fold the data into prose. Never bullet-pad in lieu of a table.
+**No tables, but images are fine.** The renderer supports headings, paragraphs, lists, and embedded images — but not table syntax. A hero image at the top — `![alt](url)` above the lead paragraph — works as a title flourish and draws the eye into the right rail; use sparingly. For data callouts (top-N, before/after, comparisons) embed a small image rather than bullet-padding in lieu of a table.
+
+**Anti-pattern in one line:** don't restate layer names, palette stops, or zoom thresholds — the legend and layer panel already carry that, and a description that does is pure noise.
 
 **Worked example — analytical map (choropleth + point overlay):**
 
@@ -892,28 +894,6 @@ US retail density tracks coastal metros, not state population. Inland states cov
 - Click any state for total store count.
 - Zoom past 8 to see census-tract detail.
 ```
-
-**Worked example — pure cartography reference map (lead-only is enough):**
-
-```markdown
-World admin boundaries (level 1) for use as a reference backdrop in dashboards.
-```
-
-Note what's *not* in either: layer names, palette stops, zoom thresholds, classification method, connection IDs. The legend and layer panel carry the first four; the last is author plumbing.
-
-**Anti-pattern — the spec-sheet description (do not emit):**
-
-```markdown
-This map shows three layers:
-- Retail stores coloured by storetype (point layer)
-- States — population (zoom 0–5)
-- Counties — population (zoom 5–8)
-- Census tracts — population (zoom 8+)
-
-All zooms: Retail stores (~12K points) coloured by store type.
-```
-
-Every line restates content already visible in the legend and layer panel. The viewer learns nothing they couldn't read off the right side of the map. The fix: lead with the takeaway (*"Retail density tracks coastal metros, not state population"*) and let the legend explain the layers.
 
 ---
 
