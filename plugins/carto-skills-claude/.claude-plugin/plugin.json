@@ -14,7 +14,6 @@
     "../../../skills/carto-render-inline-map",
     "../../../skills/carto-preview-builder-map",
     "../../../skills/carto-develop-app",
-    "../../../skills/carto-arcgis-migration",
     "../../../skills/carto-hotspot-analysis",
     "../../../skills/carto-spatial-autocorrelation",
     "../../../skills/carto-gwr",
@@ -24,6 +23,7 @@
     "../../../skills/carto-territory-planning",
     "../../../skills/carto-routing-od-analysis",
     "../../../skills/carto-geocoding",
-    "../../../skills/carto-composite-scoring"
+    "../../../skills/carto-composite-scoring",
+    "../../../skills/carto-arcgis-migration"
   ]
 }
