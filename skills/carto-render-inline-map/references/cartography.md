@@ -16,13 +16,19 @@
 
 ## 0. Before you pick anything
 
-**Know the data.** Use the discovery tools rather than guessing:
+**Know the data.** Use `describe` rather than guessing — two-step flow:
 
-| Question | How |
+| Step | How |
 |---|---|
-| What columns and types? | `list_resources({ fqn })` — response includes `schema: [{name, type}, …]` and `geomField`. |
-| What's the column distribution? | `get_column_stats({ table_fqn / query, column })` — numeric returns `min`, `max`, `quantiles[N]`; string returns categories with frequencies. |
+| Schema — what columns and types? | `describe({ connection_name, table_fqn })` (or with `query` for a SQL source). Returns `{ source, schema: [{name, type}, …], geomField?, geometryType?, rowCount? }`. Use `geomField` to identify the geometry column — **do NOT style by it**. |
+| Stats — what's the column distribution? | `describe({ connection_name, column, table_fqn })` (or with `query`). Discriminated by `type`: `Number` returns `{ min, max, avg, sum, quantiles[N] }`; `String` / `Boolean` returns `{ categories: [{ category, frequency }, …] }`; `Timestamp` returns `{ min, max }`. |
 | Is it skewed? | Inspect `quantiles[10]`. If `q[5] - q[0] << q[9] - q[5]`, right-skewed (typical for counts, revenue, population, incidents). |
+
+**Schema-mode fallbacks.** `describe` schema mode requires a geometry column on the source. It FAILS (400 from the backend) for:
+- **Pure analytical queries** (aggregations that drop `geom`, projections without geometry) — `describe` the base table(s) instead and reason about the projection.
+- **Spatial-index tables (h3 / quadbin) and tilesets / rasters** — fall back to `list_resources({ fqn })` for schema. Stats-mode `describe` DOES work on h3 / quadbin tables; pass `spatial_data_type: "h3" | "h3int" | "quadbin"` alongside `column`.
+
+**Synthetic `_carto_point_density`.** On Point sources, schema mode always includes a `_carto_point_density` column — server-side per-tile point count maps-api injects for use with aggregated styling. NOT a real column (don't query it via SQL) but IS valid as `attr` for `colorBins` / `colorContinuous`. Useful for density styling on dense point tilesets at low zoom.
 
 **Name the hook.** One sentence: *"Population is concentrated in the southeast."* The hook governs four downstream decisions: layer (§1), classification (§5), palette (§6), anti-patterns to avoid (§9).
 
@@ -154,12 +160,12 @@ Three color helpers map to three scale types:
 
 | Helper | Scale | When |
 |---|---|---|
-| `colorBins` | Threshold (`d3.scaleThreshold`) — discrete buckets | Most numeric data. Pair with quantile breakpoints from `get_column_stats`. |
+| `colorBins` | Threshold (`d3.scaleThreshold`) — discrete buckets | Most numeric data. Pair with quantile breakpoints from `describe`. |
 | `colorContinuous` | Linear (`d3.scaleLinear`) — smooth gradient | Fine variation where every value should map to a unique color. Multi-stop arrays for diverging around a midpoint. |
 | `colorCategories` | Nominal — one color per category | Strings / booleans / ordinal. Cap at 12 distinct values; aggregate the rest into "other". |
 
 **`colorBins` workflow:**
-1. `get_column_stats({ table_fqn, column })`.
+1. `describe({ connection_name, column, table_fqn })` (or with `query`). Response shape on a numeric column: `{ type: 'Number', min, max, avg, sum, quantiles[N] }`.
 2. Take `quantiles[N]` for your bucket count (4–5 is the sweet spot).
 3. Drop the first and last entries (natural extremes); inner N-1 numbers are the `domain`.
 4. Pick a palette by family fit (§6) — by name from the CARTOcolor registry, or a custom RGBA array of N colors.
@@ -278,7 +284,7 @@ Use `layer.id` (hoisted as a sibling in PickingInfo), NOT `object.layer.id`.
 
 ## 9. Anti-patterns — do not emit these
 
-- **Hardcoded `colorBins` domain values without `get_column_stats` first.** You can't pick informed breakpoints for an unknown distribution.
+- **Hardcoded `colorBins` domain values without `describe` first.** You can't pick informed breakpoints for an unknown distribution.
 - **Palette family mismatched to data character.** Sequential on signed data hides the sign; diverging on unsigned implies a midpoint that doesn't exist; sequential / diverging on a string column implies an ordering or midpoint string data rarely carries. String columns → qualitative palette.
 - **Rainbow palette (`Prism`, `Vivid`) on ordered data.** Hue order doesn't match value order — readers misread.
 - **More than 7 `colorBins` buckets, or more than 12 `colorCategories` values.** Eye stops distinguishing.
@@ -305,12 +311,12 @@ Three archetypal patterns. Palette choices are written as placeholders — the a
 ### 10.1 Population density (single sequential)
 
 ```
-get_column_stats({
+describe({
   connection_name: "carto_dw",
   table_fqn: "carto-demo-data.demo_tables.populated_places",
   column: "pop_max"
 })
-// → quantiles[5] returns [0, 1500, 5000, 25000, 200000, 30000000]
+// → { type: 'Number', min: 0, max: 30000000, quantiles: { 5: [0, 1500, 5000, 25000, 200000, 30000000], ... } }
 // Drop first/last; inner 4 are the domain.
 ```
 
@@ -339,7 +345,7 @@ get_column_stats({
 
 ### 10.2 Revenue YoY change (diverging around 0)
 
-`get_column_stats` returns `min: -0.45, max: +0.90, avg: +0.05`. Signed → diverging.
+`describe({ ..., column: "yoy_change" })` returns `{ type: 'Number', min: -0.45, max: +0.90, avg: +0.05, ... }`. Signed → diverging.
 
 ```jsonc
 "getFillColor": {
@@ -432,7 +438,7 @@ Different palette families per layer (sequential cool vs. categorical warm) keep
 
 Before emitting a `view_map` spec where styling is in scope:
 
-- [ ] Did I call `get_column_stats` for any unfamiliar numeric column I'm binning on?
+- [ ] Did I call `describe` (schema first, then stats per column) for any unfamiliar numeric column I'm binning on? For h3 / quadbin / tileset / raster sources, did I fall back to `list_resources` for schema?
 - [ ] **Does the palette family match the data character?** Sequential ↔ ordered magnitude, diverging ↔ signed, qualitative ↔ unordered. String columns → qualitative (§6, §9).
 - [ ] Is the specific palette a fresh fit per map — not a reflex from the previous spec? If uncertain: `Teal` (sequential), `Temps` / `Geyser` (diverging), `Bold` / `Safe` (qualitative) — see §6 defaults. Custom RGBA arrays also valid.
 - [ ] Colorblind-safe palette if audience is public or unknown (§6 subset)?
