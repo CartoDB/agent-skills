@@ -44,7 +44,6 @@ Recipe skills that compose the platform skills above. Each carries trigger keywo
 
 | Skill | Purpose |
 |---|---|
-| [`carto-arcgis-migration`](skills/carto-arcgis-migration) | End-to-end ArcGIS Portal / AGOL → CARTO migration (discover, migrate data, migrate maps). |
 | [`carto-hotspot-analysis`](skills/carto-hotspot-analysis) | Getis-Ord Gi\* hotspots and spacetime hotspots. |
 | [`carto-spatial-autocorrelation`](skills/carto-spatial-autocorrelation) | Moran's I, LISA, HH/HL/LH/LL classification. |
 | [`carto-gwr`](skills/carto-gwr) | Geographically Weighted Regression. |
@@ -55,6 +54,7 @@ Recipe skills that compose the platform skills above. Each carries trigger keywo
 | [`carto-routing-od-analysis`](skills/carto-routing-od-analysis) | Routing, isolines, OD matrices. |
 | [`carto-geocoding`](skills/carto-geocoding) | Address-to-coordinate geocoding. |
 | [`carto-composite-scoring`](skills/carto-composite-scoring) | Composite indices, supervised/unsupervised scoring. |
+| [`carto-arcgis-migration`](skills/carto-arcgis-migration) | End-to-end ArcGIS Portal / AGOL → CARTO migration (discover, migrate data, migrate maps). |
 
 ## Support
 
