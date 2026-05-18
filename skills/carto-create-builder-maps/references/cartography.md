@@ -865,7 +865,7 @@ Labels render with their parent layer across all zoom levels where the layer is 
 
 ### 6.4 Description (right-rail markdown)
 
-The map's `description` field is **optional**. When empty, the right-rail info button is hidden entirely (the viewer sees nothing) — so don't emit a description just to fill the slot. When emitted, it renders as viewer-facing markdown (short headings, bullets, ` code spans ` for technical terms) in Builder's right-side info panel. Treat it as **analyst commentary**, not a spec sheet of the layers.
+The map's `description` field is **optional**. When empty, the right-rail info button is hidden entirely (the viewer sees nothing) — so don't emit a description just to fill the slot. When emitted, it renders as viewer-facing markdown (short headings, bullets, ` code spans ` for technical terms) in Builder's right-side info panel. Treat it as **a note to the end-user viewing the map** — what they should take away — not a spec sheet of the layers.
 
 > **The legend, layer panel, and viewport already tell the viewer *what's on the map*. The description's job is *what to take away from it* — the takeaway, the caveats, the interaction hints. If the description would only restate layer names, palette stops, or zoom thresholds, emit no description at all — empty is better than noise.**
 
@@ -877,7 +877,7 @@ The map's `description` field is **optional**. When empty, the right-rail info b
 | `## What you're seeing` *(only if non-obvious)* | One bullet per layer ONLY when composition isn't already obvious from the legend (zoom-staggered visibility, masked layers, time-dependent behaviour, reference backdrops) | ≤ 3 bullets |
 | `## How to read it` *(only if interactive)* | Click / hover / zoom hints when the viewer has to *do* something to get value | ≤ 2 bullets |
 
-The `*(only if…)*` gates are the discipline — they keep the description from filling with content the legend already shows. Don't include a "Source" section — connection / table identifiers are author-side plumbing, not analyst commentary.
+The `*(only if…)*` gates are the discipline — they keep the description from filling with content the legend already shows. Don't include a "Source" section — connection / table identifiers are author-side plumbing, not something the end-user needs.
 
 **Length cap:** ~5 lines of body. The right rail is tall, but more than that becomes a wall the viewer skips.
 
