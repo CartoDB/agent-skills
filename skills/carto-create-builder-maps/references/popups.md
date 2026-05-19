@@ -65,7 +65,7 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 ### What works
 
 - **Arbitrary nested HTML** — `<div>`, `<span>`, `<a>`, `<img>`, lists, headings.
-- **Inline CSS via `style="…"`** — gradients, `box-shadow`, `border-radius`, `flex`, custom fonts. Anything you can put in an inline style attribute.
+- **Inline CSS via `style="…"`** — solid `background`, `box-shadow`, `border-radius`, `flex`, custom fonts. Anything you can put in an inline style attribute. **Avoid `linear-gradient` / `radial-gradient` backgrounds** — they read as decoration over the data and clash with Builder's flat surfaces; pick a single solid colour (often a per-row column like `{{header_color}}`, see recipe below) instead.
 - **`{{column}}` substitution works ANYWHERE in the template, including inside attribute values** — this is dumb text replacement, not a typed expression engine. Useful patterns:
   - `style="width: {{rating}}%;"` — drives a CSS bar from a column value.
   - `src="https://chart.example/svg?data=[{{mon}},{{tue}},{{wed}}]"` — chart-image URL composed from columns.
@@ -108,7 +108,13 @@ The renderer strips anything that could execute or escape the popup sandbox:
 
 If the design needs `:hover` colour change, animated bars, or responsive layout, those features aren't reachable from inside the popup template. The popup is rendered in an isolated container with inline-style-only painting; nothing in the host document stylesheet leaks in. Design accordingly — favour static layouts driven entirely by inline `style="…"` attributes.
 
-### Concrete recipe — facility card with header gradient + rating bar + mailto
+### Leave headroom for Builder's close ✕
+
+Builder paints its own close ✕ on top of the popup template — a fixed, absolutely-positioned icon in the top-right corner of the rendering surface. The template has no way to move, hide, or restyle it (the popup container, its padding, and the ✕ are outside the sanitised template DOM you control). On a custom HTML template that fills its outer container edge-to-edge, the ✕ overlaps whatever you place in the top-right: title text, a value, a tag, a status badge.
+
+**Authoring rule:** on `panel` and `click` tooltip templates, reserve roughly **28–32 px of right padding** on the outermost container, or keep the top-right ~32 × 32 px region empty of content (no critical text or interactive elements there). Hover tooltips render with no close ✕ — the rule applies to click-anchored surfaces only. Headroom on the outer `<div>` is the simplest fix and is reflected in the recipe below.
+
+### Concrete recipe — facility card with solid header + rating bar + mailto
 
 Source SQL pre-bakes the per-row colour:
 
@@ -128,7 +134,7 @@ Layer `popupSettings.layers["facilities"].click`:
   "style": "panel",
   "templateMode": true,
   "templateEdited": true,
-  "template": "<div style=\"font-family: -apple-system, system-ui, sans-serif; max-width: 320px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.12);\">  <div style=\"background: linear-gradient(135deg, {{header_color}} 0%, #1d2733 100%); color: #fff; padding: 12px 16px;\">    <div style=\"font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85;\">{{category}}</div>    <div style=\"font-size: 16px; font-weight: 600; margin-top: 2px;\">{{name}}</div>  </div>  <div style=\"padding: 12px 16px; color: #1d2733; font-size: 13px; line-height: 1.4;\">    <div style=\"margin-bottom: 8px;\"><strong>{{address}}</strong></div>    <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 8px;\">      <span style=\"font-size: 11px; color: #6b7785; min-width: 48px;\">Rating</span>      <div style=\"flex: 1; background: #eef0f2; border-radius: 4px; height: 6px; overflow: hidden;\">        <div style=\"width: {{rating}}%; height: 100%; background: {{header_color}};\"></div>      </div>      <span style=\"font-size: 11px; color: #1d2733; min-width: 28px; text-align: right;\">{{rating}}%</span>    </div>    <a href=\"mailto:{{email}}\" style=\"color: {{header_color}}; text-decoration: none; font-weight: 500;\">Contact →</a>  </div></div>",
+  "template": "<div style=\"font-family: -apple-system, system-ui, sans-serif; max-width: 320px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.12);\">  <div style=\"background: {{header_color}}; color: #fff; padding: 12px 32px 12px 16px;\">    <div style=\"font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85;\">{{category}}</div>    <div style=\"font-size: 16px; font-weight: 600; margin-top: 2px;\">{{name}}</div>  </div>  <div style=\"padding: 12px 16px; color: #1d2733; font-size: 13px; line-height: 1.4;\">    <div style=\"margin-bottom: 8px;\"><strong>{{address}}</strong></div>    <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 8px;\">      <span style=\"font-size: 11px; color: #6b7785; min-width: 48px;\">Rating</span>      <div style=\"flex: 1; background: #eef0f2; border-radius: 4px; height: 6px; overflow: hidden;\">        <div style=\"width: {{rating}}%; height: 100%; background: {{header_color}};\"></div>      </div>      <span style=\"font-size: 11px; color: #1d2733; min-width: 28px; text-align: right;\">{{rating}}%</span>    </div>    <a href=\"mailto:{{email}}\" style=\"color: {{header_color}}; text-decoration: none; font-weight: 500;\">Contact →</a>  </div></div>",
   "fields": [
     { "name": "name" },
     { "name": "category" },
@@ -139,5 +145,7 @@ Layer `popupSettings.layers["facilities"].click`:
   ]
 }
 ```
+
+Note the header band uses `padding: 12px 32px 12px 16px` — the extra 32 px of right padding keeps `{{name}}` from sliding under Builder's close ✕. The header itself is a solid `{{header_color}}` fill (no gradient), so the card reads as a single deliberate accent colour against the flat panel chrome.
 
 Even with `templateMode: true`, every column referenced as `{{name}}` must still appear in `fields[]` — that's how the renderer knows to fetch them per feature.
