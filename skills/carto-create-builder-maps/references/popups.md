@@ -114,6 +114,10 @@ Builder paints its own close ✕ on top of the popup template — a fixed, absol
 
 **Authoring rule:** on `panel` and `click` tooltip templates, reserve roughly **28–32 px of right padding** on the outermost container, or keep the top-right ~32 × 32 px region empty of content (no critical text or interactive elements there). Hover tooltips render with no close ✕ — the rule applies to click-anchored surfaces only. Headroom on the outer `<div>` is the simplest fix and is reflected in the recipe below.
 
+### Set a background on the outer wrapper
+
+Tooltip surfaces (`light` / `dark` / `*WithHiFirst`) suppress their card chrome when `templateMode: true` — the template IS the whole popup. Set `background: #fff` (or `#1d2733` for dark styles) on the outermost `<div>` or the body renders transparently over the basemap. The `panel` surface paints its own chrome and masks this — a template that "works" inside `panel` may show transparent text the moment you switch its click style to `light`.
+
 ### Concrete recipe — facility card with solid header + rating bar + mailto
 
 Source SQL pre-bakes the per-row colour:
@@ -134,7 +138,7 @@ Layer `popupSettings.layers["facilities"].click`:
   "style": "panel",
   "templateMode": true,
   "templateEdited": true,
-  "template": "<div style=\"font-family: -apple-system, system-ui, sans-serif; max-width: 320px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.12);\">  <div style=\"background: {{header_color}}; color: #fff; padding: 12px 32px 12px 16px;\">    <div style=\"font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85;\">{{category}}</div>    <div style=\"font-size: 16px; font-weight: 600; margin-top: 2px;\">{{name}}</div>  </div>  <div style=\"padding: 12px 16px; color: #1d2733; font-size: 13px; line-height: 1.4;\">    <div style=\"margin-bottom: 8px;\"><strong>{{address}}</strong></div>    <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 8px;\">      <span style=\"font-size: 11px; color: #6b7785; min-width: 48px;\">Rating</span>      <div style=\"flex: 1; background: #eef0f2; border-radius: 4px; height: 6px; overflow: hidden;\">        <div style=\"width: {{rating}}%; height: 100%; background: {{header_color}};\"></div>      </div>      <span style=\"font-size: 11px; color: #1d2733; min-width: 28px; text-align: right;\">{{rating}}%</span>    </div>    <a href=\"mailto:{{email}}\" style=\"color: {{header_color}}; text-decoration: none; font-weight: 500;\">Contact →</a>  </div></div>",
+  "template": "<div style=\"font-family: -apple-system, system-ui, sans-serif; max-width: 320px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.12);\">  <div style=\"background: {{header_color}}; color: #fff; padding: 12px 32px 12px 16px;\">    <div style=\"font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85;\">{{category}}</div>    <div style=\"font-size: 16px; font-weight: 600; margin-top: 2px;\">{{name}}</div>  </div>  <div style=\"padding: 12px 16px; color: #1d2733; font-size: 13px; line-height: 1.4;\">    <div style=\"margin-bottom: 8px;\"><strong>{{address}}</strong></div>    <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 8px;\">      <span style=\"font-size: 11px; color: #6b7785; min-width: 48px;\">Rating</span>      <div style=\"flex: 1; background: #eef0f2; border-radius: 4px; height: 6px; overflow: hidden;\">        <div style=\"width: {{rating}}%; height: 100%; background: {{header_color}};\"></div>      </div>      <span style=\"font-size: 11px; color: #1d2733; min-width: 28px; text-align: right;\">{{rating}}%</span>    </div>    <a href=\"mailto:{{email}}\" style=\"color: {{header_color}}; text-decoration: none; font-weight: 500;\">Contact →</a>  </div></div>",
   "fields": [
     { "name": "name" },
     { "name": "category" },
@@ -146,6 +150,6 @@ Layer `popupSettings.layers["facilities"].click`:
 }
 ```
 
-Note the header band uses `padding: 12px 32px 12px 16px` — the extra 32 px of right padding keeps `{{name}}` from sliding under Builder's close ✕. The header itself is a solid `{{header_color}}` fill (no gradient), so the card reads as a single deliberate accent colour against the flat panel chrome.
+The outer `<div>` sets `background: #fff` (so the body renders on a card, not over the map), the header band uses `padding: 12px 32px 12px 16px` (32 px keeps `{{name}}` clear of Builder's close ✕), and the header fill is a solid `{{header_color}}` (no gradient) — three details that together make the recipe portable across `light`, `dark`, and `panel` without edits.
 
 Even with `templateMode: true`, every column referenced as `{{name}}` must still appear in `fields[]` — that's how the renderer knows to fetch them per feature.
