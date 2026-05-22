@@ -83,7 +83,9 @@ carto credentials create token --json \
 - `--source <source>` — fully qualified table / tileset / query, **or** a wildcard pattern like `carto.shared.CARTO_*`. Repeat for each grant. See "Wildcard patterns" above.
 - `--apis <csv>` — comma-separated subset of `sql,maps,imports,lds`. For a read-only deck.gl app, `sql,maps` is enough. Never include `imports` or `lds` in a public bundle.
 - `--referers <csv>` — comma-separated allowed origins. Use the **plural** form (`--referers a,b`) — `--referer` (singular) is overwritten if repeated, only the last one wins. Required for public apps. **Pass origins without a trailing slash** (`https://myapp.example.com`, not `https://myapp.example.com/`). A trailing slash mismatches what the browser sends and silently 403s every tile.
-- `--json` — emit `{ "token": ..., "id": ..., "grants": [...] }`. Always pass it; never scrape pretty-printed output.
+- `--name <name>` — optional human-readable name. Auto-generated if omitted.
+- `--expiration-date <date>` — optional expiry. Accepts an ISO 8601 date (`2027-01-01`, `2027-01-01T00:00:00Z`) or a duration shorthand from now (`1d`, `2w`, `6m`, `1y`). **Tokens never expire by default** — set this for anything customer-facing or short-lived (demos, keynotes, time-boxed pilots). The expiry can't be changed later; you'd have to issue a new token.
+- `--json` — emit `{ "token": ..., "id": ..., "grants": [...], "expiration_date": ... }`. Always pass it; never scrape pretty-printed output.
 
 The token is safe in the bundle *only because it's scoped*.
 
@@ -143,5 +145,5 @@ carto credentials delete token <id>                               # revoke
 - **No `--source` = full-connection access.** A grant without source restriction reads every table on that connection.
 - **Use `--referers` (plural, CSV) — not repeated `--referer`.** The CLI parser overwrites repeated `--referer`; only the last wins. `--referers http://localhost:5173,https://myapp.example.com` is the correct form.
 - **Trailing slash on a referer = silent 403 on every map tile.** Store origins as `https://myapp.example.com` — never `https://myapp.example.com/`. The token call succeeds, but every tile request comes back 403 with body `{"error":"Unauthorized referer"}`. The HTTP status alone tells you nothing; you have to read the response body to figure out it's a referer mismatch. To diagnose: open DevTools → Network → click a failed tile → check the request `Referer` header against the value stored on the token (`carto credentials get token <id> --json`).
-- **Tokens don't expire by default**, so rotate on a schedule and on incidents (`credentials delete` then `create` fresh).
+- **Tokens don't expire by default.** Pass `--expiration-date` (ISO date or `30d`/`1y` shorthand) for short-lived contexts: demos, keynotes, pilots, anything you'll forget to revoke. Otherwise rotate on a schedule and on incidents (`credentials delete` then `create` fresh). The expiry can't be edited after creation — re-issue the token to change it.
 - **Don't use this for private data.** If the user has data their users shouldn't see, use [`auth-private-oauth.md`](auth-private-oauth.md) — the bundle is world-readable.
