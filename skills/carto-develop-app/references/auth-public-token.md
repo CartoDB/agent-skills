@@ -55,10 +55,32 @@ carto credentials create token --json \
   --referers https://myapp.example.com
 ```
 
+## Wildcard patterns in `--source`
+
+`--source` accepts a **wildcard pattern** using `*`, so a single grant can cover many resources. Patterns also match resources created after the token was issued — handy when the app reads from a namespace whose contents evolve.
+
+```bash
+# Every resource under carto.shared
+--connection carto_dw --source 'carto.shared.*'
+
+# Every resource in carto.shared whose name starts with CARTO_
+--connection carto_dw --source 'carto.shared.CARTO_*'
+
+# Every demo_* resource across all namespaces in the carto project
+--connection carto_dw --source 'carto.*.demo_*'
+```
+
+**Rules** (enforced by the API — the request 400s if violated):
+- Must contain at least one dot. `*`, `**`, and single-segment patterns like `table*` are rejected.
+- The segment names depend on the data warehouse (project, database, dataset, schema, catalog) — match the same shape you'd use for a literal fully-qualified name.
+- **Quote the pattern in shell** (`'carto.shared.*'`) so the shell doesn't glob-expand `*` against local files.
+
+**When to use a pattern vs. explicit sources** — prefer explicit sources when the app reads from a fixed, small set of tables (clearer audit trail, principle of least privilege). Use a pattern when the app reads from a whole namespace, when new resources are added frequently, or when the explicit list would be unwieldy.
+
 ## Flag reference
 
 - `--connection <name>` — connection *name* (from `carto connections list --json`). **Repeat for every `--source`.**
-- `--source <fully.qualified.identifier>` — table / tileset / query. Repeat for each grant.
+- `--source <source>` — fully qualified table / tileset / query, **or** a wildcard pattern like `carto.shared.CARTO_*`. Repeat for each grant. See "Wildcard patterns" above.
 - `--apis <csv>` — comma-separated subset of `sql,maps,imports,lds`. For a read-only deck.gl app, `sql,maps` is enough. Never include `imports` or `lds` in a public bundle.
 - `--referers <csv>` — comma-separated allowed origins. Use the **plural** form (`--referers a,b`) — `--referer` (singular) is overwritten if repeated, only the last one wins. Required for public apps. **Pass origins without a trailing slash** (`https://myapp.example.com`, not `https://myapp.example.com/`). A trailing slash mismatches what the browser sends and silently 403s every tile.
 - `--json` — emit `{ "token": ..., "id": ..., "grants": [...] }`. Always pass it; never scrape pretty-printed output.
