@@ -71,7 +71,9 @@ carto credentials create token --json \
 ```
 
 **Rules** (enforced by the API — the request 400s if violated):
-- Must contain at least one dot. `*`, `**`, and single-segment patterns like `table*` are rejected.
+- The pattern must contain at least two dot-separated segments. `CARTO_*` (no dot) and `table*` are rejected.
+- The pattern must contain at least one non-wildcard character — `**`, `.*`, and similar are rejected as "use all sources instead."
+- **Bare `*` is not a pattern** — it's the existing "all sources on this connection" sentinel and is still accepted as-is, granting access to every resource on the connection. Use it intentionally; use an actual pattern when you want to scope the grant.
 - The segment names depend on the data warehouse (project, database, dataset, schema, catalog) — match the same shape you'd use for a literal fully-qualified name.
 - **Quote the pattern in shell** (`'carto.shared.*'`) so the shell doesn't glob-expand `*` against local files.
 
