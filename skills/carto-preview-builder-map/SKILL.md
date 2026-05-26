@@ -48,8 +48,9 @@ For name-based lookup, use `mine_only: true` if the user said "my map". Default 
 The preview is **lightweight**:
 - ✓ Layers, basemap, viewport, popups, legend — exactly as configured in Builder.
 - ✗ Widgets, SQL parameters, map description, AI agent configuration, and other Builder-only features are NOT included.
+- ⚠ Newer styling fields may render but not yet appear in the legend swatch. Specifically: `lineStyle` (dashed / dotted polygon strokes and lines, Phase 1a of the line-polygon-stroke-styles initiative) draws correctly on the map but the legend may show a solid swatch until the MCP App picks up the meridian-ds geometry-aware-legend bump. Doesn't affect map readability — only the legend symbol.
 
-After loading, tell the user: *"Loaded [name] as a lightweight preview. Widgets, SQL parameters, and the map description aren't included — click 'Open in Builder' in the rendered widget for the full experience."* Set this expectation BEFORE the user asks why the preview looks different from the live Builder map.
+After loading, tell the user: *"Loaded [name] as a lightweight preview. Widgets, SQL parameters, and the map description aren't included — click 'Open in Builder' in the rendered widget for the full experience."* Set this expectation BEFORE the user asks why the preview looks different from the live Builder map. If the map uses `lineStyle`, add: *"Dashed strokes render correctly; the legend swatch may show solid until the lightweight viewer catches up."*
 
 ## Post-CLI-creation preview workflow
 

@@ -123,6 +123,7 @@ The rest of §1 is **capability reference** — "given the layer type is fixed, 
 
 ### 1.2 `tileset` — lines
 
+<<<<<<< Updated upstream
 **Source:** line tilejson (roads, flows, routes, isolines, boundaries-as-lines).
 
 **Attribution (line-specific fields):**
@@ -136,6 +137,16 @@ The rest of §1 is **capability reference** — "given the layer type is fixed, 
 **No point or polygon attribution applies to lines** — `radius`/`radiusField`/`customMarkers`/`rotation` are point-only; `filled` (as a fill-vs-outline toggle), `heightField`, `enable3d`, `wireframe` are polygon-only.
 
 **Width encodes magnitude.** When a numeric column is present, `sizeField` + `sizeRange` is the right data-to-visual mapping for lines. Color encodes category or magnitude; use both only when the map needs to carry two dimensions (e.g., `colorField` = traffic kind, `sizeField` = traffic volume).
+=======
+- `thickness` or `sizeField` + `sizeRange`
+- `strokeColor` / `colorField` — the line color *is* the stroke
+- `lineStyle: "solid" | "dashed" | "dotted"` — defaults `"solid"`. Use sparingly: dashed for *planned* / *provisional* / *secondary* networks; solid for built / authoritative networks. On a single-network map keep it solid — pattern variation is wasted ink.
+- `opacity` — 0.7–1.0; lines need more opacity than polygons
+
+**Default:** `stroked: true, filled: false, thickness: 2, lineStyle: "solid"`.
+
+**Width encodes magnitude.** Use `sizeField` + `sizeRange` for numeric line measures. Color encodes category or magnitude. **`lineStyle` encodes a binary categorical distinction** (status: built/planned; ownership: public/private) — not magnitude, not a third color channel.
+>>>>>>> Stashed changes
 
 ### 1.3 `tileset` — polygons
 
@@ -144,7 +155,12 @@ The rest of §1 is **capability reference** — "given the layer type is fixed, 
 **Attribution (polygon-specific fields):**
 
 - `filled: true` + `colorField` → choropleth
+<<<<<<< Updated upstream
 - `stroked: true` + `strokeColor` + `strokeColorField` + `thickness` → visible borders (keep thin: 0.5–1 px for thematic maps)
+=======
+- `stroked: true` + `strokeColor` + `strokeColorField` + `thickness` → borders (keep thin: 0.5–1 px)
+- `lineStyle: "solid" | "dashed" | "dotted"` (Phase 1a, applies to polygon stroke) — defaults `"solid"`. Use for *status* / *provenance* distinctions (proposed vs adopted boundaries, indicative vs official extents). Not a substitute for color encoding.
+>>>>>>> Stashed changes
 - `enable3d: true` + `heightField` + `heightRange` + `elevationScale` → extrusion
 - `wireframe: true` — wireframe 3D extrusion instead of solid (only when `enable3d: true`)
 - `opacity` — 0.6–0.8 lets the basemap show through without washing out
@@ -155,6 +171,7 @@ The rest of §1 is **capability reference** — "given the layer type is fixed, 
 
 **Don't extrude rates** (density, percentage, share). Extrusion reads as *count*, not *intensity*. See §8.3.
 
+<<<<<<< Updated upstream
 #### Stroke styling on dense choropleths — derive the stroke from the fill
 
 When a choropleth has many small polygons in the viewport (admin boundaries below the country level, postcodes, parcels, h3 / quadbin cells), the default stroke is a contrasting colour — typically white-ish at low opacity. At wide zoom every polygon edge is drawn in a hue that is not in the data, and the boundaries become more visually prominent than the fill differences. Polygon shape needs to remain visible, but the stroke colour should not be a separate visual signal.
@@ -212,6 +229,15 @@ When a choropleth has many small polygons in the viewport (admin boundaries belo
 - The polygons are large and few (countries on a world map, top-level admin regions on a national map). At that zoom each polygon is a distinct entity rather than one cell in a continuous distribution, and a contrasting stroke (`#444` or `#333` at `strokeOpacity: 0.6`) is appropriate.
 
 The same pattern applies to `h3` / `quadbin` cells (§1.4 / §1.5) at any zoom dense enough that adjacent cells touch. See §7.13 for the failure mode this prevents.
+=======
+**Dashed strokes on polygons — narrow use.** `lineStyle: "dashed"` (or `"dotted"`) on a polygon stroke reads as *uncertain / provisional / non-authoritative* in standard GIS conventions. Use it only when:
+- The polygon represents a **proposed / draft / indicative** boundary (planning zone under review, indicative flood extent, draft service area) — and a separately-styled adopted layer exists for comparison.
+- The map shows **two co-located polygon layers** that must be distinguished by status (current vs historic, official vs predicted).
+
+Avoid it on dense choropleths (the dash pattern fights the data) and on single-layer reference maps (no contrast partner — readers will not infer "provisional" without one). Keep `thickness` ≥ 1 when dashed; thinner dashes vanish.
+
+A contrasting stroke is correct when polygons are large and few (countries on a world map) — each is a distinct entity, not one cell in a distribution.
+>>>>>>> Stashed changes
 
 ### 1.4 `h3` — hex cell aggregation
 
@@ -814,7 +840,13 @@ The runtime auto-generates a legend per layer unless the layer suppresses it. Th
 
 **Never suppress** the primary layer's legend on a choropleth — the map is illegible without it.
 
+<<<<<<< Updated upstream
 **Legend entry order — bake it into the configuration, don't rely on Builder's drag-reorder.**
+=======
+**`lineStyle` and geometry-aware swatches.** Once `lineStyle` is set on a line or polygon-stroke layer, Builder renders dash-pattern symbols in the legend automatically — no extra config. The lightweight MCP preview (`load_builder_map`) may still show solid swatches until its meridian-ds dependency catches up; the underlying map renders the dashes correctly. Don't try to encode dash status in the layer label as a workaround.
+
+**Legend entry order — bake into the configuration.** For CLI-authored maps, the legend's visible order is dictated by config, not the UI:
+>>>>>>> Stashed changes
 
 For CLI-authored maps, the legend's visible order is dictated by the configuration, not the UI:
 
@@ -1075,6 +1107,18 @@ End-to-end decision-tree applications. Every field name is real. Widget composit
 - Popup: hover shows `brand_name`; click adds store-specific fields.
 
 *Why this over a `Bold` palette:* the brand colours are contractual, not aesthetic. A CARTO palette would violate brand guidelines.
+
+### 8.4 Adopted vs proposed planning zones (status by stroke pattern)
+
+- Data: two polygon tilesets — `zones_adopted` (current legal boundaries) and `zones_proposed` (under public consultation).
+- Layer A — adopted: `tileset` polygon, `filled: true`, `colorField: "zone_type"`, `colorScale: "ordinal"` with `Bold` palette, `stroked: true, thickness: 0.8, lineStyle: "solid"`, `opacity: 0.55`.
+- Layer B — proposed: `tileset` polygon, `filled: false, stroked: true, thickness: 1.4, lineStyle: "dashed", strokeColor: [80, 80, 80], strokeOpacity: 0.9`. No fill — adopted layer is the colour reference; proposed is overlay.
+- Layer order: proposed on top (index 0), adopted below (§1.8) — readers compare the two by where the dashed outline departs from the solid one.
+- Basemap: `positron`.
+- Legend: both layers visible. Builder renders the dashed swatch automatically for Layer B (§6.1).
+- Popup: on both layers, identifying the zone code + status.
+
+*Why dashed here:* the two layers share a real-world referent (same parcel of land) and differ by status. Color would either duplicate Layer A's encoding or invent a parallel scheme; pattern is the lighter touch.
 
 ---
 
