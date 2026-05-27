@@ -6,7 +6,9 @@ license: MIT
 
 # carto-create-workflow
 
-CARTO Workflows is a visual DAG builder that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file), operating it via the CLI (CRUD, schedules), and **cross-profile copy** (`dev → prod` promotion, customer-segregated workspaces via `carto workflows copy`) — see the references below.
+CARTO Workflows is a visual DAG authoring app that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file), operating it via the CLI (CRUD, schedules), and **cross-profile copy** (`dev → prod` promotion, customer-segregated workspaces via `carto workflows copy`) — see the references below.
+
+> **Workflows vs Builder — distinct apps.** This skill targets **Workflows** (CARTO's DAG/orchestration app, `/workflows/<id>` in the URL). **Builder** is the separate **map**-authoring app (`/builder/<id>`). When this skill mentions "the Workflows canvas", "in Workflows", or "the DAG view", that is never Builder — they're different products that share an org and connections but nothing else. Workflow output (a result table with geometry) is typically visualised in Builder afterward; that's the only place the two apps connect.
 
 For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) — workflows are for repeatable, scheduled, multi-step DAGs.
 
@@ -95,15 +97,15 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
    - The canvas display name lives in `data.label`, NOT `data.title`. Generic nodes use `title`; source nodes use `label`.
    - `data.id` and `data.inputs[0].value` must be the same FQN.
 
-   **Canvas layout & naming — apply on every node, every workflow.** None of this affects execution, but the user opens the DAG in Builder and a sloppy canvas reads as low quality. The numbers are small and stable; just apply them.
+   **Canvas layout & naming — apply on every node, every workflow.** None of this affects execution, but the user opens the DAG in Workflows and a sloppy canvas reads as low quality. The numbers are small and stable; just apply them.
 
-   - **Snap grid is 16 px.** Every `x` and `y` you write must be `% 16 == 0`. Builder snaps drags to this grid; off-grid values look subtly misaligned next to anything the user nudged.
+   - **Snap grid is 16 px.** Every `x` and `y` you write must be `% 16 == 0`. The Workflows canvas snaps drags to this grid; off-grid values look subtly misaligned next to anything the user nudged.
    - **Card widths are fixed by node type:** source nodes render at **192 px** (12 cells), generic components at **64 px** (4 cells). Knowing this is what lets you reason about gaps.
    - **Card heights are fixed:** every component card and source card is **80 px** (5 cells) tall, with a **16 px** label rendered below the card body. The label is not part of the card — it lives in the gap to the next card.
    - **Canonical inter-card gap (right edge → next left edge):** 80 px (5 cells) for tight linear placement; 128 px (8 cells) at a fan-in (a join's left input, where an edge from another row needs room). The *gap* is the constant; left-edge-to-left-edge Δx differs across patterns only because cards have different widths. So a generic→generic linear step is Δx=144 (9 cells); a source→generic step at the same gap is Δx=272 (17 cells); a generic→generic fan-in step is Δx=192 (12 cells).
    - **Canonical vertical gap (card body bottom → next card body top):** 80 px (5 cells), of which the first 16 px is the card's label and the remaining 64 px is whitespace. The label always sits inside the gap, never inside the card. So a stacked-card step is top-to-top **Δy = 160 px (10 cells)** — 80 (body) + 16 (label) + 64 (whitespace).
    - **Layout.** Source nodes stack at the leftmost column with the same `x`, Δy = 144 px (9 cells). The main pipeline runs at the y-midline of the source rows — e.g. sources at y=80 and y=224 → pipeline at y=160. Joins on the midline visually receive both inputs symmetrically.
-   - **`data.title` and `data.label` are different fields** — never duplicate. `title` = short instance-specific verb (≤ 15 chars) describing what *this* node does in *this* DAG (`"Rank"`, `"Join to score"`, `"To H3"`). `label` = the component's canonical type name as Builder shows it on a fresh drop (`"Join"`, `"Create Column"`, `"H3 from GeoPoint"`) — read from `carto workflows components get <name> --json` → `components[0].title`. Source nodes only render `data.label` on canvas (treat it as a short alias for the table: `"Candidates"`, `"Score grid C"`).
+   - **`data.title` and `data.label` are different fields** — never duplicate. `title` = short instance-specific verb (≤ 15 chars) describing what *this* node does in *this* DAG (`"Rank"`, `"Join to score"`, `"To H3"`). `label` = the component's canonical type name as Workflows shows it on a fresh drop (`"Join"`, `"Create Column"`, `"H3 from GeoPoint"`) — read from `carto workflows components get <name> --json` → `components[0].title`. Source nodes only render `data.label` on canvas (treat it as a short alias for the table: `"Candidates"`, `"Score grid C"`).
 2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately:
    ```bash
    carto workflows validate workflow.json --json
@@ -133,7 +135,7 @@ Summarize what was built. Confirm validation success. Wait for user confirmation
    carto workflows create --file workflow.json --verify
    ```
    The connection comes from `connectionId` inside the bundle — no `--connection` flag here.
-3. **Confirm the upload didn't silently drop inputs.** Immediately after `create`, run `carto workflows get <id> --json` and diff `config.nodes[*].data.inputs` against the bundle you uploaded. The engine silently rejects values at save-time when an input fails validation (most commonly a Selection input fed a display label instead of a wire value — see "Display labels vs wire values" in [Fetching component & input information](#fetching-component--input-information)). When this happens, `validate`, `verify-remote` (when `deep.valid: true` with `deep.warnings` only), and `create` all report success; Builder renders the node with a red error indicator on first open. Any `value` present locally but missing on the server was silently rejected — fix the source bundle and re-upload (don't try to edit on the server).
+3. **Confirm the upload didn't silently drop inputs.** Immediately after `create`, run `carto workflows get <id> --json` and diff `config.nodes[*].data.inputs` against the bundle you uploaded. The engine silently rejects values at save-time when an input fails validation (most commonly a Selection input fed a display label instead of a wire value — see "Display labels vs wire values" in [Fetching component & input information](#fetching-component--input-information)). When this happens, `validate`, `verify-remote` (when `deep.valid: true` with `deep.warnings` only), and `create` all report success; Workflows renders the node with a red error indicator on first open. Any `value` present locally but missing on the server was silently rejected — fix the source bundle and re-upload (don't try to edit on the server).
 4. Do NOT auto-execute unless explicitly requested.
 
 ---
@@ -194,7 +196,7 @@ What to look for in the response:
 - **Input `format`** — prose describing the expected value shape.
 - **Input `examples`** — concrete JSON snippets showing correct usage.
 - **Input `pitfalls`** — common mistakes, evaluation order, format quirks.
-- **Component `version`** — copy verbatim into the authored node's `data.version` (string). Generic nodes without it are flagged OUTDATED in Builder.
+- **Component `version`** — copy verbatim into the authored node's `data.version` (string). Generic nodes without it are flagged OUTDATED in Workflows.
 - **Input `options` (Selection / Enum)** — the engine matches values **exactly**. Copy each option string verbatim — preserve case, never paraphrase or Title-Case (e.g. spatialjoin's `jointype` accepts `"inner"`, not `"Inner"`).
 - **Display labels vs wire values.** Some components (e.g. `native.isolines.mode`) carry a separate `optionsText` field for human-readable labels, and `components get --json` may surface those display labels under the `options` key. If `verify-remote` rejects your "verbatim" value with `Valid options: <list>` listing the *opposite case*, the CLI fed you display labels — find the true wire value by cross-referencing a known-good workflow with `carto workflows get <id> --json`. Lowercased / snake_cased forms (`walk`, `public_transport`) are common for v2 components.
 - **`verify-remote` may run multiple component versions simultaneously.** If errors and warnings list contradictory "valid options" for the same input (e.g. one accepts `"Walk"`, the other accepts `"walk"`), the engine likely ran both v1 and v2 validators against your node. Trust the version you copied from `components get`, and confirm by uploading a single-node test workflow.

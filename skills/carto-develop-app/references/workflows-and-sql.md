@@ -49,7 +49,7 @@ Always wire abort signals when calls might race (typing in a search box, panning
 
 ## Calling a Workflow's output
 
-A workflow saved in CARTO Builder can be exposed as an HTTP endpoint or as a stored procedure. The simplest path from a deck.gl app: read the workflow's output table directly.
+A workflow created in CARTO Workflows can be exposed as an HTTP endpoint or as a stored procedure. The simplest path from a deck.gl app: read the workflow's output table directly.
 
 ```ts
 const dataSource = vectorQuerySource({

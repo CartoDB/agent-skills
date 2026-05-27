@@ -5,7 +5,7 @@ The same compiled stored procedure powers both surfaces:
 - **MCP**: agent-facing. Discovered via the workflow's `mcpTool` block; invoked through an MCP client.
 - **API**: programmatic-caller-facing. Same procedure FQN, called via the CARTO SQL API with an API access token.
 
-> **API publishing is not yet available via CLI.** Today only `mcp publish` is wired up. To enable API access, toggle "Enable API access" in the Builder UI on the workflow — the CLI can then *call* the resulting procedure (see [Calling the procedure via API](#calling-the-procedure-via-api)), but cannot enable, disable, or describe the API endpoint itself.
+> **API publishing is not yet available via CLI.** Today only `mcp publish` is wired up. To enable API access, toggle "Enable API access" in the Workflows UI on the workflow — the CLI can then *call* the resulting procedure (see [Calling the procedure via API](#calling-the-procedure-via-api)), but cannot enable, disable, or describe the API endpoint itself.
 
 CLI surface (full flag list in `carto workflows mcp publish --help`):
 
@@ -16,7 +16,7 @@ carto workflows mcp describe <id>
 carto workflows mcp list
 ```
 
-`mcp publish` is one-shot end-to-end: it compiles the workflow into a stored procedure (`wfproc_mcptool_<wfHash>` in `<billing>.carto_workspace`), creates that procedure on the warehouse, and PATCHes the full MCP metadata onto the workflow. After it returns, an agent can invoke the tool against real data — no Builder UI step required. The same procedure is callable directly via SQL API for non-agent code paths (see [Calling the procedure via API](#calling-the-procedure-via-api) below).
+`mcp publish` is one-shot end-to-end: it compiles the workflow into a stored procedure (`wfproc_mcptool_<wfHash>` in `<billing>.carto_workspace`), creates that procedure on the warehouse, and PATCHes the full MCP metadata onto the workflow. After it returns, an agent can invoke the tool against real data — no Workflows UI step required. The same procedure is callable directly via SQL API for non-agent code paths (see [Calling the procedure via API](#calling-the-procedure-via-api) below).
 
 ## Bundle requirements
 
