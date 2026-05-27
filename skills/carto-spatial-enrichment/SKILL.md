@@ -57,8 +57,8 @@ Two approaches, each with different column naming:
 
 | Approach | Pros | Cons |
 |---|---|---|
-| `native.enrichpolygons` | One node; dedicated UI in Builder; semantically clearest | Analytics Toolbox dependency; intermediate joined rows aren't inspectable; aggregation methods constrained to the `SelectColumnAggregation` list |
-| `native.spatialjoin` + `native.groupby` | No AT dependency; intermediate joined table is inspectable in Builder; full control over join predicate (`intersects` / `covers` / `touches`), join type, and column aliasing | Two nodes; verbose; must set `maintablecolumns` / `secondarytablecolumns` on the spatial join to keep the schema tight |
+| `native.enrichpolygons` | One node; dedicated UI in Workflows; semantically clearest | Analytics Toolbox dependency; intermediate joined rows aren't inspectable; aggregation methods constrained to the `SelectColumnAggregation` list |
+| `native.spatialjoin` + `native.groupby` | No AT dependency; intermediate joined table is inspectable in Workflows; full control over join predicate (`intersects` / `covers` / `touches`), join type, and column aliasing | Two nodes; verbose; must set `maintablecolumns` / `secondarytablecolumns` on the spatial join to keep the schema tight |
 
 Default to `native.enrichpolygons` for simple sum/avg of a single source onto target polygons. Switch to `native.spatialjoin + native.groupby` when you need a non-default predicate, multiple aggregations on the same column, or visibility into the intermediate join. The same trade-off applies between `native.enrichpoints` and the equivalent `spatialjoin + groupby` chain for point targets.
 

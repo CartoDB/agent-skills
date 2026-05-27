@@ -152,7 +152,7 @@ Common operations and their native equivalents — try these first:
 
 | If you'd write SQL like… | Use natives |
 |---|---|
-| `WHERE x = …` / multi-condition filter | `native.where` (predicate), `native.wheresimplified` (UI builder), `native.spatialfilter` (geometry-based match/unmatch split), `native.select` (column projection) |
+| `WHERE x = …` / multi-condition filter | `native.where` (predicate), `native.wheresimplified` (form-based filter UI), `native.spatialfilter` (geometry-based match/unmatch split), `native.select` (column projection) |
 | `SELECT a, b, c FROM t` (multi-column projection / rename / multi-expression) | `native.select` (one node, free-form SELECT body) |
 | `SELECT ..., expr AS c FROM t` (add **one** computed column) | `native.selectexpression` (one column + one expression per node) |
 | `GROUP BY k, SUM(x), AVG(y), COUNT(*)` (single key) | `native.groupby` — `groupby` input is a single `Column`, not multi-column. For multi-key grouping use `native.customsql`. |
