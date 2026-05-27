@@ -104,9 +104,11 @@ These files are working examples in this skill directory:
 
 | File | Description |
 |------|-------------|
-| `isochrones_from_points.json` | Retail stores in Boston — 5-min walk-time isochrones via LDS API |
+| `isochrones_from_points.json` | Retail stores in Boston — 5-min walk-time isochrones via LDS API. `native.isolines` is on v2 (lowercase wire-value `mode` list, `customoptions` / `traveltime_*` inputs). |
 | `identify_best_billboards.json` | Billboard site scoring — buffer, enrich, normalize, weighted composite score, top-N |
 | `commercial_hotspots.json` | Commercial hotspot detection — H3 distance to competitors, weighted hotspot analysis |
+
+**Refreshing component versions.** These templates pin each node's `data.version` to whatever was current when the template was harvested. When a native component bumps versions (e.g. `native.isolines` v1 → v2 added new transport modes plus `customoptions` and `traveltime_*` inputs), the older template still parses but will flag `verify-remote` warnings and miss new inputs. To refresh: run `carto workflows components get <component> --connection <conn> --json`, then update the node's `data.version` and `inputs` array in lockstep against the live schema. Always cross-reference `Selection` input values against `carto-create-workflow/SKILL.md` — `components get` may surface display labels under the `options` key, but wire values are typically the lowercase / snake_case forms.
 
 ---
 
