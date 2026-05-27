@@ -53,6 +53,15 @@ Two approaches, each with different column naming:
 - `native.enrichpolygons` -- enrich polygons directly (skip Step 3)
 - Output columns are named `{variable}_{aggregation}` (e.g. `population_sum`, `air_quality_avg`)
 
+**`native.enrichpolygons` vs `native.spatialjoin + native.groupby`** — both bypass the grid step (Step 3) and aggregate a source dataset directly onto target polygons. Pick by these trade-offs:
+
+| Approach | Pros | Cons |
+|---|---|---|
+| `native.enrichpolygons` | One node; dedicated UI in Builder; semantically clearest | Analytics Toolbox dependency; intermediate joined rows aren't inspectable; aggregation methods constrained to the `SelectColumnAggregation` list |
+| `native.spatialjoin` + `native.groupby` | No AT dependency; intermediate joined table is inspectable in Builder; full control over join predicate (`intersects` / `covers` / `touches`), join type, and column aliasing | Two nodes; verbose; must set `maintablecolumns` / `secondarytablecolumns` on the spatial join to keep the schema tight |
+
+Default to `native.enrichpolygons` for simple sum/avg of a single source onto target polygons. Switch to `native.spatialjoin + native.groupby` when you need a non-default predicate, multiple aggregations on the same column, or visibility into the intermediate join. The same trade-off applies between `native.enrichpoints` and the equivalent `spatialjoin + groupby` chain for point targets.
+
 **B) Manual JOIN** on the spatial index column:
 - Use `native.join` with the H3/Quadbin column as the join key
 - Output columns from the secondary table get a `_joined` suffix
