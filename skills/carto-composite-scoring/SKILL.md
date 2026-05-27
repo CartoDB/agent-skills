@@ -16,8 +16,9 @@ Ask the user the following decision tree:
 
 1. **"Do you have a target/outcome variable?"** (e.g. revenue, sales, crime rate)
    - Yes → **Supervised** method using `native.spatialcompositesupervised`
-2. **"No target, but do you have expert knowledge of variable importance?"**
-   - Yes → **Unsupervised** method with `CUSTOM_WEIGHTS` using `native.spatialcompositeunsupervised`
+2. **"No target, but do you have expert knowledge of variable importance?"** (i.e. custom weights)
+   - **2a. Transparency matters more than node count** → `native.normalize` per variable + `native.selectexpression` with the weighted-sum literally in SQL (`a_norm * 0.5 + b_norm * 0.2 + c_norm * 0.3`). Inputs and weights are inspectable inline in Builder; each normalized column is materialized; no Analytics Toolbox dependency. Use when stakeholders need to see/audit the formula, or when you're not running on AT.
+   - **2b. Want the AT pipeline (scaling, aggregation, bucketing) handled for you** → `native.spatialcompositeunsupervised` with `scoring_method: CUSTOM_WEIGHTS`. One node, but the formula is hidden inside the component.
 3. **"No target, no weights?"**
    - → **Unsupervised** method with `ENTROPY` or `FIRST_PC` using `native.spatialcompositeunsupervised`
 
@@ -66,6 +67,8 @@ Ask the user the following decision tree:
 - **Custom weights are normalized internally** to sum to 1. The absolute values do not matter, only the ratios.
 - **Supervised scores are residuals**, not raw values. The score identifies areas that DEVIATE from the model, not areas with the highest raw values.
 - **Drop the spatial index column and geometry** from the feature selection — only pass actual feature variables to the scoring component.
+- **`weights` type label is misreported by the CLI.** `carto workflows components get native.spatialcompositeunsupervised --json` lists `weights` as `type: "ColumnNumber"`, but the actual wire shape is a `ColumnAndNumber` JSON-encoded string of triples `[[<column>, <weight>, <reverse>], ...]` (see Step 2 of the unsupervised pipeline above). Trust this skill and the reference templates over the CLI's reported type label for this input.
+- **`indexcol.allowedColumns` is a UI hint, not a validator.** The schema lists `["geoid", "h3", "quadbin"]` for `native.spatialcompositeunsupervised.indexcol`, but it's a Builder dropdown hint — any unique identifier column works at runtime (e.g. `store_id`, `cell_id`).
 
 ## Reference Templates
 
