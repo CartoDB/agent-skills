@@ -116,6 +116,8 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
    carto workflows verify-remote workflow.json --connection <connection-name> --json
    ```
    `verify` is what catches column-type mismatches, missing tables, and AT resolution — things `validate` cannot see.
+
+   **Reading the response.** Walk `deep.errors` first — anything in there blocks runtime. `deep.warnings` is finer-grained: `COMPONENT_INVALID` items describe runtime concerns (an option the engine doesn't recognize, a column reference that may fail); `SCHEMA_TRACE_SKIPPED` and `VERIFY_SKIPPED` are diagnostic (the static checker punted on this node, not that it's broken). The top-level `valid` aggregates errors **and** warnings, so it can read `false` while the workflow still uploads successfully (`deep.valid: true` with empty `deep.errors`). Treat empty `deep.errors` as the upload gate; treat top-level `valid: false` as "look closer, but probably not blocking."
 4. Fix errors silently — don't expose implementation details to the user.
 5. Iterate until complete, with both `validate` and a final `verify` clean.
 
@@ -131,7 +133,8 @@ Summarize what was built. Confirm validation success. Wait for user confirmation
    carto workflows create --file workflow.json --verify
    ```
    The connection comes from `connectionId` inside the bundle — no `--connection` flag here.
-3. Do NOT auto-execute unless explicitly requested.
+3. **Confirm the upload didn't silently drop inputs.** Immediately after `create`, run `carto workflows get <id> --json` and diff `config.nodes[*].data.inputs` against the bundle you uploaded. The engine silently rejects values at save-time when an input fails validation (most commonly a Selection input fed a display label instead of a wire value — see "Display labels vs wire values" in [Fetching component & input information](#fetching-component--input-information)). When this happens, `validate`, `verify-remote` (when `deep.valid: true` with `deep.warnings` only), and `create` all report success; Builder renders the node with a red error indicator on first open. Any `value` present locally but missing on the server was silently rejected — fix the source bundle and re-upload (don't try to edit on the server).
+4. Do NOT auto-execute unless explicitly requested.
 
 ---
 
@@ -171,6 +174,8 @@ Signals you're reaching for customsql too early — stop and look for a native c
 
 When customsql is genuinely the right call, the per-warehouse SQL-dialect footguns live in the matching `references/providers/*.md` (BigQuery backticks, Snowflake casing, Databricks identifiers).
 
+**Customsql schema-trace cascade — misleading "Table X used but not provided" errors.** If `verify-remote` reports `Table "X" used in statement but not provided` for a customsql node whose `sourcea` / `sourceb` are clearly wired, the root cause is almost always an upstream node with a failing schema trace — even a warning-level `COMPONENT_INVALID` on the upstream node is enough to break the cascade and surface on the downstream customsql. Fix the upstream node first; the downstream error will resolve. Do **not** spend cycles rewriting the SQL, swapping backticks, or experimenting with aliases until upstream is clean.
+
 ---
 
 ## Fetching component & input information
@@ -191,6 +196,8 @@ What to look for in the response:
 - **Input `pitfalls`** — common mistakes, evaluation order, format quirks.
 - **Component `version`** — copy verbatim into the authored node's `data.version` (string). Generic nodes without it are flagged OUTDATED in Builder.
 - **Input `options` (Selection / Enum)** — the engine matches values **exactly**. Copy each option string verbatim — preserve case, never paraphrase or Title-Case (e.g. spatialjoin's `jointype` accepts `"inner"`, not `"Inner"`).
+- **Display labels vs wire values.** Some components (e.g. `native.isolines.mode`) carry a separate `optionsText` field for human-readable labels, and `components get --json` may surface those display labels under the `options` key. If `verify-remote` rejects your "verbatim" value with `Valid options: <list>` listing the *opposite case*, the CLI fed you display labels — find the true wire value by cross-referencing a known-good workflow with `carto workflows get <id> --json`. Lowercased / snake_cased forms (`walk`, `public_transport`) are common for v2 components.
+- **`verify-remote` may run multiple component versions simultaneously.** If errors and warnings list contradictory "valid options" for the same input (e.g. one accepts `"Walk"`, the other accepts `"walk"`), the engine likely ran both v1 and v2 validators against your node. Trust the version you copied from `components get`, and confirm by uploading a single-node test workflow.
 
 For values that may evolve over time (component versions, bundle/config defaults, enum option lists), treat the CLI's `components get` / `schema` output as the single source of truth — never hardcode values in your own templates. Specifically:
 
