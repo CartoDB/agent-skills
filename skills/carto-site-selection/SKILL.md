@@ -36,6 +36,8 @@ Load two datasets with `native.gettablebyname`:
 - **Existing locations** (current stores/facilities)
 - **Target area** (e.g. city boundary, district polygons, or a grid covering the study area)
 
+**Splitting candidates from existing network when both sit in one table.** If the user's source is a single table where "candidates" are defined by a numeric threshold (e.g. `revenue ≥ X`, `size ≥ Y`), use one `native.where` with that predicate and wire its **`match`** output to the candidate pipeline and its **`unmatch`** output to the existing-network pipeline. Two streams from one node — dramatically cleaner than `orderby + limit + customsql NOT IN`, and avoids a customsql entirely. The threshold approximates "top N"; if the user explicitly says "exactly top 25", `orderby + limit` is still the right call but pay the extra-node cost knowingly.
+
 **Success**: Both tables loaded with geometry columns and unique identifiers.
 
 #### Step 2: Build Candidate Grid
@@ -48,6 +50,8 @@ Polyfill the target area into H3 or Quadbin cells using `native.h3polyfill` or `
 
 Attach demand signals to each cell — population, income, foot traffic, POI density — using `native.h3enrich`, `native.joinv2`, or the Data Observatory.
 
+If candidates are continuous polygons (catchments / districts) rather than a grid, the choice between `native.enrichpolygons` and `native.spatialjoin + native.groupby` matters — see [`carto-spatial-enrichment`](../carto-spatial-enrichment/SKILL.md) Step 4 for the trade-off (AT dependency vs node count vs predicate / join control).
+
 **Success**: Each grid cell has numeric columns representing demand/suitability factors.
 
 #### Step 4: Filter by Proximity to Existing Locations
@@ -56,7 +60,9 @@ Use `native.h3distance` to compute hop distance from each candidate cell to the 
 
 - `native.h3distance` returns **hop count**, not physical distance. Convert using the approximate edge length for the resolution (e.g. H3 res 8 ~ 460m edge, so 3 hops ~ 1.4 km).
 
-**Success**: Candidate cells are within a sensible distance band from existing locations.
+**Distance semantics — measure cannibalization from the catchment polygon, not the candidate point.** When candidates are points with a generated trade area (isoline / buffer — see `carto-trade-area-analysis`), compute `native.distance` from the candidate's **catchment polygon** to the existing competitor points, not from the candidate point itself. Reason: `ST_DISTANCE(polygon, point) = 0` whenever the competitor sits inside the trade area — exactly the cannibalization signal you want. Point-to-point distance only reports "how far the nearest competitor is" and hides overlap. Pick the `radius` consistent with the trade-area size (e.g. ~5 km for a 10-minute walk catchment); large radii dilute the signal. This polygon-to-point pattern is the middle ground between Pattern A's H3 hop filter and Pattern B's full grid-overlap analysis — use it whenever the candidate already has a continuous catchment geometry.
+
+**Success**: Candidate cells are within a sensible distance band from existing locations, and any cannibalization signal is measured from the catchment polygon when one exists.
 
 #### Step 5: Score and Rank
 
@@ -83,7 +89,7 @@ Existing + Proposed locations -> Trade areas (isoline/buffer) -> Polyfill to gri
 
 #### Step 1: Load Data
 
-Load existing locations and proposed locations (or a single table with a flag column distinguishing them).
+Load existing locations and proposed locations (or a single table with a flag column distinguishing them). If both sets sit in a single table and the split is defined by a numeric threshold (e.g. `revenue ≥ X`), see Pattern A Step 1's `native.where` match/unmatch split — it produces both streams from one node and avoids customsql.
 
 **Success**: Both sets loaded with geometry and unique identifiers.
 
