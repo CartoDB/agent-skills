@@ -154,14 +154,9 @@ def check_codex_plugin(cat: Catalog, errors: list[str]) -> None:
         return
     with CODEX_PLUGIN_PATH.open() as f:
         manifest = json.load(f)
-    for required in ("name", "version", "description", "skills", "interface"):
+    for required in ("name", "description", "skills", "interface"):
         if required not in manifest:
             _err(errors, f"codex plugin missing field '{required}'")
-    if manifest.get("version") != cat.version:
-        _err(
-            errors,
-            f"codex plugin version '{manifest.get('version')}' != catalog version '{cat.version}'",
-        )
     skills_field = manifest.get("skills")
     # MotherDuck pattern: a directory string pointing at the skills root.
     if not isinstance(skills_field, str):
@@ -176,14 +171,9 @@ def check_gemini_extension(cat: Catalog, errors: list[str]) -> None:
         return
     with GEMINI_EXTENSION_PATH.open() as f:
         manifest = json.load(f)
-    for required in ("name", "version", "description", "contextFileName"):
+    for required in ("name", "description", "contextFileName"):
         if required not in manifest:
             _err(errors, f"gemini-extension.json missing field '{required}'")
-    if manifest.get("version") != cat.version:
-        _err(
-            errors,
-            f"gemini-extension version '{manifest.get('version')}' != catalog version '{cat.version}'",
-        )
     ctx = manifest.get("contextFileName")
     if ctx and not (REPO_ROOT / ctx).exists():
         _err(errors, f"gemini-extension contextFileName points at missing file: {ctx}")

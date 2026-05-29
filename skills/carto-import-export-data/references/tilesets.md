@@ -58,7 +58,7 @@ carto connections describe carto_dw \
   "my_project.demo.events_tileset"
 ```
 
-The columns are mostly internal — what matters for an agent is that the table exists; the *map JSON* (Phase 2's `carto-create-builder-maps`) is what consumes it.
+The columns are mostly internal — what matters for an agent is that the table exists; the *map JSON* (see [`carto-create-builder-maps`](../../carto-create-builder-maps)) is what consumes it.
 
 ## Relation to imports
 

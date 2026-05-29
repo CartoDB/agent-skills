@@ -1,7 +1,6 @@
 {
   "name": "carto-skills",
   "description": "CARTO skills bundle for Claude Code — see skills/catalog.json for the layered tier breakdown.",
-  "version": "2.4.0-phase2d",
   "skills": [
     "../../../skills/carto-basics",
     "../../../skills/carto-connect-datawarehouse",
@@ -14,8 +13,7 @@
     "../../../skills/carto-create-builder-maps",
     "../../../skills/carto-render-inline-map",
     "../../../skills/carto-preview-builder-map",
-    "../../../skills/carto-copy-maps",
-    "../../../skills/carto-copy-workflows",
+    "../../../skills/carto-develop-app",
     "../../../skills/carto-hotspot-analysis",
     "../../../skills/carto-spatial-autocorrelation",
     "../../../skills/carto-gwr",
@@ -25,6 +23,7 @@
     "../../../skills/carto-territory-planning",
     "../../../skills/carto-routing-od-analysis",
     "../../../skills/carto-geocoding",
-    "../../../skills/carto-composite-scoring"
+    "../../../skills/carto-composite-scoring",
+    "../../../skills/carto-arcgis-migration"
   ]
 }

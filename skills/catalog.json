@@ -1,32 +1,31 @@
 {
-  "version": "2.4.0-phase2d",
   "skills": [
     {
       "name": "carto-basics",
       "layer": "utility",
       "dependencies": [],
-      "description": "Start here for first-time CARTO CLI use: install, authenticate, switch profiles, understand JSON output and async job patterns.",
+      "description": "Start here for first-time CARTO use — install the CLI, authenticate, switch profiles, understand JSON output and async job patterns. Also orients on the two parallel access paths into the CARTO platform (CLI for authoring/scripting, MCP server for inline interactions in chat hosts) and which skills cover each.",
       "path": "skills/carto-basics"
     },
     {
       "name": "carto-connect-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Choose and configure the data warehouse engine connection (BigQuery, Snowflake, Redshift, Postgres, Databricks).",
+      "description": "Choose and configure the data warehouse engine connection for CARTO (BigQuery, Snowflake, Redshift, Postgres, Databricks, Oracle).",
       "path": "skills/carto-connect-datawarehouse"
     },
     {
       "name": "carto-query-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Write spatial SQL against the connected warehouse engine, with dialect-specific guidance and performance defaults.",
+      "description": "Write spatial SQL against the connected warehouse — dialect-specific guidance, performance defaults, and CARTO's query/job execution model.",
       "path": "skills/carto-query-datawarehouse"
     },
     {
       "name": "carto-explore-datawarehouse",
       "layer": "utility",
       "dependencies": [],
-      "description": "Discover what's in the connected warehouse: schemas, tables, columns, named sources.",
+      "description": "Discover what's in the connected warehouse — schemas, tables, columns, and CARTO named sources.",
       "path": "skills/carto-explore-datawarehouse"
     },
     {
@@ -40,7 +39,7 @@
       "name": "carto-create-workflow",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-query-datawarehouse"],
-      "description": "Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, or schedule a DAG. For copying workflows across profiles, see carto-copy-workflows.",
+      "description": "Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, schedule a DAG, or copy a workflow across profiles or orgs.",
       "path": "skills/carto-create-workflow"
     },
     {
@@ -61,14 +60,14 @@
       "name": "carto-create-builder-maps",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
-      "description": "Author maps in CARTO Builder: layers, basemaps, styling, sharing, and AI Agents.",
+      "description": "Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps` subcommand surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.",
       "path": "skills/carto-create-builder-maps"
     },
     {
       "name": "carto-render-inline-map",
       "layer": "platform",
       "dependencies": ["carto-basics"],
-      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-build-app (developer app from scratch).",
+      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-develop-app (developer app from scratch).",
       "path": "skills/carto-render-inline-map"
     },
     {
@@ -79,18 +78,11 @@
       "path": "skills/carto-preview-builder-map"
     },
     {
-      "name": "carto-copy-maps",
+      "name": "carto-develop-app",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-explore-datawarehouse"],
-      "description": "Copy maps across CARTO organizations or profiles, with connection mapping and AI-agent reference handling.",
-      "path": "skills/carto-copy-maps"
-    },
-    {
-      "name": "carto-copy-workflows",
-      "layer": "platform",
-      "dependencies": ["carto-basics", "carto-explore-datawarehouse"],
-      "description": "Copy CARTO Workflows across organizations or profiles, with connection mapping and schedule re-add.",
-      "path": "skills/carto-copy-workflows"
+      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "description": "Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, or M2M).",
+      "path": "skills/carto-develop-app"
     },
     {
       "name": "carto-hotspot-analysis",
@@ -117,7 +109,7 @@
       "name": "carto-spatial-enrichment",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Guides the user through spatial enrichment workflows — triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, or trade-area enrichment.",
+      "description": "Guides the user through spatial enrichment workflows — triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, \"what's around\" queries, buffer/isochrone + join patterns, or trade area enrichment.",
       "path": "skills/carto-spatial-enrichment"
     },
     {
@@ -159,8 +151,15 @@
       "name": "carto-composite-scoring",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Guides the user through building composite-score workflows when they ask about composite scores, indexes, multi-variable rankings, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring.",
+      "description": "Guides the user through building composite score workflows when they ask about composite scores, indexes, multi-variable scores, ranking areas, site scoring, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring.",
       "path": "skills/carto-composite-scoring"
+    },
+    {
+      "name": "carto-arcgis-migration",
+      "layer": "use-case",
+      "dependencies": [],
+      "description": "End-to-end ArcGIS Portal / AGOL → CARTO migration. Runs three phases over a shared MIGRATION_MANIFEST.md: discover (enumerate + classify items), migrate-data (Hosted Feature Layers / Tables → CARTO tables), migrate-maps (Web Maps + simple Dashboard / Web Experience / Web Mapping Application entries → CARTO Builder maps). Default mode is batch; migrated maps are tagged `From ArcGIS` and created as private. Triggers when the user wants to migrate ArcGIS content to CARTO, asks 'what's in my Portal', or names a Portal/AGOL URL.",
+      "path": "skills/carto-arcgis-migration"
     }
   ]
 }

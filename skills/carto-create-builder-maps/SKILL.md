@@ -6,9 +6,8 @@ license: MIT
 
 # carto-create-builder-maps
 
-CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle via the CLI: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate via the `carto maps` commands.
+CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle via the CLI: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate via the `carto maps` commands. It also covers **cross-profile copy** (`dev → prod` promotion, customer-segregated org delivery via `carto maps copy` / `maps clone`) — see the *Promote / copy across orgs* references below.
 
-For copying maps cross-org (`dev → prod` promotion, customer-segregated org delivery), use [`carto-copy-maps`](../carto-copy-maps).
 For ad-hoc spatial SQL exploration, use [`carto-query-datawarehouse`](../carto-query-datawarehouse).
 
 Field shapes, enum values, palette catalogues, and AI-tool catalogues are served by the CLI — **never hardcode or assume them**. Run `carto maps schema [section]` for JSON Schema (generated from the same Zod definitions Tier-1 validation uses), `carto maps agents models` / `mcp-tools` / `core-tools` for AI surfaces, and `carto connections describe <conn> <table>` for dataset metadata. When this doc disagrees with the CLI, the CLI wins.
@@ -31,6 +30,11 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 **Operate / unstick**
 - [`references/updates.md`](references/updates.md) — CRUD lifecycle: recipes, the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), `--datasets-mode`, publish chaining, validation levers.
 - [`references/troubleshooting.md`](references/troubleshooting.md) — symptom → fix table, antipatterns to avoid emitting, escape-hatches when stuck, visual verification via `carto maps screenshot`.
+
+**Promote / copy across orgs — read when migrating maps between profiles**
+- [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `maps copy` and `maps clone` mechanics, connection mapping (`--connection-mapping` / `--connection`), `--skip-source-validation`, what transfers vs. what doesn't.
+- [`references/agent-migration-caveats.md`](references/agent-migration-caveats.md) — `UNAVAILABLE_MODEL` / `UNAVAILABLE_TOOL` issues after copying a map with an AI agent, why the CLI can't auto-fix them, the manual Builder steps.
+- [`references/post-copy-validation.md`](references/post-copy-validation.md) — confirm the destination map renders correctly: datasets, connections, agent issues, destination URL construction.
 
 ---
 
@@ -158,7 +162,7 @@ When asking the Phase 1 intake questions (and on every follow-up turn), **stay i
   - Exploratory analytical map: 3–6 (formula + category/pie + histogram + timeseries + range + table).
   - Dashboard map: 6–8. Past ~8 the panel gets crowded.
 - **SQL parameters — propose when the source has a natural filter axis** (date range, region, category). Wire `{{paramName}}` placeholders + a `sqlParameters[]` entry + `mapSettings.sqlParameterControls: true`. Skip when the source is static.
-- **Description — viewer-facing Markdown.** End users read this in Builder's right-side panel and in share-link previews. Not for authoring notes, agent reasoning, or change history. Use short headings + scannable sections matching the map's narrative — no wall-of-text. When omitted, emit `description: ""` (empty string, never null — null leaks a placeholder); `maps create` auto-fills `""`, `maps update` needs an explicit `""` to clear.
+- **Description — viewer-facing Markdown, OPTIONAL.** Empty/omitted descriptions don't render at all for the viewer (the right-rail info button is hidden when description is empty); leaving it empty is fine for reference maps or maps with no story to tell. When you *do* emit one, go rich — the right rail has plenty of vertical room and a well-built description reads like a small landing page for the map. See `references/cartography.md` §6.4 for the full template (optional hero image → `## Title` → lead paragraph → optional `### Context`, `### What you are looking at`, `### Things to try`), the no-tables / no-`### Source` rules, and a worked NYC PLUTO example. Not for authoring notes, agent reasoning, or change history. When you choose to emit nothing, set `description: ""` (empty string, never null — null leaks a placeholder); `maps create` auto-fills `""`, `maps update` needs an explicit `""` to clear.
 
 ### Opt-in blocks — emit ONLY when the user has explicitly asked
 

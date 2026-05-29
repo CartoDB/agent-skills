@@ -1,4 +1,4 @@
-description = "Choose and configure the data warehouse engine connection (BigQuery, Snowflake, Redshift, Postgres, Databricks) (carto-skills)"
+description = "Choose and configure the data warehouse engine connection for CARTO (BigQuery, Snowflake, Redshift, Postgres, Databricks, Oracle) (carto-skills)"
 
 prompt = """
 Apply the `carto-connect-datawarehouse` skill from the carto-skills catalog to the user's request.

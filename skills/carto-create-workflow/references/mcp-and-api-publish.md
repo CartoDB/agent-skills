@@ -5,7 +5,7 @@ The same compiled stored procedure powers both surfaces:
 - **MCP**: agent-facing. Discovered via the workflow's `mcpTool` block; invoked through an MCP client.
 - **API**: programmatic-caller-facing. Same procedure FQN, called via the CARTO SQL API with an API access token.
 
-> **API publishing is not yet available via CLI.** Today only `mcp publish` is wired up. To enable API access, toggle "Enable API access" in the Builder UI on the workflow — the CLI can then *call* the resulting procedure (see [Calling the procedure via API](#calling-the-procedure-via-api)), but cannot enable, disable, or describe the API endpoint itself.
+> **API publishing is not yet available via CLI.** Today only `mcp publish` is wired up. To enable API access, toggle "Enable API access" in the Workflows UI on the workflow — the CLI can then *call* the resulting procedure (see [Calling the procedure via API](#calling-the-procedure-via-api)), but cannot enable, disable, or describe the API endpoint itself.
 
 CLI surface (full flag list in `carto workflows mcp publish --help`):
 
@@ -16,7 +16,7 @@ carto workflows mcp describe <id>
 carto workflows mcp list
 ```
 
-`mcp publish` is one-shot end-to-end: it compiles the workflow into a stored procedure (`wfproc_mcptool_<wfHash>` in `<billing>.carto_workspace`), creates that procedure on the warehouse, and PATCHes the full MCP metadata onto the workflow. After it returns, an agent can invoke the tool against real data — no Builder UI step required. The same procedure is callable directly via SQL API for non-agent code paths (see [Calling the procedure via API](#calling-the-procedure-via-api) below).
+`mcp publish` is one-shot end-to-end: it compiles the workflow into a stored procedure (`wfproc_mcptool_<wfHash>` in `<billing>.carto_workspace`), creates that procedure on the warehouse, and PATCHes the full MCP metadata onto the workflow. After it returns, an agent can invoke the tool against real data — no Workflows UI step required. The same procedure is callable directly via SQL API for non-agent code paths (see [Calling the procedure via API](#calling-the-procedure-via-api) below).
 
 ## Bundle requirements
 
@@ -96,7 +96,7 @@ The compiled procedure is a regular BigQuery (or Snowflake/Databricks) stored pr
 
 ```bash
 TOKEN=...   # API access token from `carto credentials create token`
-CONN=...    # connection name (e.g. 000-dvicente-bq)
+CONN=...    # connection name (e.g. acme-bq)
 WFHASH=...  # sha1(workflowId)[:16] — find via `mcp describe` or INFORMATION_SCHEMA.ROUTINES
 BILLING=... # billing project / database for the connection
 
@@ -118,7 +118,7 @@ carto credentials create token \
   --apis sql
 ```
 
-The token's `--source` grant must include the procedure FQN **and** every table the procedure body reads from. Wildcards (`<billing>.dvicente.*`) are accepted at creation time but, in practice, may not be honoured at SQL-API call time depending on tenant configuration — when in doubt, list the exact FQNs. If a fresh token returns `403 You don't have permissions to read this resource` even on `SELECT 1`, the issue is the token itself (or tenant-level token-acceptance policy), not the grant list — surface this back to the workflow author rather than re-scoping endlessly.
+The token's `--source` grant must include the procedure FQN **and** every table the procedure body reads from. Wildcards (`<billing>.<dataset>.*`) are accepted at creation time but, in practice, may not be honoured at SQL-API call time depending on tenant configuration — when in doubt, list the exact FQNs. If a fresh token returns `403 You don't have permissions to read this resource` even on `SELECT 1`, the issue is the token itself (or tenant-level token-acceptance policy), not the grant list — surface this back to the workflow author rather than re-scoping endlessly.
 
 The `mcp describe <id>` output includes the full canonical CALL statement and the procedure FQN, so it is the authoritative source for `WFHASH` and the exact `q` body.
 

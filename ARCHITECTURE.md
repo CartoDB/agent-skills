@@ -1,18 +1,18 @@
 # Architecture
 
-Multi-harness skills catalog modeled on [MotherDuck's agent-skills](https://github.com/motherduckdb/agent-skills). Single source of truth (`skills/catalog.json`) drives validation, plugin manifests, and Skills CLI distribution.
+Multi-harness skills catalog. Single source of truth (`skills/catalog.json`) drives validation, plugin manifests, and Skills CLI distribution across Claude Code, Skills CLI, Codex, and Gemini.
 
 ## Three-tier layering
 
 Every skill belongs to exactly one tier. Tiers enforce dependency direction.
 
-| Tier | Description | Phase 1 status |
-|---|---|---|
-| **Utility** | Depends on nothing. Foundational primitives. | ✅ 4 skills shipped |
-| **Platform** | May depend only on utility skills. Wraps a CARTO product surface. | ⏳ deferred (Phase 2: 6 skills) |
-| **Use-case** | May depend on utility and/or platform skills. Composes end-to-end agent flows. | ⏳ deferred (Phase 3: 3 skills) |
+| Tier | Description |
+|---|---|
+| **Utility** | Depends on nothing. Foundational primitives. |
+| **Platform** | May depend only on utility skills. Wraps a CARTO product surface. |
+| **Use-case** | May depend on utility and/or platform skills. Composes end-to-end agent flows. |
 
-> Why "Platform" and not "Workflow" (MotherDuck's name)? CARTO Workflows is a product, and one of the planned platform-tier skills wraps it. Calling the layer "Workflow" would collide. Same idea, different label.
+> Why "Platform" and not "Workflow"? CARTO Workflows is a product, and one of the platform-tier skills wraps it. Calling the layer "Workflow" would collide with the product name.
 
 `scripts/validate_skills.py` enforces the dependency rules: utility skills declare no dependencies; platform skills may depend only on utility skills; use-case skills may depend on utility ∪ platform.
 
@@ -20,7 +20,6 @@ Every skill belongs to exactly one tier. Tiers enforce dependency direction.
 
 ```json
 {
-  "version": "2.0.0-phase1",
   "skills": [
     {
       "name": "carto-basics",
@@ -59,7 +58,7 @@ license: MIT
 |---|---|---|
 | **Claude Code** | ✅ | `.claude-plugin/marketplace.json` + `plugins/carto-skills-claude/.claude-plugin/plugin.json` |
 | **Skills CLI** | ✅ | reads `skills/catalog.json` directly |
-| **Codex** | ✅ | `.codex-plugin/plugin.json` (repo root, MotherDuck pattern) |
+| **Codex** | ✅ | `.codex-plugin/plugin.json` (repo root) |
 | **Gemini** | ✅ | `gemini-extension.json` + `commands/carto/*.toml` (one TOML per skill) |
 
 `scripts/sync_manifests.py` regenerates **all four** harness manifests from `catalog.json`. CI runs `validate_skills.py` (read-only) to catch drift, with sync checks for each harness.
@@ -71,11 +70,7 @@ Two scripts, both wired into CI:
 - `scripts/validate_skills.py` — catalog/filesystem/manifest/layer/reference integrity.
 - `tests/validate_snippets.py` — lints fenced code blocks per language: Python AST, `bash -n`, `json.loads`, `yaml.safe_load`, `sqlglot.parse(read=<dialect>)`. TypeScript validation is warning-only in Phase 1.
 
-SQL snippet validation is **syntactic only** (per-dialect parse via `sqlglot`). No live warehouse executes the snippets in CI — see proposal §6 for the rationale.
-
-## Deferred: watermarking
-
-Per proposal §5, agent-driven CARTO API traffic should be measurable via `custom_user_agent` watermarking using `CARTO_AGENT_HARNESS` and `CARTO_AGENT_LLM` env vars. **This is Phase 2c work** — skills currently emit no watermark.
+SQL snippet validation is **syntactic only** (per-dialect parse via `sqlglot`). No live warehouse executes the snippets in CI — the goal is to catch obvious dialect/parse mistakes before they ship, not to verify end-to-end correctness.
 
 ## Adding a new skill
 

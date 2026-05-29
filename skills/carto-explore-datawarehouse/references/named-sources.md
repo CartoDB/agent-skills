@@ -14,7 +14,7 @@ Named sources are how CARTO apps usually access warehouse data — directly hitt
 - A map's data source is a named source — when inspecting the map JSON you'll see `type: query` referring to a named source.
 - An app uses a token scoped to specific named sources — in that case the agent must use the named source name, not a raw table path.
 
-> Named-source CRUD (`carto named-sources create/update/delete`) is **out of scope for this utility skill** — that's part of [`carto-build-app`](#) (Phase 2). This skill only covers *finding* and *inspecting* existing named sources.
+> Named-source CRUD (`carto named-sources create/update/delete`) is **out of scope for this utility skill** — see [`carto-develop-app`](../../carto-develop-app) when building an app that needs to manage named sources. This skill only covers *finding* and *inspecting* existing named sources.
 
 ## Listing named sources
 

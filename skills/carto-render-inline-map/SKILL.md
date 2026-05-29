@@ -1,6 +1,6 @@
 ---
 name: carto-render-inline-map
-description: Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. Use whenever the user asks to map, visualize, or show the geographic distribution of points, polygons, hexagons, quadbins, clusters, density (heatmaps), or raster — and the map is exploratory or throwaway, not meant to be saved as a permanent CARTO Builder map. Triggers on "show me X on a map", "visualize Y", "make a heatmap of Z", "render the points/clusters/raster of W". Distinct from carto-create-builder-maps (CLI authoring of permanent maps), carto-preview-builder-map (loading an existing saved Builder map), and carto-build-app (writing a from-scratch deck.gl app in TypeScript / JavaScript).
+description: Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. Use whenever the user asks to map, visualize, or show the geographic distribution of points, polygons, hexagons, quadbins, clusters, density (heatmaps), or raster — and the map is exploratory or throwaway, not meant to be saved as a permanent CARTO Builder map. Triggers on "show me X on a map", "visualize Y", "make a heatmap of Z", "render the points/clusters/raster of W". Distinct from carto-create-builder-maps (CLI authoring of permanent maps), carto-preview-builder-map (loading an existing saved Builder map), and carto-develop-app (writing a from-scratch deck.gl app in TypeScript / JavaScript).
 license: MIT
 ---
 
@@ -31,7 +31,7 @@ This skill assumes the **CARTO MCP server is attached** (the `view_map` tool is 
 
 - **Permanent / shareable map** → `carto-create-builder-maps` (CLI). `view_map` specs aren't saved or shareable as URLs; they live in the chat.
 - **Open an existing saved map by name/URL/ID** → `carto-preview-builder-map`. That skill uses `load_builder_map` to render a saved Builder map inline.
-- **Writing a TypeScript/JavaScript app from scratch** → `carto-build-app`. Different runtime (full deck.gl surface in JS), different cartography rules.
+- **Writing a TypeScript/JavaScript app from scratch** → `carto-develop-app`. Different runtime (full deck.gl surface in JS), different cartography rules.
 
 ## Discovery flow before composing the spec
 

@@ -178,7 +178,7 @@
       "id": "a40160e9-4940-4a76-a52e-25079b168317",
       "data": {
         "name": "native.isolines",
-        "version": "1",
+        "version": "2",
         "inputs": [
           {
             "name": "source",
@@ -203,7 +203,13 @@
             "title": "Mode",
             "options": [
               "walk",
-              "car"
+              "car",
+              "bike",
+              "public_transport",
+              "coach",
+              "bus",
+              "train",
+              "ferry"
             ],
             "description": "Mode",
             "value": "walk"
@@ -228,28 +234,30 @@
             "value": 300
           },
           {
-            "name": "optimizationcol",
-            "type": "Column",
-            "title": "Cluster by",
-            "parent": "source",
-            "parentOutput": "result",
-            "dataType": [
-              "geography",
-              "boolean",
-              "number",
-              "string",
-              "date",
-              "datetime",
-              "time",
-              "timestamp"
-            ],
-            "providers": [
-              "bigquery"
-            ],
+            "name": "customoptions",
+            "type": "String",
+            "title": "Isolines options",
+            "description": "Isolines options",
             "optional": true,
-            "advanced": true,
-            "description": "Cluster by",
-            "value": "geom"
+            "default": "",
+            "allowExpressions": false,
+            "advanced": true
+          },
+          {
+            "name": "traveltime_departure_time",
+            "type": "String",
+            "title": "Departure time",
+            "description": "",
+            "optional": true
+          },
+          {
+            "name": "traveltime_single_shape",
+            "type": "Boolean",
+            "title": "Single Shape",
+            "description": "",
+            "optional": false,
+            "default": true,
+            "value": true
           }
         ],
         "label": "Create Isolines"

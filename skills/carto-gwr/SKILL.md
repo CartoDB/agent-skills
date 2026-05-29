@@ -130,7 +130,7 @@ The engine declares these lowercase. See the Provider casing note in Gotchas for
 
 **Workflow template** (available in CARTO Workspace): "Applying Geographical Weighted Regression (GWR) to model the local spatial relationships in your data"
 
-**Builder use case**: Analyzing Airbnb ratings in Los Angeles -- models `overall_rating` vs `value_review`, `cleanliness`, `location`, enriched with Data Observatory sociodemographics. Uses H3 res 7, kring 3, Gaussian kernel.
+**Example use case**: Analyzing Airbnb ratings in Los Angeles -- models `overall_rating` vs `value_review`, `cleanliness`, `location`, enriched with Data Observatory sociodemographics. Uses H3 res 7, kring 3, Gaussian kernel.
 
 ---
 

@@ -4,7 +4,7 @@
 
 > **Different from `carto-create-builder-maps/references/cartography.md`.** That reference is for Builder/kepler-config maps authored via the CLI. The shapes don't transfer to deck.gl declarative — they target a different runtime.
 
-> **Different from `carto-build-app/references/layers.md`.** That skill targets developers writing TypeScript/JavaScript app code with full `@deck.gl/carto` access. This file targets agents emitting the `@deck.gl/json` declarative spec consumed by the `view_map` MCP tool — restricted to CARTO classes registered in the JSONConverter and the `@@=` expression-eval engine.
+> **Different from `carto-develop-app/references/layers.md`.** That skill targets developers writing TypeScript/JavaScript app code with full `@deck.gl/carto` access (auth, scaffolds, React/Vue, full deck.gl surface including `Math.*` and arbitrary layers). This file targets agents emitting the `@deck.gl/json` declarative spec consumed by the `view_map` MCP tool — restricted to CARTO classes registered in the JSONConverter and the `@@=` expression-eval engine.
 
 > The cartographic *principles* are the same across all three contexts; the *encodings* are not.
 

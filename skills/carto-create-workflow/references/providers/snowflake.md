@@ -9,7 +9,7 @@ Provider-specific details for building workflows with Snowflake connections.
 Format: `DATABASE.SCHEMA.TABLE`
 
 ```
-DVICENTE_AT.WORKFLOWS_DATA.MADRID_BIKE_ACCIDENTS
+ACME_DB.WORKFLOWS_DATA.MADRID_BIKE_ACCIDENTS
 ```
 
 Use `carto connections browse <connection>` to navigate `database > schema > table`.

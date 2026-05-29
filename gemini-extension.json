@@ -1,6 +1,5 @@
 {
   "name": "carto-skills",
-  "version": "2.4.0-phase2d",
   "description": "CARTO skills for Gemini CLI: connect, explore live schemas, write spatial SQL, manage workflows, subscribe to Data Observatory data, and administer the org.",
   "contextFileName": "GEMINI.md",
   "plan": {

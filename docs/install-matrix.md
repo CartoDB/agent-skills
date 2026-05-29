@@ -4,6 +4,7 @@ Which skills ship via which harness.
 
 | Skill | Tier | Claude Code | Skills CLI | Codex | Gemini |
 |---|---|---|---|---|---|
+| `carto-arcgis-migration` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-basics` | utility | ✅ | ✅ | ✅ | ✅ |
 | `carto-connect-datawarehouse` | utility | ✅ | ✅ | ✅ | ✅ |
 | `carto-query-datawarehouse` | utility | ✅ | ✅ | ✅ | ✅ |
@@ -12,9 +13,10 @@ Which skills ship via which harness.
 | `carto-create-workflow` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-find-spatial-data` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-manage-platform` | platform | ✅ | ✅ | ✅ | ✅ |
-| `carto-copy-maps` | platform | ✅ | ✅ | ✅ | ✅ |
-| `carto-copy-workflows` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-create-builder-maps` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-render-inline-map` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-preview-builder-map` | platform | ✅ | ✅ | ✅ | ✅ |
+| `carto-develop-app` | platform | ✅ | ✅ | ✅ | ✅ |
 | `carto-hotspot-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-spatial-autocorrelation` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-gwr` | use-case | ✅ | ✅ | ✅ | ✅ |
@@ -25,12 +27,8 @@ Which skills ship via which harness.
 | `carto-routing-od-analysis` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-geocoding` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-composite-scoring` | use-case | ✅ | ✅ | ✅ | ✅ |
-| `carto-build-app` | platform | ⏳ deferred | ⏳ deferred | ⏳ deferred | ⏳ deferred |
-| `carto-build-spatial-dashboard` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
-| `carto-build-customer-facing-map` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
-| `carto-migrate-to-carto` | use-case | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 | ⏳ Phase 3 |
 
-One platform skill (`carto-build-app`) is owned by another PM and not yet built. The Phase 3 build-oriented use-case skills depend on it, so they wait too.
+All 23 skills are available identically across every harness. See [`skills/catalog.json`](../skills/catalog.json) for the source of truth.
 
 ## Per-harness install
 
@@ -41,7 +39,7 @@ One platform skill (`carto-build-app`) is owned by another PM and not yet built.
 /plugin install carto-skills@carto-agent-skills
 ```
 
-All 21 skills (4 utility + 7 platform + 10 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
+All 23 skills (4 utility + 8 platform + 11 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
 
 ### Skills CLI
 

@@ -1,6 +1,6 @@
 ---
 name: carto-preview-builder-map
-description: Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server's load_builder_map tool. Use whenever the user references a saved Builder map — by URL, by ID, or by name (resolved via list_maps first). Renders a lightweight read-only preview (layers, basemap, viewport, popups, legend). Widgets, SQL parameters, map description, and other Builder-only features are NOT included; the user can click "Open in Builder" for the full experience. Triggers on "show me the X map", "open the Y map", "preview the Z map", and post-CLI-creation inline previews of a freshly-created map. Distinct from carto-create-builder-maps (CLI authoring), carto-render-inline-map (ad-hoc deck.gl spec), and carto-build-app (developer app).
+description: Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server's load_builder_map tool. Use whenever the user references a saved Builder map — by URL, by ID, or by name (resolved via list_maps first). Renders a lightweight read-only preview (layers, basemap, viewport, popups, legend). Widgets, SQL parameters, map description, and other Builder-only features are NOT included; the user can click "Open in Builder" for the full experience. Triggers on "show me the X map", "open the Y map", "preview the Z map", and post-CLI-creation inline previews of a freshly-created map. Distinct from carto-create-builder-maps (CLI authoring), carto-render-inline-map (ad-hoc deck.gl spec), and carto-develop-app (developer app).
 license: MIT
 ---
 
@@ -68,7 +68,7 @@ Caveat: still the lightweight preview. If the user is debugging widgets or SQL p
 
 - **Ad-hoc visualization, no saved map exists** → `carto-render-inline-map` (`view_map`).
 - **Authoring / editing a permanent map** → `carto-create-builder-maps` (CLI).
-- **Building a from-scratch deck.gl app** → `carto-build-app`.
+- **Building a from-scratch deck.gl app** → `carto-develop-app`.
 
 ## Anti-patterns to avoid
 

@@ -1,4 +1,4 @@
-description = "Guides the user through building composite-score workflows when they ask about composite scores, indexes, multi-variable rankings, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring (carto-skills)"
+description = "Guides the user through building composite score workflows when they ask about composite scores, indexes, multi-variable scores, ranking areas, site scoring, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring (carto-skills)"
 
 prompt = """
 Apply the `carto-composite-scoring` skill from the carto-skills catalog to the user's request.

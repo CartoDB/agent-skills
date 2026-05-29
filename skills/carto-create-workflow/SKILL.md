@@ -1,12 +1,14 @@
 ---
 name: carto-create-workflow
-description: Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, or schedule a DAG. For copying workflows across profiles, see carto-copy-workflows.
+description: Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, schedule a DAG, or copy a workflow across profiles or orgs.
 license: MIT
 ---
 
 # carto-create-workflow
 
-CARTO Workflows is a visual DAG builder that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file) plus operating it via the CLI (CRUD, schedules). Cross-profile copying is owned by [`carto-copy-workflows`](../carto-copy-workflows).
+CARTO Workflows is a visual DAG authoring app that compiles to warehouse SQL. Each workflow runs *inside* a connected warehouse — no CARTO compute is involved at execution time. This skill covers the full lifecycle: building the DAG (the bulk of this file), operating it via the CLI (CRUD, schedules), and **cross-profile copy** (`dev → prod` promotion, customer-segregated workspaces via `carto workflows copy`) — see the references below.
+
+> **Workflows vs Builder — distinct apps.** This skill targets **Workflows** (CARTO's DAG/orchestration app, `/workflows/<id>` in the URL). **Builder** is the separate **map**-authoring app (`/builder/<id>`). When this skill mentions "the Workflows canvas", "in Workflows", or "the DAG view", that is never Builder — they're different products that share an org and connections but nothing else. Workflow output (a result table with geometry) is typically visualised in Builder afterward; that's the only place the two apps connect.
 
 For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) — workflows are for repeatable, scheduled, multi-step DAGs.
 
@@ -37,8 +39,8 @@ References (only for what the CLI doesn't serve):
 - [`references/providers/`](references/providers/) — per-warehouse details (BigQuery, Snowflake, Databricks): identifier quoting, column casing, AT path.
 - [`references/scheduling.md`](references/scheduling.md) — `add` vs `update` semantics, bundle-level schedule warning, activity-log verification.
 - [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — publishing a workflow as an MCP tool or callable API endpoint: bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
-
-For copying a workflow across profiles (dev → prod, customer-segregated workspaces), use [`carto-copy-workflows`](../carto-copy-workflows).
+- [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `workflows copy` mechanics, connection mapping (`--connection-mapping` / `--connection`), `--skip-source-validation`, why copies are always new workflows.
+- [`references/schedule-readd.md`](references/schedule-readd.md) — schedules don't transfer across `workflows copy`; how to re-add them, including dialect translation when source and destination engines differ.
 
 > **`connectionProvider` must match the connection.** `config.connectionProvider` (enum in `schema enums`) must match the connection's actual provider — mismatches generate the wrong SQL dialect and error at runtime. Look it up with `carto connections list --search <name> --json` (`connections get` requires a UUID).
 
@@ -95,15 +97,15 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
    - The canvas display name lives in `data.label`, NOT `data.title`. Generic nodes use `title`; source nodes use `label`.
    - `data.id` and `data.inputs[0].value` must be the same FQN.
 
-   **Canvas layout & naming — apply on every node, every workflow.** None of this affects execution, but the user opens the DAG in Builder and a sloppy canvas reads as low quality. The numbers are small and stable; just apply them.
+   **Canvas layout & naming — apply on every node, every workflow.** None of this affects execution, but the user opens the DAG in Workflows and a sloppy canvas reads as low quality. The numbers are small and stable; just apply them.
 
-   - **Snap grid is 16 px.** Every `x` and `y` you write must be `% 16 == 0`. Builder snaps drags to this grid; off-grid values look subtly misaligned next to anything the user nudged.
+   - **Snap grid is 16 px.** Every `x` and `y` you write must be `% 16 == 0`. The Workflows canvas snaps drags to this grid; off-grid values look subtly misaligned next to anything the user nudged.
    - **Card widths are fixed by node type:** source nodes render at **192 px** (12 cells), generic components at **64 px** (4 cells). Knowing this is what lets you reason about gaps.
    - **Card heights are fixed:** every component card and source card is **80 px** (5 cells) tall, with a **16 px** label rendered below the card body. The label is not part of the card — it lives in the gap to the next card.
    - **Canonical inter-card gap (right edge → next left edge):** 80 px (5 cells) for tight linear placement; 128 px (8 cells) at a fan-in (a join's left input, where an edge from another row needs room). The *gap* is the constant; left-edge-to-left-edge Δx differs across patterns only because cards have different widths. So a generic→generic linear step is Δx=144 (9 cells); a source→generic step at the same gap is Δx=272 (17 cells); a generic→generic fan-in step is Δx=192 (12 cells).
    - **Canonical vertical gap (card body bottom → next card body top):** 80 px (5 cells), of which the first 16 px is the card's label and the remaining 64 px is whitespace. The label always sits inside the gap, never inside the card. So a stacked-card step is top-to-top **Δy = 160 px (10 cells)** — 80 (body) + 16 (label) + 64 (whitespace).
    - **Layout.** Source nodes stack at the leftmost column with the same `x`, Δy = 144 px (9 cells). The main pipeline runs at the y-midline of the source rows — e.g. sources at y=80 and y=224 → pipeline at y=160. Joins on the midline visually receive both inputs symmetrically.
-   - **`data.title` and `data.label` are different fields** — never duplicate. `title` = short instance-specific verb (≤ 15 chars) describing what *this* node does in *this* DAG (`"Rank"`, `"Join to score"`, `"To H3"`). `label` = the component's canonical type name as Builder shows it on a fresh drop (`"Join"`, `"Create Column"`, `"H3 from GeoPoint"`) — read from `carto workflows components get <name> --json` → `components[0].title`. Source nodes only render `data.label` on canvas (treat it as a short alias for the table: `"Candidates"`, `"Score grid C"`).
+   - **`data.title` and `data.label` are different fields** — never duplicate. `title` = short instance-specific verb (≤ 15 chars) describing what *this* node does in *this* DAG (`"Rank"`, `"Join to score"`, `"To H3"`). `label` = the component's canonical type name as Workflows shows it on a fresh drop (`"Join"`, `"Create Column"`, `"H3 from GeoPoint"`) — read from `carto workflows components get <name> --json` → `components[0].title`. Source nodes only render `data.label` on canvas (treat it as a short alias for the table: `"Candidates"`, `"Score grid C"`).
 2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately:
    ```bash
    carto workflows validate workflow.json --json
@@ -116,6 +118,8 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
    carto workflows verify-remote workflow.json --connection <connection-name> --json
    ```
    `verify` is what catches column-type mismatches, missing tables, and AT resolution — things `validate` cannot see.
+
+   **Reading the response.** Walk `deep.errors` first — anything in there blocks runtime. `deep.warnings` is finer-grained: `COMPONENT_INVALID` items describe runtime concerns (an option the engine doesn't recognize, a column reference that may fail); `SCHEMA_TRACE_SKIPPED` and `VERIFY_SKIPPED` are diagnostic (the static checker punted on this node, not that it's broken). The top-level `valid` aggregates errors **and** warnings, so it can read `false` while the workflow still uploads successfully (`deep.valid: true` with empty `deep.errors`). Treat empty `deep.errors` as the upload gate; treat top-level `valid: false` as "look closer, but probably not blocking."
 4. Fix errors silently — don't expose implementation details to the user.
 5. Iterate until complete, with both `validate` and a final `verify` clean.
 
@@ -131,7 +135,8 @@ Summarize what was built. Confirm validation success. Wait for user confirmation
    carto workflows create --file workflow.json --verify
    ```
    The connection comes from `connectionId` inside the bundle — no `--connection` flag here.
-3. Do NOT auto-execute unless explicitly requested.
+3. **Confirm the upload didn't silently drop inputs.** Immediately after `create`, run `carto workflows get <id> --json` and diff `config.nodes[*].data.inputs` against the bundle you uploaded. The engine silently rejects values at save-time when an input fails validation (most commonly a Selection input fed a display label instead of a wire value — see "Display labels vs wire values" in [Fetching component & input information](#fetching-component--input-information)). When this happens, `validate`, `verify-remote` (when `deep.valid: true` with `deep.warnings` only), and `create` all report success; Workflows renders the node with a red error indicator on first open. Any `value` present locally but missing on the server was silently rejected — fix the source bundle and re-upload (don't try to edit on the server).
+4. Do NOT auto-execute unless explicitly requested.
 
 ---
 
@@ -147,7 +152,7 @@ Common operations and their native equivalents — try these first:
 
 | If you'd write SQL like… | Use natives |
 |---|---|
-| `WHERE x = …` / multi-condition filter | `native.where` (predicate), `native.wheresimplified` (UI builder), `native.spatialfilter` (geometry-based match/unmatch split), `native.select` (column projection) |
+| `WHERE x = …` / multi-condition filter | `native.where` (predicate), `native.wheresimplified` (form-based filter UI), `native.spatialfilter` (geometry-based match/unmatch split), `native.select` (column projection) |
 | `SELECT a, b, c FROM t` (multi-column projection / rename / multi-expression) | `native.select` (one node, free-form SELECT body) |
 | `SELECT ..., expr AS c FROM t` (add **one** computed column) | `native.selectexpression` (one column + one expression per node) |
 | `GROUP BY k, SUM(x), AVG(y), COUNT(*)` (single key) | `native.groupby` — `groupby` input is a single `Column`, not multi-column. For multi-key grouping use `native.customsql`. |
@@ -171,6 +176,8 @@ Signals you're reaching for customsql too early — stop and look for a native c
 
 When customsql is genuinely the right call, the per-warehouse SQL-dialect footguns live in the matching `references/providers/*.md` (BigQuery backticks, Snowflake casing, Databricks identifiers).
 
+**Customsql schema-trace cascade — misleading "Table X used but not provided" errors.** If `verify-remote` reports `Table "X" used in statement but not provided` for a customsql node whose `sourcea` / `sourceb` are clearly wired, the root cause is almost always an upstream node with a failing schema trace — even a warning-level `COMPONENT_INVALID` on the upstream node is enough to break the cascade and surface on the downstream customsql. Fix the upstream node first; the downstream error will resolve. Do **not** spend cycles rewriting the SQL, swapping backticks, or experimenting with aliases until upstream is clean.
+
 ---
 
 ## Fetching component & input information
@@ -189,8 +196,10 @@ What to look for in the response:
 - **Input `format`** — prose describing the expected value shape.
 - **Input `examples`** — concrete JSON snippets showing correct usage.
 - **Input `pitfalls`** — common mistakes, evaluation order, format quirks.
-- **Component `version`** — copy verbatim into the authored node's `data.version` (string). Generic nodes without it are flagged OUTDATED in Builder.
+- **Component `version`** — copy verbatim into the authored node's `data.version` (string). Generic nodes without it are flagged OUTDATED in Workflows.
 - **Input `options` (Selection / Enum)** — the engine matches values **exactly**. Copy each option string verbatim — preserve case, never paraphrase or Title-Case (e.g. spatialjoin's `jointype` accepts `"inner"`, not `"Inner"`).
+- **Display labels vs wire values.** Some components (e.g. `native.isolines.mode`) carry a separate `optionsText` field for human-readable labels, and `components get --json` may surface those display labels under the `options` key. If `verify-remote` rejects your "verbatim" value with `Valid options: <list>` listing the *opposite case*, the CLI fed you display labels — find the true wire value by cross-referencing a known-good workflow with `carto workflows get <id> --json`. Lowercased / snake_cased forms (`walk`, `public_transport`) are common for v2 components.
+- **`verify-remote` may run multiple component versions simultaneously.** If errors and warnings list contradictory "valid options" for the same input (e.g. one accepts `"Walk"`, the other accepts `"walk"`), the engine likely ran both v1 and v2 validators against your node. Trust the version you copied from `components get`, and confirm by uploading a single-node test workflow.
 
 For values that may evolve over time (component versions, bundle/config defaults, enum option lists), treat the CLI's `components get` / `schema` output as the single source of truth — never hardcode values in your own templates. Specifically:
 
@@ -231,7 +240,7 @@ Always-on guidance:
 
 - **Workflows run on the connection's warehouse.** A workflow with a BigQuery connection cannot use Snowflake-specific SQL.
 - **Schedule expression syntax depends on the engine** — natural-language for BQ/CARTO DW (`"every day 08:00"`), cron for Snowflake/Postgres (`"0 8 * * *"`), Quartz cron for Databricks (`"0 0 8 * * ?"`). See [`references/scheduling.md`](references/scheduling.md). Picking the wrong dialect fails at schedule-add time.
-- **Copying a workflow across profiles** (dev → prod, customer-segregated workspaces) is owned by [`carto-copy-workflows`](../carto-copy-workflows) — connection mapping and schedule re-add live there.
+- **Copying a workflow across profiles** (dev → prod, customer-segregated workspaces) is covered in [`references/cross-profile-copy.md`](references/cross-profile-copy.md). Schedules don't transfer — see [`references/schedule-readd.md`](references/schedule-readd.md).
 - **Deleting a workflow doesn't delete its outputs.** Tables/views the workflow created in the warehouse persist; clean them up with `carto sql job` if needed.
 - **`workflows update` replaces the whole DAG.** There's no per-node patch. Always `get` first, edit, then `update`.
 - **Workflow execution status** lives in the activity log (`WorkflowRun`, `WorkflowExecutionComplete` event types). For health monitoring of scheduled workflows, query that log via [`carto-query-datawarehouse`](../carto-query-datawarehouse) — see `references/activity-queries.md` in that skill.

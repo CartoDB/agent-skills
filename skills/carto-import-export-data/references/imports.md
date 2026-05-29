@@ -85,7 +85,7 @@ carto import \
 3. The job parses the source, infers the schema (unless `--no-autoguessing`), creates the destination table, and loads the rows.
 4. CARTO records the import in its activity log (visible via `carto activity export`).
 
-Geometries are stored in the warehouse's native spatial type — `GEOGRAPHY` (BigQuery, Snowflake), `GEOMETRY` (Postgres/PostGIS, Redshift, Databricks).
+Geometries are stored in the warehouse's native spatial type — `GEOGRAPHY` (BigQuery, Snowflake), `GEOMETRY` (Postgres/PostGIS, Redshift, Databricks), `SDO_GEOMETRY` (Oracle Spatial).
 
 ## Common errors
 

@@ -14,7 +14,7 @@
 - **§3** *Classify the data* — scale types and the quantize/quantile/log/custom decision.
 - **§4** *Pick the palette* — the cartographic principle, then families, then specifics.
 - **§5** *Basemap pairing*.
-- **§6** *Legend, popup, label*.
+- **§6** *Legend, popup, label, description*.
 - **§7** *Anti-patterns — do not emit these*.
 - **§8** *Worked recipes*.
 - **Authoring checklist** at the bottom.
@@ -568,6 +568,58 @@ Labels render at every zoom the layer is visible. There is no per-label zoom gat
 - `size`: 12–14 max; 16+ shouts.
 - `offset`: `[0, -8]` for points (above), `[0, 0]` for polygons (centroid).
 
+### 6.4 Description (right-rail markdown)
+
+The map's `description` field is **optional**. When empty, the right-rail info button is hidden entirely (the viewer sees nothing), and that's a fine outcome for reference layers or maps with no real story. But when there *is* a story — a pattern in the data, a distinctive basemap, an interaction worth nudging — **go rich**. The right rail has plenty of vertical room, and a well-built description reads like a small landing page for the map.
+
+Treat it as a note to the end-user viewing the map — what they should take away, why it's interesting, and what to try next. Not authoring notes, not change history, not a spec sheet.
+
+**Template — top to bottom:**
+
+| Slot | Content |
+|---|---|
+| Hero image *(optional, encouraged for place-based or cartography maps)* | `![alt](url)` above the title. Anchors the right rail and gives the description landing-page feel |
+| `## Title` | The map's hook — the framing the viewer should read everything else through |
+| Lead paragraph | 2–4 sentences. What the map shows, why the dataset matters, the pattern the viewer is meant to notice |
+| `### Context` *(optional, rename per map)* | One short paragraph on the basemap, the source dataset's backstory, or a related layer that frames the main one. E.g. `### The basemap — Google Photorealistic 3D Tiles` |
+| `### What you are looking at` | Bullets that map visual channels → data fields with narrative gloss (palette rationale, units, exaggeration factor, filter axes, data FQN). Restating the legend is fine here — the value is the gloss |
+| `### Things to try` *(only if interactive)* | 2–4 bullets — concrete filter combinations, zoom levels, camera angles, or widget settings that pay off |
+
+No standalone `### Source` section — connection / table identifiers are author-side plumbing. If the dataset name is part of the story, fold it into the lead paragraph as a code span or include it as one bullet inside `### What you are looking at`.
+
+**Length — no hard cap.** As long as every section earns its space, fill the right rail. A reference layer might warrant zero lines; a flagship analytical or cartography map can comfortably run 20+.
+
+**No tables, but images are fine.** The renderer supports headings, paragraphs, lists, and embedded images — but not table syntax. For data callouts (top-N, before/after, comparisons) embed a small image instead of bullet-padding in lieu of a table.
+
+**Anti-pattern — boilerplate that doesn't add narrative.** *"This map shows three layers, displayed at different zoom levels"* tells the viewer nothing. Restating channel→field mappings is fine when you're adding context (palette rationale, units, exaggeration factor); it's noise when you're just naming the legend swatches.
+
+**Worked example — Manhattan PLUTO on Google Photorealistic 3D Tiles:**
+
+````markdown
+![New York City skyline](https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1600&q=80)
+
+## Manhattan, in 3D
+
+Every building footprint in Manhattan from the **NYC PLUTO** dataset (~40k records), extruded by floor count and coloured by land use. Mixed-use streetwalls, multi-family elevator blocks, and the commercial spine of Midtown reveal themselves as soon as you tilt the camera.
+
+### The basemap — Google Photorealistic 3D Tiles
+
+Underneath the PLUTO extrusions sits Google's **Photorealistic 3D Tiles**: a global, streamed mesh of real cities reconstructed from satellite and aerial imagery. CARTO renders it as the `google-3d` basemap, giving you real terrain, rooftops and street-level detail at any pitch. Tilt the map (`Cmd + drag`) and the city itself becomes the canvas.
+
+### What you are looking at
+
+- **Color** — Land use (12 NYC PLUTO categories, fluorescent palette tuned for the dark backdrop)
+- **Height** — `numfloors`, exaggerated 3× for emphasis
+- **Filters** — Use the *Land use* and *Era* widgets to slice by category or decade
+- **Data** — `carto-demo-data.demo_tables.manhattan_pluto_data`
+
+### Things to try
+
+- Filter to **Pre-1900** buildings — watch SoHo and Greenwich Village light up
+- Flip the Era widget to **2000+** to pick out every modern tower on the skyline
+- Pan north and follow the residential walk-ups (peach) into the elevator-served forest
+````
+
 ---
 
 ## 7. Anti-patterns — do not emit these
@@ -686,5 +738,6 @@ Walk this list before emit. If any answer is *"no"* or *"unsure"*, fix it or not
 - [ ] No rainbow palette on a sequential measure (§7.1).
 - [ ] Hover popup 2–4 columns (cap 5); click popup scoped by relevance (§6.2).
 - [ ] Label field is sparse enough that labels don't collide — no per-label zoom gate (§6.3).
+- [ ] **Description is optional** — empty is fine when there's no story. When emitted, go rich: optional hero image → `## Title` → lead paragraph → optional `### Context` / `### What you are looking at` / `### Things to try`. No standalone `### Source` section. No tables. No hard length cap (§6.4).
 - [ ] One column per channel (§7.9).
 - [ ] Multi-layer maps use distinct palette families, not shades of one (§7.11).

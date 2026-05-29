@@ -5,14 +5,13 @@
     "email": "support@carto.com"
   },
   "metadata": {
-    "version": "2.4.0-phase2d",
-    "description": "CARTO skills catalog — utility, platform, and use-case tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources, modeled on the MotherDuck agent-skills pattern."
+    "description": "CARTO skills catalog — utility, platform, and use-case tiers. Three-tier layered skills for managing CARTO Geospatial Cloud resources."
   },
   "plugins": [
     {
       "name": "carto-skills",
       "source": "./",
-      "description": "CARTO skills bundle: utility tier (basics, connect/query/explore datawarehouse) + platform tier (import-export, workflows, find-spatial-data, manage-platform, builder-maps, copy-maps, copy-workflows) + use-case patterns (hotspot, GWR, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment, spatial-autocorrelation).",
+      "description": "CARTO skills bundle: utility tier (basics, connect/query/explore datawarehouse) + platform tier (import-export, workflows, find-spatial-data, manage-platform, builder-maps, render-inline-map, preview-builder-map) + use-case patterns (hotspot, GWR, geocoding, routing, site-selection, territory, trade-area, composite-scoring, spatial-enrichment, spatial-autocorrelation).",
       "category": "geospatial",
       "tags": [
         "carto",
@@ -26,6 +25,7 @@
       ],
       "strict": false,
       "skills": [
+        "./skills/carto-arcgis-migration",
         "./skills/carto-basics",
         "./skills/carto-connect-datawarehouse",
         "./skills/carto-query-datawarehouse",
@@ -37,8 +37,7 @@
         "./skills/carto-create-builder-maps",
         "./skills/carto-render-inline-map",
         "./skills/carto-preview-builder-map",
-        "./skills/carto-copy-maps",
-        "./skills/carto-copy-workflows",
+        "./skills/carto-develop-app",
         "./skills/carto-hotspot-analysis",
         "./skills/carto-spatial-autocorrelation",
         "./skills/carto-gwr",
