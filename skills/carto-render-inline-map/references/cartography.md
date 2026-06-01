@@ -30,7 +30,7 @@
 
 **Synthetic `_carto_point_density`.** On Point sources, schema mode always includes a `_carto_point_density` column — server-side per-tile point count maps-api injects for use with aggregated styling. NOT a real column (don't query it via SQL) but IS valid as `attr` for `colorBins` / `colorContinuous`. Useful for density styling on dense point tilesets at low zoom.
 
-**Name the hook.** One sentence: *"Population is concentrated in the southeast."* The hook governs four downstream decisions: layer (§1), classification (§5), palette (§6), anti-patterns to avoid (§9).
+**Name the hook.** One sentence, phrased as the question the map should answer at a glance: *"Where is population concentrated?"*, *"Which areas improved vs. declined?"*. The hook governs four downstream decisions: layer (§1), classification (§5), palette (§6), anti-patterns to avoid (§9). It is internal framing for your encoding choices — don't write it into the map as a finding ("population is concentrated in the southeast"), since findings go stale on every data refresh.
 
 **The cartographic principle — match palette family to measure character.** Foundational thematic cartography (Brewer / ColorBrewer / MacEachren). Three families, three data shapes:
 

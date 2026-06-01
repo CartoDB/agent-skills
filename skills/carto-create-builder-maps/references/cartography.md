@@ -38,7 +38,9 @@ Cartographic choices depend on the data and on what story the map tells. Before 
 
 **Who's reading this map.** Typically a GIS / Data Analyst at the terminal, not a developer — they read maps at a glance and judge by legibility. Optimise for the glance; don't pile on options just because the schema allows them.
 
-**Name the hook.** Every decision sharpens if you can answer, in one sentence, *what the viewer should take away*. Good: *"Revenue per store is concentrated in the northeast."* Bad: *"Map of stores"* — that's a dataset, not a hook.
+**Name the hook.** Every encoding decision sharpens if you can answer, in one sentence, *what question the map should answer at a glance*. Good: *"Where is revenue concentrated across stores?"*, *"Which counties improved vs. declined year-over-year?"*, *"How does wind speed vary across the quadrant?"*. Bad: *"Map of stores"* — that's a dataset, not a hook.
+
+The hook is an **internal framing for your encoding choices** — not text to write into the map's title or description. Phrase it as a question (intent), never as a specific finding ("revenue is concentrated in the northeast"): findings go stale the moment the underlying data refreshes, and that job belongs to widgets and dynamic legends, not the static description field (§6.4).
 
 **The hook shapes four things:**
 1. The layer type (§1) — what renders best for the takeaway.
@@ -579,8 +581,8 @@ Treat it as a note to the end-user viewing the map — what they should take awa
 | Slot | Content |
 |---|---|
 | Hero image *(optional, encouraged for place-based or cartography maps)* | `![alt](url)` above the title. Anchors the right rail and gives the description landing-page feel |
-| `## Title` | The map's hook — the framing the viewer should read everything else through |
-| Lead paragraph | 2–4 sentences. What the map shows, why the dataset matters, the pattern the viewer is meant to notice |
+| `## Title` | A stable framing for the map (the subject and place, not a specific finding). The hook from §0 guides what to title — but never paste a finding-style sentence ("Revenue is concentrated in the northeast"), it'll go stale next refresh |
+| Lead paragraph | 2–4 sentences. What the map shows, why the dataset matters, what to look for — phrased so it stays true as data updates. Specific current values belong in widgets, not here |
 | `### Context` *(optional, rename per map)* | One short paragraph on the basemap, the source dataset's backstory, or a related layer that frames the main one. E.g. `### The basemap — Google Photorealistic 3D Tiles` |
 | `### What you are looking at` | Bullets that map visual channels → data fields with narrative gloss (palette rationale, units, exaggeration factor, filter axes, data FQN). Restating the legend is fine here — the value is the gloss |
 | `### Things to try` *(only if interactive)* | 2–4 bullets — concrete filter combinations, zoom levels, camera angles, or widget settings that pay off |
