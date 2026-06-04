@@ -36,7 +36,7 @@ carto credentials create token --json \
   --referers http://localhost:5173,<production-origin>
 ```
 
-**One token, many grants** — not one token per table. `--connection` and `--source` pair positionally, so repeat `--connection` for every `--source`. Use `--referers` (plural CSV); `--referer` (singular) overwrites if repeated. See [`auth-public-token.md`](references/auth-public-token.md).
+**One token, many grants** — not one token per table. `--connection` and `--source` pair positionally, so repeat `--connection` for every `--source`. Use `--referers` (plural CSV); `--referer` (singular) overwrites if repeated. `--source` also accepts **wildcard patterns** like `carto.shared.CARTO_*` to cover many resources in a single grant (patterns must contain at least two dot-separated segments — `CARTO_*` and `table*` are rejected; bare `*` is still the "all sources" sentinel, not a pattern). Add `--expiration-date 30d` (or an ISO date) for short-lived contexts like demos and keynotes; tokens never expire by default. See [`auth-public-token.md`](references/auth-public-token.md).
 
 Private apps swap the token command for `carto credentials create spa --json` (OAuth) or `carto credentials create m2m --json` (M2M).
 
