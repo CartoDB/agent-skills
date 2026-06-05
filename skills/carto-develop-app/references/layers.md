@@ -149,7 +149,28 @@ Domain is **bin edges** for `colorBins` and **discrete values** for `colorCatego
 
 ## Layer order
 
-Layers in the `layers` array render bottom-to-top — last in the array is on top. Put boundaries below points, points above heatmaps.
+**Z-order is the `layers` array, nothing else.** Layers render bottom-to-top: index 0 is on the bottom, the *last* element is on top. To restack, change array position. Put fills below outlines, outlines below points, points below markers/labels.
+
+```ts
+layers: [
+  choroplethLayer,   // bottom
+  boundaryLayer,
+  storesLayer,       // top — drawn last, never occluded
+]
+```
+
+This is the thing agents get wrong most. Three rules:
+
+- **`z-index` (CSS) does nothing to layer stacking.** All deck.gl layers live on one canvas; CSS `z-index` only orders DOM siblings (HTML panels, the canvas vs. the basemap div). A layer hidden behind another is an *array-order* problem — reorder the array, don't touch CSS.
+- **Rebuild the array; don't mutate it.** `layers.push(...)` / reassigning `layers[i]` in place won't re-render reliably. Build a fresh array (`setProps({ layers: [...] })` in vanilla, a new array each render in React) so deck.gl diffs it.
+- **A layer that "won't restack" is usually a stale closure, not a z-order bug.** If reordering the array has no visible effect, confirm you're passing the *new* array to `setProps` / the `<DeckGL layers>` prop, and that nothing downstream re-sorts it. (Distinct from "a layer won't *update* when state changes" → that's `updateTriggers`, see above.)
+
+Two refinements for the rare cases array order can't express:
+
+- **Z-fighting between two flat layers at the same elevation** (a fill and a coincident outline flicker): disable depth testing on the one that should win — deck.gl v9 spelling is `parameters: { depthCompare: 'always' }` (the old `depthTest: false` is gone). For fighting *between* layers, `polygonOffset: [factor, units]` (negative pulls toward the camera) is the finer tool.
+- **3D / extruded layers depth-test against each other**, so nearer geometry occludes farther regardless of array index. That's correct 3D behavior, not a stacking bug — array order only fully governs flat 2D layers.
+
+> Separate axis: whether deck.gl as a whole sits *above* the basemap (the default — opaque fills then hide basemap labels) or is *interleaved* so labels read over your data. That's a basemap concern, covered in [`basemap-and-view.md`](basemap-and-view.md), not array order.
 
 ## Gotchas
 
