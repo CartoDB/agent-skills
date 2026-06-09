@@ -86,3 +86,7 @@ carto activity query \
 ```
 
 That's how you turn "we hit our quota" into "Alice's daily ETL is consuming 60% of it".
+
+`apiUsage` also carries `map_id` and `workflow_id` columns, so the same table answers
+"which map (or workflow) is driving consumption?" — group by `map_id` / `workflow_id`
+instead of `user_id`. See [Quota consumption by map](../../carto-query-datawarehouse/references/activity-queries.md) for the pattern.
