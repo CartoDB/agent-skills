@@ -25,7 +25,7 @@ carto activity query \
 | Table | Contents |
 |---|---|
 | `activity` | Event log: `type`, `ts`, `data` (JSON) |
-| `apiUsage` | Daily API usage: `ts`, `user_id`, `metric`, `amount`, `quota_usage_weight` |
+| `apiUsage` | Daily API usage: `ts`, `user_id`, `metric`, `amount`, `map_id`, `workflow_id`, `quota_usage_weight` |
 | `userList` | Current users: `user_id`, `email`, `created_at`, `role`, `group_ids` |
 | `groupList` | Current groups: `group_id`, `group_alias` |
 
@@ -94,6 +94,36 @@ GROUP BY u.email
 ORDER BY quota_consumed DESC
 LIMIT 20
 ```
+
+### Quota consumption by map (or workflow)
+
+`apiUsage` carries `map_id` and `workflow_id` columns, so consumption can be attributed
+directly to the map or workflow that drove it — no need to join through `activity` events.
+
+```sql duckdb
+SELECT
+  map_id,
+  SUM(amount * quota_usage_weight) AS quota_consumed,
+  SUM(amount)                      AS total_requests,
+  COUNT(DISTINCT user_id)          AS distinct_users
+FROM apiUsage
+WHERE map_id IS NOT NULL
+  AND ts >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY map_id
+ORDER BY quota_consumed DESC
+LIMIT 5
+```
+
+Swap `map_id` for `workflow_id` to rank workflows instead. Notes:
+
+- Rows where **both** `map_id` and `workflow_id` are `NULL` are non-map/non-workflow
+  surfaces (raw SQL API, imports, AI proxy) — not attributable to any single resource.
+- Public maps accrue quota from anonymous viewers, so those rows have a `NULL` `user_id`.
+- Break a single map down by `metric` to see what's driving it (Maps API tiling vs. the
+  more heavily-weighted Widgets API vs. AI-agent token spend):
+  `... WHERE map_id = '<id>' GROUP BY metric ORDER BY SUM(amount * quota_usage_weight) DESC`.
+- Resolve a `map_id` to its name/owner with `carto maps get <map_id>` (respects map-level
+  ACLs — a map private to another user returns a PERMISSION error).
 
 ## Working with JSON
 
