@@ -31,126 +31,173 @@
     {
       "name": "carto-import-export-data",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-explore-datawarehouse"
+      ],
       "description": "Import geospatial files into the data warehouse via CARTO, export results back out, and prepare tilesets for fast map rendering.",
       "path": "skills/carto-import-export-data"
     },
     {
       "name": "carto-create-workflow",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-query-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-query-datawarehouse"
+      ],
       "description": "Builds, schedules, and operates analytics DAGs in CARTO Workflows — the no-code/low-code orchestration layer over the data warehouse. Triggers when the user wants to author a workflow, run/edit one, schedule a DAG, or copy a workflow across profiles or orgs.",
       "path": "skills/carto-create-workflow"
     },
     {
       "name": "carto-find-spatial-data",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-explore-datawarehouse"
+      ],
       "description": "Discover and subscribe to external spatial datasets via CARTO Data Observatory and partner catalogs.",
       "path": "skills/carto-find-spatial-data"
     },
     {
       "name": "carto-manage-platform",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-query-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-query-datawarehouse"
+      ],
       "description": "Administer the CARTO org — users, roles, quotas, activity audit, and bulk resource operations.",
       "path": "skills/carto-manage-platform"
     },
     {
       "name": "carto-create-builder-maps",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-explore-datawarehouse"
+      ],
       "description": "Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps` subcommand surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.",
       "path": "skills/carto-create-builder-maps"
     },
     {
       "name": "carto-render-inline-map",
       "layer": "platform",
-      "dependencies": ["carto-basics"],
+      "dependencies": [
+        "carto-basics"
+      ],
       "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-develop-app (developer app from scratch).",
       "path": "skills/carto-render-inline-map"
     },
     {
       "name": "carto-preview-builder-map",
       "layer": "platform",
-      "dependencies": ["carto-basics"],
+      "dependencies": [
+        "carto-basics"
+      ],
       "description": "Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server's load_builder_map tool. Resolves URL / ID / name (search via list_maps), renders a lightweight read-only preview (layers, basemap, viewport, popups, legend; widgets / SQL parameters / map description NOT included). Triggers on 'show me the X map', 'open the Y map', and post-CLI-creation inline previews.",
       "path": "skills/carto-preview-builder-map"
     },
     {
       "name": "carto-develop-app",
       "layer": "platform",
-      "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
+      "dependencies": [
+        "carto-basics",
+        "carto-connect-datawarehouse",
+        "carto-explore-datawarehouse"
+      ],
       "description": "Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, or M2M).",
       "path": "skills/carto-develop-app"
     },
     {
       "name": "carto-hotspot-analysis",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds Getis-Ord Gi* hotspot analysis workflows in CARTO. Triggers when the user mentions hotspots, coldspots, spatial clusters, Getis-Ord, Gi*, cluster detection, concentration areas, spacetime hotspot, temporal clusters, time-varying patterns, hotspot trends, emerging hotspots, Mann-Kendall, or wants to find statistically significant spatial or spatiotemporal patterns in point or grid data.",
       "path": "skills/carto-hotspot-analysis"
     },
     {
       "name": "carto-spatial-autocorrelation",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds Moran's I spatial autocorrelation workflows in CARTO. Triggers on spatial autocorrelation, Moran's I, spatial dependency, HH/HL/LH/LL quadrants, LISA, spatial weight matrix, or classifying locations into cluster types.",
       "path": "skills/carto-spatial-autocorrelation"
     },
     {
       "name": "carto-gwr",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds Geographically Weighted Regression (GWR) workflows in CARTO. Triggers when the user mentions GWR, geographically weighted regression, spatially varying relationships, local regression, local coefficients, spatial non-stationarity, or wants to model how predictor importance shifts across geography.",
       "path": "skills/carto-gwr"
     },
     {
       "name": "carto-spatial-enrichment",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Guides the user through spatial enrichment workflows — triggered by requests to enrich, add demographics, estimate population around locations, compute spatial features, sociodemographic analysis, \"what's around\" queries, buffer/isochrone + join patterns, or trade area enrichment.",
       "path": "skills/carto-spatial-enrichment"
     },
     {
       "name": "carto-trade-area-analysis",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds trade area and catchment analysis workflows in CARTO. Triggers on trade area, catchment area, isochrone, drive time, walk time, billboard placement, OOH audience targeting, or scoring candidate locations.",
       "path": "skills/carto-trade-area-analysis"
     },
     {
       "name": "carto-site-selection",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds site selection and cannibalization analysis workflows in CARTO. Triggers on site selection, cannibalization, new store location, optimal location, twin areas, look-alike areas, or revenue impact of a new store.",
       "path": "skills/carto-site-selection"
     },
     {
       "name": "carto-territory-planning",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds territory planning workflows in CARTO combining territory balancing and location allocation. Triggers on sales territories, service zones, balanced territories, location allocation, depot/hub placement, response-time optimization, or demand coverage.",
       "path": "skills/carto-territory-planning"
     },
     {
       "name": "carto-routing-od-analysis",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds routing and origin-destination analysis workflows in CARTO. Triggers on routing, travel time, OD matrix, isoline, isochrone, catchment area, drive-time polygon, accessibility analysis, commute patterns, OD flow, or shortest-path computation.",
       "path": "skills/carto-routing-od-analysis"
     },
     {
       "name": "carto-geocoding",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Builds geocoding workflows in CARTO that convert street addresses or place names into geographic coordinates. Triggers when the user has tabular data with addresses but no geometry column and needs to create one.",
       "path": "skills/carto-geocoding"
     },
     {
       "name": "carto-composite-scoring",
       "layer": "use-case",
-      "dependencies": ["carto-create-workflow"],
+      "dependencies": [
+        "carto-create-workflow"
+      ],
       "description": "Guides the user through building composite score workflows when they ask about composite scores, indexes, multi-variable scores, ranking areas, site scoring, market potential, resilience indexes, risk indexes, weighted scores, PCA, or supervised/unsupervised scoring.",
       "path": "skills/carto-composite-scoring"
     },
@@ -160,6 +207,13 @@
       "dependencies": [],
       "description": "End-to-end ArcGIS Portal / AGOL → CARTO migration. Runs three phases over a shared MIGRATION_MANIFEST.md: discover (enumerate + classify items), migrate-data (Hosted Feature Layers / Tables → CARTO tables), migrate-maps (Web Maps + simple Dashboard / Web Experience / Web Mapping Application entries → CARTO Builder maps). Default mode is batch; migrated maps are tagged `From ArcGIS` and created as private. Triggers when the user wants to migrate ArcGIS content to CARTO, asks 'what's in my Portal', or names a Portal/AGOL URL.",
       "path": "skills/carto-arcgis-migration"
+    },
+    {
+      "name": "carto-sh-support-bundle",
+      "layer": "utility",
+      "dependencies": [],
+      "description": "Analyse CARTO Self-Hosted support bundles — triage installation failures, degraded status, and deployment gaps from KOTS-generated bundle directories.",
+      "path": "skills/carto-sh-support-bundle"
     }
   ]
 }
