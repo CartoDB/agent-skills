@@ -1,8 +1,10 @@
 # Authentication
 
-The CLI supports three authentication modes: **interactive browser**, **headless callback** (for sandboxed/remote environments), and **API token**.
+The CLI supports three authentication modes: **interactive browser**, **headless callback**, and **API token**.
 
-## Interactive browser login (local machines)
+> **Agents: default to the headless callback flow** (`--no-launch-browser`, below). An agent driving a shell can't complete a browser OAuth — plain `carto auth login` opens a browser and blocks on a localhost callback (port 3003), which hangs in a sandbox and isn't something the agent can click through anywhere. The headless flow works everywhere — sandbox *and* laptop — so prefer it unless a human is actively at the same machine. **Do not** prompt the user for an M2M / API token as a substitute for headless login.
+
+## Interactive browser login (human at the machine)
 
 ```bash
 carto auth login                          # default profile, production tenant
@@ -53,6 +55,8 @@ carto maps list --token "your-api-token"
 ```
 
 API tokens from the Developer section of the CARTO Workspace have **limited scope** (typically scoped to specific connections, sources, and APIs). For full-platform access, prefer `auth login` (OAuth).
+
+**Don't reach for a token to dodge a headless login.** If you're in a sandbox and OAuth needs setup, run `carto auth login --no-launch-browser` — do not ask the user to generate and paste an M2M / API token instead. Tokens are for unattended automation (CI, scheduled jobs) where no human is available to complete a one-time callback, not a workaround for "no browser."
 
 ## Other auth subcommands
 

@@ -11,6 +11,18 @@ carto --help
 
 Requires Node.js 16 or later. The CLI is published as `@carto/carto-cli` on npm.
 
+### If `npm install -g` fails with EACCES (sandboxes / hosted agents)
+
+Many hosted agent sandboxes (e.g. Claude Code Cowork tasks) have a root-owned, unwritable global prefix (`/usr/lib/node_modules`), so `npm install -g` aborts with `EACCES` / `permission denied`. Retry into a writable prefix and put it on `PATH`:
+
+```bash
+npm install -g @carto/carto-cli --prefix ~/.npm-global
+export PATH="$HOME/.npm-global/bin:$PATH"
+carto --version            # confirm it's now resolvable
+```
+
+These sandboxes are also **ephemeral** — the CLI is wiped between tasks, so this install (and re-auth) must run again at the start of each new task. Do this proactively; don't tell the user to "run it on their own machine."
+
 ## Verifying
 
 After install, run:

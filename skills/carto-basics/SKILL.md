@@ -20,16 +20,14 @@ CARTO is reachable through two parallel access paths, and most agent setups use 
 - The user wants to switch between organizations or environments.
 - A downstream skill needs `--profile`, `--json`, `--token`, or `--base-url` and you don't yet know how those work.
 
-## Quick start
+## Preflight — run before any CLI operation
 
-```bash
-npm install -g @carto/carto-cli
-carto auth login                # opens browser, stores credentials
-carto auth status               # confirms tenant, org, user
-carto maps list --json          # any command can return JSON
-```
+Every CARTO skill assumes a working, authenticated `carto` CLI. Walk these checks before your first CLI call, and **re-run them at the start of each task** — ephemeral sandboxes (e.g. Claude Code Cowork tasks) wipe the CLI between tasks. An attached MCP server, by contrast, persists at the account level (see below).
 
-Authentication state persists across sessions. `auth status` is the fastest way to confirm the agent has working credentials before doing anything else.
+1. **CLI present?** Run `carto --version`. If `command not found`, **install it yourself** — tell the user you're installing, then do it; never deflect with "run this on your own machine." The npm command plus the `EACCES` / writable-prefix fallback that sandboxes need are in [references/installation.md](references/installation.md).
+2. **Authenticated?** Run `carto auth status`. If not, use the headless flow `carto auth login --no-launch-browser` — an agent can't complete a browser OAuth. **Never** open or wait on a browser, and **never** ask the user for an M2M / API token instead ([references/authentication.md](references/authentication.md)).
+
+If install or auth can't complete, **say so and stop** — never silently fall back to Python / SQL / deck.gl or other non-CARTO tooling.
 
 ## What's in this skill
 
@@ -39,39 +37,15 @@ Authentication state persists across sessions. `auth status` is the fastest way 
 | Authentication: browser, headless `--no-launch-browser`, API tokens, SSO | [references/authentication.md](references/authentication.md) |
 | Profiles: managing multiple orgs / environments | [references/profiles.md](references/profiles.md) |
 | Global flags: `--json`, `--debug`, `--yes`, `--token`, `--base-url`, `--profile`, env vars | [references/global-options.md](references/global-options.md) |
+| Access paths: CLI vs MCP routing, detection, host support | [references/access-paths.md](references/access-paths.md) |
 
 ## Access paths: CLI vs MCP server
 
-The two paths serve different intents. Most agent flows pick one based on what the user is asking for; some flows chain across both.
-
-| User intent | Preferred path | Skill |
-|---|---|---|
-| Author or edit a permanent CARTO Builder map (CRUD on saved maps, validation, publish) | CLI | `carto-create-builder-maps` |
-| Render an ad-hoc, exploratory map inline in chat from a deck.gl declarative spec | MCP (`view_map`) | `carto-render-inline-map` |
-| Open / preview an existing saved Builder map by URL, ID, or name | MCP (`load_builder_map` + `list_maps`) | `carto-preview-builder-map` |
-| Build a from-scratch CARTO + deck.gl app in TypeScript / JavaScript | (developer code) | `carto-develop-app` |
-| Discover what's in a connection — schemas, tables, named sources | CLI today; MCP equivalents (`list_connections`, `list_resources`, `search_resources`, `get_column_stats`) when attached | `carto-explore-datawarehouse` (CLI) — MCP-aware refactor pending |
-| Run spatial SQL | CLI today | `carto-query-datawarehouse` (CLI) — MCP-aware refactor pending |
-| Author a Workflow (DAG of analytical components) | CLI today | `carto-create-workflow` (CLI) — MCP-aware refactor pending |
-| Run a saved Workflow as an analytical tool | MCP, when the Workflow is registered as an MCP tool (dynamic per account) | covered ad-hoc by host's tool-list — no dedicated skill yet |
-| Geospatial pattern analyses (hotspots, GWR, spatial autocorrelation, etc.) | CLI (Workflows) | `carto-pattern-*` skills |
-
-### How to detect what's available
-
-| What | How |
-|---|---|
-| **CARTO CLI installed** | `carto --version` succeeds in a shell. |
-| **CARTO MCP server attached** | Tools named `view_map`, `load_builder_map`, `list_maps`, `list_connections`, `search_resources`, `get_column_stats` appear in your tool list. |
-| **MCP host renders MCP Apps** (interactive widgets) | Claude.ai, Claude Desktop, ChatGPT do. Gemini CLI, Codex CLI, plain MCP Inspector, current MCPJam do not — those execute MCP tools but show only text confirmations, no inline widget. |
-
-If an MCP-route intent is asked but the MCP server isn't attached (or the host doesn't render MCP Apps for visualization), surface that to the user — don't silently fall back to a generic visualization widget or a hand-rolled HTML map.
-
-### Why this orientation lives here
-
-The catalog's existing CLI-action skills (`carto-explore-datawarehouse`, `carto-query-datawarehouse`, `carto-create-workflow`, etc.) are CLI-only today. As they become mode-aware (per-skill MCP/CLI routing internal to each skill), this orientation table will narrow — eventually each skill picks its own access path internally and `carto-basics` carries only the meta-orientation. Until then, this section is the routing source of truth.
+The CLI and MCP server serve different intents — some flows chain across both. When an intent maps to MCP but the server isn't attached (or the host doesn't render MCP Apps), surface that; don't silently fall back to a hand-rolled map. The CLI is wiped per task in ephemeral sandboxes; an attached MCP server persists at the account level. Full routing table, detection signals, and host support: [references/access-paths.md](references/access-paths.md).
 
 ## Always-on guidance
 
+- **Never silently degrade.** A CARTO request is answered with CARTO tooling. If the CLI can't be installed or authenticated (or a needed MCP route isn't attached), surface the blocker and stop — don't substitute Python, SQL, deck.gl, or other generic geospatial workarounds, and don't ask for an M2M token in place of `carto auth login --no-launch-browser`.
 - **Always pass `--json`** when you need machine-readable output. CLI text output is for humans and may change.
 - **Map URLs** use the tenant domain from `auth status`, not a generic workspace URL. Private maps live at `https://{tenant_domain}/builder/{map_id}`; public/shared maps at `https://{tenant_domain}/map/{map_id}`. Never construct `workspace-{region}.app.carto.com` URLs.
 - **Confirmation prompts**: destructive commands like `maps delete` prompt for the literal word "delete". Pass `--yes` (or `--json`) for non-interactive use.
