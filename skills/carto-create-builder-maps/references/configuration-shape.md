@@ -52,10 +52,15 @@ The annotated tree below shows every top-level field the CLI accepts, plus per-d
       // post-fetch row-filter mechanism — for live filtering use SQL parameters
       // (`references/sql-parameters.md`); they re-run the query rather than filtering
       // already-fetched rows.
-      "spatialFilter": null
+      "spatialFilter": null,
       // Split-map mode (optional). See *"Split-map mode"* section below — both
       // `mapState.isSplit` and `visState.splitMaps` must agree, and every layer
       // id in `visState.layers[]` must appear in BOTH side-entries' layer maps.
+      // Layer groups (optional). Collapsible folders for the layer panel — a flat,
+      // ordered array of {type:"layer",layerId} / {type:"group",…,children} entries.
+      // Sibling of visState (NOT inside it); layers join a group via the group's
+      // `children`, not a field on the layer. Omit for a flat list. See references/layers.md.
+      "layerGrouping": []
     }
   },
 
