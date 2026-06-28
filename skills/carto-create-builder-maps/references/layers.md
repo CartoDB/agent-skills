@@ -538,6 +538,53 @@ Authoritative list: `carto maps schema enums`. Current: `tileset`, `quadbin`, `h
 
 ---
 
+## Layer groups — collapsible folders in the layer panel
+
+Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups are purely an organisation/visibility convenience in the layer panel — they don't change the data or the geometry. Authoritative shape: `carto maps schema layergrouping`.
+
+**Where it lives.** A single `layerGrouping` array at the **config root** — a sibling of `visState`, *not* inside it, and *not* a property on any layer:
+
+```jsonc
+"keplerMapConfig": {
+  "version": "v1",
+  "config": {
+    "visState": { "layers": [ /* layer "a", "b", "c" … */ ] },
+    "layerGrouping": [
+      { "type": "group", "id": "g-base", "name": "Base layers",
+        "isCollapsed": false, "isVisible": true,
+        "children": [
+          { "type": "layer", "layerId": "a" },
+          { "type": "layer", "layerId": "b" }
+        ] },
+      { "type": "layer", "layerId": "c" }          // ungrouped, sits at top level
+    ]
+  }
+}
+```
+
+**The model — read this before authoring:**
+
+- It's a **flat, ordered array** of entries. Each entry is either `{ "type": "layer", "layerId": … }` or `{ "type": "group", … }`. Order is panel order, top to bottom.
+- A layer joins a group by being listed in that group's **`children`** — there is **no `groupId` field on the layer**. Don't add one; it does nothing.
+- **Groups don't nest.** `children` holds layer entries only, never sub-groups.
+- **`layerId` must match a `visState.layers[].id`** (the layer's top-level `id`, *not* its `dataId`/`$ref`). A dangling id is pruned by Builder on load — the validator flags it.
+- **You don't have to list every layer.** Any layer omitted from the tree renders **ungrouped at the top level** — Builder appends it on load. So the minimal change to add one group is: add a single group entry referencing the layers you want folded; leave the rest out.
+- **`id` per group must be unique**; a layer may appear **once** in the whole tree.
+
+**Group fields:**
+
+| Field | Meaning |
+|---|---|
+| `id` | Stable unique id for the group (any string; not a layer id). |
+| `name` | Label shown in the layer panel. |
+| `isCollapsed` | Panel-only — whether the group is folded in the editor. No effect on the map. |
+| `isVisible` | Group-level visibility. A member layer renders only when **both** its own `config.isVisible` **and** the group's `isVisible` are true. |
+| `children` | Array of `{ "type": "layer", "layerId": … }`, in panel order. |
+
+**Gotcha — visibility is ANDed.** Toggling a group's `isVisible: false` hides every member layer regardless of each layer's own `isVisible`. If a grouped layer isn't showing, check the group flag before the layer flag.
+
+---
+
 
 ## Color ranges — palettes, scales, /stats
 

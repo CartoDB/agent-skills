@@ -9,6 +9,7 @@
 - [§C — Parameterized query (SQL parameters)](#c-parameterized-query-sql-parameters--let-users-filter-live)
 - [§D — Widgets gallery — one of each kind](#d-widgets-gallery--one-of-each-kind)
 - [§E — Split-map mode (side-by-side comparison)](#e-split-map-mode-side-by-side-comparison)
+- [§F — Layer groups (collapsible folders)](#f-layer-groups-collapsible-folders)
 
 ---
 
@@ -343,3 +344,79 @@ A two-layer map in **split view** — left side shows 2020 collisions, right sid
 - Every layer id (`L_2020`, `L_2024`) appears as a key in **both** side entries — Builder hides the layer entirely on a side if its id is absent.
 - The two layers use distinct hues (blue vs magenta) — split view is for comparison, so the two sides need readable separation, not a shared ramp.
 - Both datasets share the same source table; the per-side filter happens in SQL upstream, not via spatial filters or post-fetch row filters.
+
+---
+
+## F. Layer groups (collapsible folders)
+
+Three layers, two folded into a **"Reference"** group and one left ungrouped at the top level. Shows the `layerGrouping` array sitting at the config root (sibling of `visState`). Authoritative shape: `carto maps schema layergrouping`; full rules in `references/layers.md` → *"Layer groups"*.
+
+```json
+{
+  "title": "Stores with reference context",
+  "datasets": [
+    { "name": "stores",   "source": "carto-dw.demo.stores",        "type": "table" },
+    { "name": "districts","source": "carto-dw.demo.districts",     "type": "table" },
+    { "name": "roads",    "source": "carto-dw.demo.major_roads",   "type": "table" }
+  ],
+  "keplerMapConfig": {
+    "version": "v1",
+    "config": {
+      "mapState": { "latitude": 40.42, "longitude": -3.70, "zoom": 11 },
+      "visState": {
+        "layers": [
+          {
+            "id": "L_stores", "type": "tileset",
+            "config": {
+              "dataId": "$ref:stores", "label": "Stores",
+              "color": [120, 80, 200], "isVisible": true, "hidden": false, "columns": {},
+              "textLabel": [{"size":12,"color":[44,48,50],"field":null,"anchor":"start","offset":[0,0],"alignment":"center","outlineColor":[255,255,255]}],
+              "visConfig": {"filled": true, "stroked": false, "opacity": 0.9, "radius": 5}
+            },
+            "visualChannels": {"colorField":null,"colorScale":"quantize","sizeField":null,"sizeScale":"linear","radiusField":null,"radiusScale":"linear"}
+          },
+          {
+            "id": "L_districts", "type": "tileset",
+            "config": {
+              "dataId": "$ref:districts", "label": "Districts",
+              "color": [180, 180, 180], "isVisible": true, "hidden": false, "columns": {},
+              "textLabel": [{"size":12,"color":[44,48,50],"field":null,"anchor":"start","offset":[0,0],"alignment":"center","outlineColor":[255,255,255]}],
+              "visConfig": {"filled": false, "stroked": true, "opacity": 0.7, "thickness": 1}
+            },
+            "visualChannels": {"colorField":null,"colorScale":"quantize","sizeField":null,"sizeScale":"linear","radiusField":null,"radiusScale":"linear"}
+          },
+          {
+            "id": "L_roads", "type": "tileset",
+            "config": {
+              "dataId": "$ref:roads", "label": "Major roads",
+              "color": [90, 90, 90], "isVisible": true, "hidden": false, "columns": {},
+              "textLabel": [{"size":12,"color":[44,48,50],"field":null,"anchor":"start","offset":[0,0],"alignment":"center","outlineColor":[255,255,255]}],
+              "visConfig": {"filled": false, "stroked": true, "opacity": 0.6, "thickness": 2}
+            },
+            "visualChannels": {"colorField":null,"colorScale":"quantize","sizeField":null,"sizeScale":"linear","radiusField":null,"radiusScale":"linear"}
+          }
+        ],
+        "filters": []
+      },
+      "layerGrouping": [
+        { "type": "layer", "layerId": "L_stores" },
+        {
+          "type": "group", "id": "g-reference", "name": "Reference",
+          "isCollapsed": true, "isVisible": true,
+          "children": [
+            { "type": "layer", "layerId": "L_districts" },
+            { "type": "layer", "layerId": "L_roads" }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+**What this demonstrates:**
+- `layerGrouping` is a **flat, ordered array** at the config root — *not* nested in `visState`, and *not* a field on any layer. Panel order is top-to-bottom: the ungrouped "Stores" layer first, then the folded "Reference" group.
+- Layers join the group by appearing in its **`children`** — there's no `groupId` on `L_districts` / `L_roads`.
+- Each `layerId` matches a `visState.layers[].id` (the layer `id`, not the `$ref` dataId). A dangling id would be flagged by the validator and pruned by Builder.
+- `isCollapsed: true` ships the group folded in the panel; `isVisible: true` keeps both reference layers rendering (group visibility ANDs with each layer's own `isVisible`).
+- The "Stores" layer is omitted from any group on purpose — listing it as a top-level `{type:"layer"}` entry just fixes its panel order. Dropping it from the array entirely would still work: Builder appends ungrouped layers on load.
