@@ -96,7 +96,7 @@ Reference [`references/configuration-shape.md`](references/configuration-shape.m
 
 - `datasets[]` — connection, source, geoColumn, type, format. For h3 / quadbin layers see the source-decision rubric (dynamic binning vs pre-built tileset).
 - `keplerMapConfig.config.visState.layers[]` — type + visualChannels + visConfig (consult [`layers.md`](references/layers.md)).
-- `keplerMapConfig.config.widgets[]` if analytical (consult [`widgets.md`](references/widgets.md)).
+- `keplerMapConfig.config.widgets[]` if analytical — **read [`references/widgets.md`](references/widgets.md) in full before authoring any widget**. The validator does not catch all runtime-breaking omissions; specifically: (1) `dataSource` must be a plain string `"$ref:<id>"` — the object form `{ "id": "..." }` is silently accepted but broken at runtime; (2) `spatialIndexAggregation` is required on all widgets whose `dataSource` is an h3/quadbin/heatmapTile/clusterTile dataset — the validator does not flag its absence; (3) `operation` is required on `histogram` (not optional).
 - `keplerMapConfig.config.popupSettings.layers` — emit by default for feature-identifying datasets (consult [`popups.md`](references/popups.md)).
 - `keplerMapConfig.config.sqlParameters[]` if filterable (consult [`sql-parameters.md`](references/sql-parameters.md)).
 - `keplerMapConfig.config.basemapConfig` + `mapStyle` — write both, same value (consult [`basemap.md`](references/basemap.md)).
