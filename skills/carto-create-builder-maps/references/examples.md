@@ -115,7 +115,7 @@ A `query`-typed dataset binned to H3 with `aggregationExp` summing two metrics p
 
 ## C. Parameterized query (SQL parameters) — let users filter live
 
-Two examples: a single DateRange parameter, then a multi-parameter map (Category + DateRange) with a timeseries widget. Author with the `{{paramName}}` shape — the CLI auto-derives `queryTemplate`, the provider-native `source`, and `queryParameters` from the connection's `provider_id`.
+Three examples: a single DateRange parameter, a multi-parameter map (Category + DateRange) with a timeseries widget, then a single-select Category parameter. Author with the `{{paramName}}` shape — the CLI auto-derives `queryTemplate`, the provider-native `source`, and `queryParameters` from the connection's `provider_id`.
 
 **C.1 — single DateRange parameter:**
 
@@ -206,6 +206,46 @@ The `$ref:col` in `sqlParameters[].dataSources[].id` is resolved by the CLI to t
       "widgets": [
         {"id":"w1","type":"timeseries","title":"Calls over time","column":"created_date",
          "operation":"count","stepSize":"day","chartType":"line","dataSource":"$ref:nyc311","isValid":true}
+      ]
+    }
+  }
+}
+```
+
+**C.3 — single-select Category parameter (`selectionMode: "single"`):**
+
+Use single-select when picking more than one value would make the analysis wrong, not just busier — e.g. a scenario/mode switch, or a value that feeds an index / share-of-total where the selection is a baseline. The picker `values[]` can still list many options; the constraint is on how many the viewer may *select*.
+
+Rules the CLI enforces for `selectionMode: "single"`: `item.value` must contain exactly one value, a top-level `defaultValue` (string) is required, `defaultValue` must be one of `values[]`, and `item.value[0]` must equal `defaultValue`. The source-side SQL is unchanged — a Category parameter is always substituted as an array, so `WHERE col IN {{param}}` still applies (the array just always has one element).
+
+```json
+{
+  "title": "Store performance — one region at a time",
+  "datasets": [{
+    "$ref": "stores",
+    "type": "query",
+    "source": "SELECT geom, revenue, region FROM `proj.ds.stores` WHERE region IN {{region}}",
+    "connectionId": "<connection-id>",
+    "geoColumn": "geom",
+    "columns": ["geom","revenue","region"],
+    "format": "tilejson",
+    "label": "Stores"
+  }],
+  "keplerMapConfig": {
+    "version": "v1",
+    "config": {
+      "mapState": {"latitude": 40, "longitude": -100, "zoom": 4},
+      "basemapConfig": {"styleId": "positron"},
+      "mapStyle": {"styleType": "positron"},
+      "mapSettings": {"sqlParameterControls": true},
+      "visState": {"layers": [], "filters": []},
+      "sqlParameters": [
+        {"id": "p-region", "name": "Region", "type": "Category",
+         "values": ["West","Midwest","South","Northeast"],
+         "item": {"value": ["West"], "sqlName": "region"},
+         "selectionMode": "single",
+         "defaultValue": "West",
+         "dataSources": [{"id": "$ref:stores", "name": "Stores"}]}
       ]
     }
   }
