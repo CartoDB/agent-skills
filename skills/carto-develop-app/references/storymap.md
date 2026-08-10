@@ -102,7 +102,20 @@ export default function Storymap({ allLayers }: { allLayers: any[] }) {
     <div className="storymap">
       <DeckGL
         viewState={viewState}
-        onViewStateChange={({ viewState: v }: any) => setViewState(v)}
+        // Only accept USER-driven camera changes. deck.gl also fires this for every
+        // frame of a FlyToInterpolator flight; feeding those back into controlled
+        // state cancels the flight, and the camera never leaves step 0.
+        // Strip the transition props too — see Gotchas.
+        onViewStateChange={({ viewState: v, interactionState }: any) => {
+          const userDriven =
+            interactionState?.isDragging ||
+            interactionState?.isPanning ||
+            interactionState?.isRotating ||
+            interactionState?.isZooming;
+          if (!userDriven) return;
+          const { transitionDuration, transitionInterpolator, transitionEasing, ...rest } = v;
+          setViewState(rest);
+        }}
         controller
         layers={layers}
       >
@@ -239,6 +252,10 @@ Both are several deck.gl versions old (8.x). The *pattern* survives version drif
 
 - **`transitionInterpolator` must be a fresh instance** on every `setViewState` call that triggers a transition. deck.gl mutates it internally; reusing one breaks the next transition.
 - **Don't memoize sources on `stepIdx`.** Memoize on table name + access token. Sources are the cache key — change them and you re-fetch every chapter.
-- **Mixing controlled `viewState` with user pan/zoom**: in `onViewStateChange` you must spread the incoming `viewState` *without* the transition props, or the next `setStepIdx` won't transition (deck.gl thinks the transition is still mid-flight).
+- **Mixing controlled `viewState` with user pan/zoom.** The single most common way to break a storymap. `onViewStateChange` fires on *every frame* of a camera flight, not just on user input. The naive `onViewStateChange={({viewState}) => setViewState(viewState)}` feeds the in-flight interpolator straight back into controlled state and cancels the flight — **the camera stays pinned on step 0 while cards, dots, and legends all advance correctly.** It presents as "my tiles/layers are broken", so it burns hours in the wrong place. Two guards, both needed:
+  1. **Ignore non-user-driven changes** — gate on `interactionState.isDragging / isPanning / isRotating / isZooming` and return early otherwise.
+  2. **Strip `transitionDuration` / `transitionInterpolator` / `transitionEasing`** before storing, or the next step won't transition (deck.gl thinks a flight is still in progress).
+
+  Symptom-to-cause: camera frozen at the first step, or a flight that visibly starts and immediately snaps back. Also strip `width`/`height` if you spread the incoming object — deck.gl injects its own measured size, and echoing a stale `300×150` back pins the viewport at that size permanently (a blank map with perfectly healthy tilejson).
 - **`IntersectionObserver` mid-transition.** Throttle the callback (≥250 ms) or you'll fire `setStepIdx` while the previous transition is still running. Result: stutter.
 - **Reserved layer IDs.** If you later add the [agentic chat panel](agentic-variant.md), don't reuse the `__`-prefixed IDs the library uses for system layers.
