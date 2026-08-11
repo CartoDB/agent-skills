@@ -33,10 +33,10 @@ carto credentials create token --json \
   --connection <connectionName> --source <fully.qualified.table.A> \
   --connection <connectionName> --source <fully.qualified.table.B> \
   --apis sql,maps \
-  --referers http://localhost:5173,<production-origin>
+  --referers 'http://localhost:5173*,<production-origin>*'
 ```
 
-**One token, many grants** — not one token per table. `--connection` and `--source` pair positionally, so repeat `--connection` for every `--source`. Use `--referers` (plural CSV); `--referer` (singular) overwrites if repeated. See [`auth-public-token.md`](references/auth-public-token.md).
+**One token, many grants** — not one token per table. `--connection` and `--source` pair positionally, so repeat `--connection` for every `--source`. Use `--referers` (plural CSV); `--referer` (singular) overwrites if repeated. Referers are wildcard-matched against the browser's full page URL, so end each pattern with `*` (a bare `http://localhost:5173` won't match the `http://localhost:5173/` browsers actually send). `--apis` and grants are independent: `maps` covers sources/layers, `sql` covers `query()`, and a `*QuerySource` needs its query in the grant — see [`auth-public-token.md`](references/auth-public-token.md).
 
 Private apps swap the token command for `carto credentials create spa --json` (OAuth) or `carto credentials create m2m --json` (M2M).
 

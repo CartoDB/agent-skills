@@ -140,6 +140,7 @@ useEffect(() => {
 ## Gotchas
 
 - **`query()` returns rows, not tiles.** It's not a layer source. Don't pass it to `data:` on a layer.
+- **`query()` needs the `sql` API scope; a `maps`-only token 403s it.** And a `*QuerySource` needs *the query itself* authorised as a grant, not just the underlying table — a table grant that renders fine via `vectorTableSource` will reject the same data through `vectorQuerySource`. Filters and spatial filters on a source need no extra grant. See [`auth-public-token.md`](auth-public-token.md#grants-and-api-scopes-what-a-token-actually-authorises).
 - **Result size limits.** The SQL API caps response rows (varies by warehouse). Page in SQL with `LIMIT/OFFSET` or aggregate before returning.
 - **Don't run unbounded SQL from a public app token.** Even with `--apis sql`, scope `--source` to specific tables. Without scoping, anyone with the bundled token can run any query.
 - **Workflow output tables can be replaced atomically** by the workflow run — but there's a window during the swap where reads can fail. Retry once on transient errors.

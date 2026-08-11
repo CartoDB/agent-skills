@@ -24,7 +24,7 @@ carto credentials create token --json \
   --connection carto_dw --source my_project.demo.regions \
   --connection carto_dw --source my_project.demo.timeseries \
   --apis sql,maps \
-  --referers http://localhost:5173,https://myapp.example.com
+  --referers 'http://localhost:5173*,https://myapp.example.com*'
 #    → { "token": "eyJ...", "id": "tok_...", "grants": [ ...3 entries... ] }
 ```
 
@@ -52,15 +52,42 @@ carto credentials create token --json \
   --connection carto_dw      --source bigquery_project.demo.points \
   --connection snowflake_dw  --source MY_DB.PUBLIC.REGIONS \
   --apis sql,maps \
-  --referers https://myapp.example.com
+  --referers 'https://myapp.example.com*'
 ```
+
+## Grants and API scopes — what a token actually authorises
+
+Two independent axes. A request is allowed only if **both** pass. Getting this wrong is the most common cause of a 403 on a token that "looks right".
+
+**1. `--apis` decides which API you may call.**
+
+| Scope | Authorises |
+|---|---|
+| `maps` | Map instantiation + tiles — everything a source/layer needs |
+| `sql` | Arbitrary SQL via `query()` from `@carto/api-client` |
+
+A `maps`-only token serves tiles but **rejects every `query()` call**, and vice versa. `sql,maps` covers both and is the right default for a read-only app.
+
+**2. Each grant names a source you may read — an FQN *or* a SQL query.**
+
+- **FQN grants accept wildcards, matched per dot-segment.** `my_project.demo.*` covers every table in that dataset; `2024_*` works inside a segment. A pattern must have the **same number of segments** as the target, so `my_project.*` does *not* match `my_project.demo.points`. A bare `*` grants everything on that connection (all-wildcard forms like `*.*` are rejected).
+- **A grant can be a SQL query instead.** Any grant string containing whitespace is treated as SQL and matched **exactly** — normalised for whitespace, backticks/quotes, trailing `;`, and case, but never glob-matched.
+
+### Consequences worth internalising
+
+- **A `maps` + table grant does not authorise a `*QuerySource` over that table.** `vectorQuerySource` adds SQL on top, so it needs the query authorised — not just the table. This is the trap: the table renders fine via `vectorTableSource`, then swapping to a query source 403s.
+- **To use a `*QuerySource`, grant that exact query.** `--apis maps --source "SELECT ... FROM ..."` with a `vectorQuerySource` running the identical query works. Keep the app's SQL byte-identical to the grant (whitespace and case are forgiven; a changed column list is not).
+- **`filters`, `spatialFilters`, and models computed on the source need no extra grant.** They ride the existing source grant, so prefer them over minting query grants or pre-materialising one table per filter value.
+- **Multiple grants go on one token** — see "Multi-grant syntax" above.
+
+If you need arbitrary, user-driven SQL over a table, either grant `sql` plus the FQN, or pre-aggregate into a granted table and read it with a table source.
 
 ## Flag reference
 
 - `--connection <name>` — connection *name* (from `carto connections list --json`). **Repeat for every `--source`.**
 - `--source <fully.qualified.identifier>` — table / tileset / query. Repeat for each grant.
 - `--apis <csv>` — comma-separated subset of `sql,maps,imports,lds`. For a read-only deck.gl app, `sql,maps` is enough. Never include `imports` or `lds` in a public bundle.
-- `--referers <csv>` — comma-separated allowed origins. Use the **plural** form (`--referers a,b`) — `--referer` (singular) is overwritten if repeated, only the last one wins. Required for public apps. **Pass origins without a trailing slash** (`https://myapp.example.com`, not `https://myapp.example.com/`). A trailing slash mismatches what the browser sends and silently 403s every tile.
+- `--referers <csv>` — comma-separated allowed referer patterns. Use the **plural** form (`--referers a,b`) — `--referer` (singular) is overwritten if repeated, only the last one wins. Required for public apps. Patterns support wildcards: `*` matches one or more characters, `?` matches exactly one. Matching is against the browser's full `Referer` (page URL), not the origin — so `http://localhost:5173*` is the safe local-dev form. Quote the value so your shell doesn't glob the `*`. See the referer-matching note in Gotchas.
 - `--json` — emit `{ "token": ..., "id": ..., "grants": [...] }`. Always pass it; never scrape pretty-printed output.
 
 The token is safe in the bundle *only because it's scoped*.
@@ -119,7 +146,8 @@ carto credentials delete token <id>                               # revoke
 - **One token, multiple grants — not multiple tokens.** Bundling sources into a single token keeps the bundle small, lets the app reuse one `accessToken`, and consolidates rotation. Mint per-table tokens only when the *referer* set actually differs.
 - **`--connection` must repeat alongside every `--source`** (positional pairing). See "Multi-grant syntax" above.
 - **No `--source` = full-connection access.** A grant without source restriction reads every table on that connection.
-- **Use `--referers` (plural, CSV) — not repeated `--referer`.** The CLI parser overwrites repeated `--referer`; only the last wins. `--referers http://localhost:5173,https://myapp.example.com` is the correct form.
-- **Trailing slash on a referer = silent 403 on every map tile.** Store origins as `https://myapp.example.com` — never `https://myapp.example.com/`. The token call succeeds, but every tile request comes back 403 with body `{"error":"Unauthorized referer"}`. The HTTP status alone tells you nothing; you have to read the response body to figure out it's a referer mismatch. To diagnose: open DevTools → Network → click a failed tile → check the request `Referer` header against the value stored on the token (`carto credentials get token <id> --json`).
+- **Use `--referers` (plural, CSV) — not repeated `--referer`.** The CLI parser overwrites repeated `--referer`; only the last wins. `--referers 'http://localhost:5173*,https://myapp.example.com*'` is the correct form.
+- **Referers are wildcard-matched against the full page URL — end local-dev patterns with `*`.** The browser sends its whole page URL as `Referer`, and for a site root that always carries a trailing slash (`http://localhost:5173/`). A literal grant of `http://localhost:5173` has no wildcard, so it does **not** match and every tile 403s with body `{"error":"Unauthorized referer"}`. The token call itself succeeds and the HTTP status alone tells you nothing — you have to read the response body. Use `--referers 'http://localhost:5173*,https://myapp.example.com*'` (quoted, so the shell doesn't glob) and the whole class of failure disappears (it also covers sub-paths and ports you add later). To diagnose: DevTools → Network → click a failed tile → compare the request `Referer` header against `carto credentials get token <id> --json`. Note an **empty** referers list means "allow any referer" — convenient locally, never right for production.
 - **Tokens don't expire by default**, so rotate on a schedule and on incidents (`credentials delete` then `create` fresh).
+- **Vite reads `.env` only at startup — restart the dev server after minting a new token.** A reload (even a hard one) keeps serving the old value baked into the bundle, so the app still 403s while the same token succeeds from curl or the devtools console. That mismatch reliably sends you debugging the token instead of the server. Also treat stale console errors with suspicion after any restart: check timestamps before concluding a request is still failing.
 - **Don't use this for private data.** If the user has data their users shouldn't see, use [`auth-private-oauth.md`](auth-private-oauth.md) — the bundle is world-readable.

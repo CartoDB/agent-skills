@@ -95,4 +95,4 @@ The same `filters` object lives on the source *and* on widget calls (so charts a
 - **`columns` reduces wire bytes** for large tables — pass it whenever you don't need every column.
 - **Widget calls share the source's filters** automatically when you pass the same `filters` object. Don't pass it twice; pass it once and let the widget read it through `widgetSource`.
 - **Switching source type means switching layer type.** A `vectorTableSource` only works with `VectorTileLayer`, etc. See [`layers.md`](layers.md).
-- **`spatialDataColumn`** defaults to `geom` (varies per warehouse). If your geometry column has a different name, pass it: `spatialDataColumn: 'geometry'`.
+- **`spatialDataColumn` defaults differ by source type** — `geom` for vector sources, but `'h3'` for `h3TableSource`/`h3QuerySource` and `'quadbin'` for the quadbin pair. Pass it explicitly whenever your column is named otherwise (`spatialDataColumn: 'geometry'`, `spatialDataColumn: 'h3_r8'`). A mismatch here yields healthy-looking tilejson and an empty map, not an error.
