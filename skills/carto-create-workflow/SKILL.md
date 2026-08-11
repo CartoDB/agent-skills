@@ -26,7 +26,7 @@ Live introspection commands (use these before reaching for any reference file):
 | `carto workflows schema node.customsql` | Full customsql node spec |
 | `carto workflows schema customsql` | Copy-paste customsql node template (with `version: "2.0.0"`) |
 | `carto workflows schema edge` | Edge shape |
-| `carto workflows schema handles` | **Edge handle naming reference** — sourceHandle/targetHandle by node type, by operator, by component. Critical for valid edges. |
+| `carto workflows schema handles` | **Edge handle naming reference** — sourceHandle/targetHandle by node type, by operator, by component. Critical for valid edges. Each `targetHandle` you wire must also be **declared as an input** in the target node's `data.inputs` (`value: null` when wire-fed) or the canvas draws no line — see the [declare-edge-fed-inputs](#declare-edge-fed-inputs) rule. |
 | `carto workflows schema variable` | Variable (parameter) shape — `{ order, name, type, value, public }` |
 | `carto workflows schema schedule` | Declarative schedule metadata fields |
 | `carto workflows schema enums` | All valid enums (node types, providers, privacies, schedule frequencies) |
@@ -96,6 +96,27 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
    **Source nodes** (`type: "source"`) — treat `ReadTable` like any other component: fetch its spec with `carto workflows components get ReadTable --connection <conn> --json` to get the canonical `inputs[*].title` and `inputs[*].description`. (`ReadTable` is hidden from `components list` because it's grouped `__internal`, but `get` returns it normally.) Two source-only rules `get` cannot tell you, both from `schema node.source`:
    - The canvas display name lives in `data.label`, NOT `data.title`. Generic nodes use `title`; source nodes use `label`.
    - `data.id` and `data.inputs[0].value` must be the same FQN.
+
+   <critical-rule id="declare-edge-fed-inputs">
+   **Every input an edge feeds must be declared in the target node's `data.inputs`, with `value: null` when the value arrives over the wire.** The Workflows canvas draws each node's input connection dot from `data.inputs` — an edge whose `targetHandle` has no matching declared input renders **no dot and no connecting line**, even though the engine wires data from `edges` and the workflow runs correctly.
+
+   <why>`validate`, `verify-remote`, and `create` all pass — they check that an edge references a real node, not that the target input is declared. The only symptom is a broken-looking canvas (isolated nodes, missing lines) the user discovers on open, then reports as "it ran but looks broken." This is the single most common report of that class.</why>
+
+   The handle names **are** the input names (`carto workflows schema handles`), so for every edge the target node must carry an input whose `name` equals the edge's `targetHandle`. The reliable habit: when you drop a component, copy **all** its `Table` inputs from `carto workflows components get <name> --json` into `data.inputs`, giving each wire-fed one `"value": null` — don't include only the config inputs you set values for.
+   - single-input ops (`native.limit`, `native.buffer`, `native.saveastable`, `native.groupby`, …) → `{ "name": "source", "type": "Table", "value": null }`
+   - `native.customsql` → `sourcea`/`sourceb`/`sourcec` (the `carto workflows schema customsql` template already includes them)
+   - `native.joinv2` → `lefttable` + `righttable`; `native.spatialjoin` → `maintable` + `secondarytable`; `native.distance` → `main` + `secondary`
+
+   `validate` does not flag this yet, so cross-check it yourself before presenting — every edge's `targetHandle` must appear as an input `name` on that edge's target node:
+   ```bash
+   jq -r '.config as $c
+     | ($c.nodes | map({(.id): [((.data.inputs // [])[].name)]}) | add) as $in
+     | $c.edges[] | . as $e
+     | select($e.targetHandle and (($in[$e.target] // []) | index($e.targetHandle) | not))
+     | "edge \($e.id): target \($e.target) has no input named \"\($e.targetHandle)\" — canvas will not draw this line"' workflow.json
+   ```
+   No output = clean. Source nodes are exempt — they take no incoming edge; their `data.inputs[0]` holds the FQN (see above).
+   </critical-rule>
 
    **Canvas layout & naming — apply on every node, every workflow.** None of this affects execution, but the user opens the DAG in Workflows and a sloppy canvas reads as low quality. The numbers are small and stable; just apply them.
 
