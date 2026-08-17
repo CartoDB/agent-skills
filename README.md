@@ -1,10 +1,10 @@
 # CARTO Agent Skills
 
-A catalog of **agent skills** that teach AI coding tools to drive [CARTO](https://carto.com/) — the cloud-native location intelligence platform — correctly: right CLI flags, right SQL dialect, right job-handling patterns, right import shape.
+A catalog of **agent skills** that teach AI coding tools to drive [CARTO](https://carto.com/) — the cloud-native location intelligence platform — correctly: right tool for the task, right SQL dialect, right job-handling patterns, right import shape. The skills route to the CARTO MCP Server for in-conversation work and the CARTO CLI for scripting and automation.
 
 Each skill is a short playbook the agent loads on demand when a user's request matches its domain, so the agent produces idiomatic, working CARTO output the first time.
 
-Works with **Claude Code**, **Skills CLI**, **Codex**, and **Gemini CLI**. All four harnesses load the same skills from a single source of truth: [`skills/catalog.json`](skills/catalog.json).
+Ready-made install manifests ship for **Claude Code**, **Codex**, **Gemini CLI**, and the **Skills CLI**; any other coding agent with a compatible plugin or rules mechanism can consume the same catalog. All load the same skills from a single source of truth: [`skills/catalog.json`](skills/catalog.json).
 
 ## Documentation
 
