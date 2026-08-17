@@ -8,6 +8,8 @@ license: MIT
 
 CARTO runs spatial analytics in the user's own data warehouse. **A connection is the bridge** between CARTO and that warehouse: it carries credentials, target project/database scoping, and sometimes a service account or PAT. Most other CARTO operations (querying, importing, building maps, running workflows) require an existing connection.
 
+> **Access-path routing.** With the CARTO MCP server attached, list and inspect connections with `explore_data` (`list_connections` / `get_connection` — works even on token-authenticated sessions), create or update them with `manage_connections`, and remove them with `delete` (kind=connection) — the latter two need an OAuth-authenticated session. Use the `carto connections` CLI when the server isn't attached, for scripted setups, or as the fallback on token sessions. The engine-choice guidance and pitfalls below apply on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## When to use this skill
 
 - The user wants to connect a new warehouse to CARTO.

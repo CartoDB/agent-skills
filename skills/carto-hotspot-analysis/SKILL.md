@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that identify statistically significant spatial clusters (hotspots and coldspots) using the Getis-Ord Gi* statistic.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
 ---
 
@@ -88,7 +88,7 @@ Use `native.where` to keep only statistically significant cells:
 
 Use `native.saveastable` to persist results. The H3/Quadbin column is directly visualizable in CARTO Builder without geometry conversion.
 
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+**Success**: Validated workflow that can be uploaded via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 

@@ -15,6 +15,8 @@ Plus a sibling for usage analytics:
 
 - **`carto activity query`** — DuckDB-backed SQL over downloaded CARTO activity data. Local execution, separate from warehouse SQL.
 
+> **Access-path routing.** With the CARTO MCP server attached, run interactive SQL through `execute_query` (row-returning `SELECT`s) and `execute_async_query` (DDL/DML and anything that may outrun the query timeout) — both available even on token-authenticated MCP sessions. The dialect guidance and performance rules in this skill apply identically on either path. Use the `carto sql` CLI when the server isn't attached or the SQL is scripted/CI. `carto activity query` (local DuckDB over downloaded activity data) is CLI-only. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## When to use this skill
 
 - The user wants to count rows, run an exploratory `SELECT`, or build a transformation.

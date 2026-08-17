@@ -8,7 +8,9 @@ license: MIT
 
 Builds CARTO Workflows that define catchment areas around candidate locations, enrich them with data, and score/rank locations for site selection, billboard placement, or coverage analysis.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
+
+**Ad-hoc catchments**: with the CARTO MCP server attached, a one-off isochrone around a handful of points can come straight from the `calculate_isolines` MCP tool — the workflow patterns below are for table-scale, repeatable analysis.
 
 ---
 
@@ -81,7 +83,7 @@ Three-part scoring pattern:
 
 Use `native.saveastable` to persist the ranked results.
 
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+**Success**: Validated workflow that can be uploaded via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 

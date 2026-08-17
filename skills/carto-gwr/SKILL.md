@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that model spatially varying relationships between a dependent variable and one or more independent variables using GWR. Unlike global regression (one set of coefficients for the entire study area), GWR produces **local coefficients per spatial unit**, revealing how relationships change across space. Example: "bedrooms add $50k to price in downtown but only $20k in suburbs."
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
 ---
 
@@ -88,7 +88,7 @@ Use `native.gwr` with:
 
 Use `native.saveastable` to persist results. The spatial index column is directly visualizable in CARTO Builder -- style the map by coefficient columns to create coefficient maps showing spatial variation.
 
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+**Success**: Validated workflow that can be uploaded via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 

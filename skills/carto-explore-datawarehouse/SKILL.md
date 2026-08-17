@@ -15,6 +15,8 @@ And one CARTO-specific concept:
 
 - **Named sources** — saved, parameterized SQL that maps and apps consume as if they were tables.
 
+> **Access-path routing.** With the CARTO MCP server attached, all of this is one tool: `explore_data` (methods `list_connections`, `get_connection`, `list_resources`, `search`, `describe`) — available even on token-authenticated MCP sessions. Named-source management routes through `manage_named_sources`. Use the `carto connections` CLI commands below when the server isn't attached or the exploration is scripted/headless. Detection signals and the full routing table: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## When to use this skill
 
 - You don't know which tables / schemas exist in a connection.

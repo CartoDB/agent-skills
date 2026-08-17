@@ -8,7 +8,9 @@ license: MIT
 
 Builds CARTO Workflows that compute routes, travel time/distance matrices, and isoline catchment areas. Supports driving and walking modes. Also covers OD flow pattern analysis using spatial indexing.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
+
+**Ad-hoc requests**: if the CARTO MCP server is attached and the user needs a single route, isoline, or small OD matrix interactively, the MCP `route`, `calculate_isolines`, and `calculate_od_matrix` tools answer directly — reserve the workflow patterns below for table-scale, repeatable analysis.
 
 ---
 
@@ -60,7 +62,7 @@ Common follow-ups after isoline generation:
 
 Use `native.saveastable` to persist isoline polygons or enriched results.
 
-**Success**: Validated workflow uploadable via `carto workflows create`.
+**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -104,7 +106,7 @@ Common post-processing:
 
 Use `native.saveastable`.
 
-**Success**: Validated workflow uploadable via `carto workflows create`.
+**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -139,7 +141,7 @@ Use `native.routes` with:
 
 Use `native.saveastable`.
 
-**Success**: Validated workflow uploadable via `carto workflows create`.
+**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 

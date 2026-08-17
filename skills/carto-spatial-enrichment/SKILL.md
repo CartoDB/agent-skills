@@ -6,7 +6,7 @@ license: MIT
 
 # Spatial Enrichment in CARTO Workflows
 
-**Prerequisites**: Load `carto-create-workflow` for the development process.
+**Prerequisites**: Load `carto-create-workflow` for the development process — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
 This skill covers the universal pattern for enriching spatial data with demographics, risk scores, or any variable from a spatial features dataset.
 

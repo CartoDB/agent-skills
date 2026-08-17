@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that solve two related spatial optimization problems: dividing areas into balanced territories (e.g. sales regions, service zones) and finding optimal facility locations that maximize coverage or minimize cost.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands. Both components require the **Territory Planning Extension Package** installed on the connection.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`). Both components require the **Territory Planning Extension Package** installed on the connection.
 
 ---
 
@@ -63,7 +63,7 @@ Use `native.territorybalancing` with:
 
 Use `native.saveastable` to persist results. The spatial index column is directly visualizable in CARTO Builder, colored by territory ID.
 
-**Success**: Validated workflow uploadable via `carto workflows create`.
+**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -130,7 +130,7 @@ Use `native.locallocallocation_minimizetotalcost`:
 
 Use `native.saveastable` to persist results.
 
-**Success**: Validated workflow uploadable via `carto workflows create`.
+**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 

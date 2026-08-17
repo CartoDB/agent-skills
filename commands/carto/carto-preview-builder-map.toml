@@ -1,4 +1,4 @@
-description = "Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server's load_builder_map tool. Resolves URL / ID / name (search via list_maps), renders a lightweight read-only preview (layers, basemap, viewport, popups, legend; widgets / SQL parameters / map description NOT included). Triggers on 'show me the X map', 'open the Y map', and post-CLI-creation inline previews (carto-skills)"
+description = "Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server — resolve URL / ID / name with read_maps, render with view_map. Renders a lightweight read-only preview (layers, basemap, viewport, popups, legend; widgets / SQL parameters / map description NOT included). Triggers on 'show me the X map', 'open the Y map', and inline previews of a freshly-created map (carto-skills)"
 
 prompt = """
 Apply the `carto-preview-builder-map` skill from the carto-skills catalog to the user's request.

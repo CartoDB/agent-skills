@@ -8,6 +8,8 @@ license: MIT
 
 Org-level operations: managing users and invitations, monitoring quotas, auditing activity, and superadmin bulk ops on resources. **Most of these commands require Admin or Superadmin role**; non-admin users will see permission errors.
 
+> **Access-path routing.** With the CARTO MCP server attached over OAuth, interactive single-item admin maps to MCP tools: `manage_users`, `manage_api_access_tokens`, `manage_oauth_clients`, `organize_projects`, `admin_carto` / `admin_carto_customizations`, `export_activity_data`, `superadmin_carto_resources`, and `delete` for single-resource removal. Admin tools are hidden on token-authenticated MCP sessions — reconnect over OAuth or use the CLI. Bulk and cross-org operations (`carto admin batch-delete`, `admin transfer`) and local DuckDB analysis over exported activity data remain CLI territory. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## When to use this skill
 
 - Provisioning or removing team members.

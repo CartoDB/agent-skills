@@ -8,7 +8,9 @@ license: MIT
 
 Converts street addresses or place names into geographic coordinates (point geometries). This is an essential first step when working with tabular data that has an address column but no spatial column.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
+
+**Ad-hoc geocoding**: if the CARTO MCP server is attached and the user only needs a handful of addresses geocoded interactively, the MCP `geocode` tool answers directly — reserve the workflow pattern below for table-scale, repeatable geocoding.
 
 ---
 
@@ -61,7 +63,7 @@ For the **unmatch** output:
 
 Use `native.saveastable` to persist the geocoded output. The `geom` column contains WGS84 (EPSG:4326) point geometries, ready for visualization in CARTO Builder or further spatial analysis.
 
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+**Success**: Validated workflow that can be uploaded via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 

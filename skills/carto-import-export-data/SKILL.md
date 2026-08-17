@@ -8,6 +8,8 @@ license: MIT
 
 Move data **into** the warehouse from local files / URLs (`carto import`), pull data **out** (`carto activity export` for usage data; warehouse-native unloads for everything else), and **prepare tilesets** for performant map rendering of large geospatial datasets.
 
+> **Access-path routing.** With the CARTO MCP server attached (OAuth-authenticated session), interactive moves go through `import_data`, `export_data`, and `transfer_data`; tileset materialization SQL can run through `execute_async_query`. Use the `carto import` CLI for scripted/bulk loads, headless pipelines, or when the server isn't attached; `carto activity export` (usage data to local disk) is CLI-only. The format, size-limit, and destination-syntax guidance below applies on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## When to use this skill
 
 - The user has a CSV / GeoJSON / Shapefile / GeoParquet file and wants it queryable in the warehouse.

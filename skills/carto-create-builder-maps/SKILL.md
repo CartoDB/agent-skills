@@ -1,12 +1,14 @@
 ---
 name: carto-create-builder-maps
-description: Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps` subcommand surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.
+description: Author, edit, publish, and validate CARTO Builder maps. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Routes to the CARTO MCP server's map tools (`create_map`, `update_map`, `validate_map`, `read_maps`) when attached, and to the `carto maps` CLI — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update` — for scripted/bulk authoring, cross-org copy, or when the server isn't attached.
 license: MIT
 ---
 
 # carto-create-builder-maps
 
-CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle via the CLI: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate via the `carto maps` commands. It also covers **cross-profile copy** (`dev → prod` promotion, customer-segregated org delivery via `carto maps copy` / `maps clone`) — see the *Promote / copy across orgs* references below.
+CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate the map estate. It also covers **cross-profile copy** (`dev → prod` promotion, customer-segregated org delivery via `carto maps copy` / `maps clone`) — see the *Promote / copy across orgs* references below.
+
+> **Access-path routing.** With the CARTO MCP server attached (OAuth-authenticated session), interactive authoring maps to MCP tools: `read_maps` (list / get / search), `create_map`, `update_map`, `validate_map`, and `delete` (kind=map) — and results preview inline via `view_map` on MCP-Apps hosts (see [`carto-preview-builder-map`](../carto-preview-builder-map)). The phases, cartographic rules, and configuration guidance below apply identically on either path — where a step names a `carto maps` command, substitute the matching MCP tool; data-inspection steps route the same way (`explore_data` `describe`, `execute_query`). Stay on the CLI for scripted/bulk authoring, cross-profile copy (`maps copy` / `maps clone` — CLI-only), custom marker upload, publish snapshots (`maps publish`), and PNG screenshots (`maps screenshot`); fall back to it when the server isn't attached or the MCP session is token-authenticated (map authoring tools are hidden on token sessions; `validate_map` and `view_map` remain). On sandboxed chat hosts (Claude.ai, ChatGPT) the CLI steps can't execute at all — MCP is the only live path there. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 For ad-hoc spatial SQL exploration, use [`carto-query-datawarehouse`](../carto-query-datawarehouse).
 
@@ -197,7 +199,7 @@ Every write returns as soon as the server accepts the change. Builder loads the 
 - The agent just authored a non-trivial map (3+ layers, custom palettes, custom markers, complex widgets, 3D extrusion, custom basemap). Popups don't render on screenshots, so popup-only changes aren't a screenshot trigger.
 - The user reports the map looks blank / wrong / off — confirm what's actually rendering before iterating.
 - Before publishing publicly — sanity-check the public viewer's render.
-- The agent has no other way to see the result (remote / external agents without browser access — Claude in claude.ai, ChatGPT, MCP clients).
+- The agent has no other way to see the result AND has a shell to run the CLI (coding harnesses without browser access). On MCP-Apps hosts (Claude.ai, Claude Desktop, ChatGPT) prefer an inline `view_map` preview instead — `maps screenshot` needs a shell, which those hosts don't have.
 
 **Skip the screenshot when:**
 - Simple metadata edit (title / description / privacy / tags).

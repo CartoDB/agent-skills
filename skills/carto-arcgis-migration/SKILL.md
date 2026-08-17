@@ -14,6 +14,8 @@ A single skill that takes an ArcGIS Portal / AGOL endpoint and lands its content
 
 The manifest accumulates state — every phase updates entries from `pending` → `in-progress` → `done` / `skipped` / `failed`. Re-runs are idempotent: `done` entries are skipped; `failed` entries are retried.
 
+> **Access path.** Migration is a bulk, scripted, disk-state workflow (manifest files on disk, Python extraction, batch CLI runs) — a **CLI-path skill**. Run it where a real shell exists (Claude Code, Codex, Antigravity, etc.); it is not suited to MCP-only chat hosts. See [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## Prerequisites
 
 - The `carto-skills` plugin (this catalog). The migration phases delegate CARTO-side mechanics — imports, queries, map authoring — to `carto-import-export-data`, `carto-query-datawarehouse`, `carto-explore-datawarehouse`, and `carto-create-builder-maps`.

@@ -60,21 +60,21 @@
       "name": "carto-create-builder-maps",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
-      "description": "Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps` subcommand surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.",
+      "description": "Author, edit, publish, and validate CARTO Builder maps. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Routes to the CARTO MCP server's map tools (`create_map`, `update_map`, `validate_map`, `read_maps`) when attached, and to the `carto maps` CLI — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update` — for scripted/bulk authoring, cross-org copy, or when the server isn't attached.",
       "path": "skills/carto-create-builder-maps"
     },
     {
       "name": "carto-render-inline-map",
       "layer": "platform",
       "dependencies": ["carto-basics"],
-      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (CLI authoring), carto-preview-builder-map (load existing saved map), and carto-develop-app (developer app from scratch).",
+      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (permanent map authoring), carto-preview-builder-map (load existing saved map), and carto-develop-app (developer app from scratch).",
       "path": "skills/carto-render-inline-map"
     },
     {
       "name": "carto-preview-builder-map",
       "layer": "platform",
       "dependencies": ["carto-basics"],
-      "description": "Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server's load_builder_map tool. Resolves URL / ID / name (search via list_maps), renders a lightweight read-only preview (layers, basemap, viewport, popups, legend; widgets / SQL parameters / map description NOT included). Triggers on 'show me the X map', 'open the Y map', and post-CLI-creation inline previews.",
+      "description": "Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server — resolve URL / ID / name with read_maps, render with view_map. Renders a lightweight read-only preview (layers, basemap, viewport, popups, legend; widgets / SQL parameters / map description NOT included). Triggers on 'show me the X map', 'open the Y map', and inline previews of a freshly-created map.",
       "path": "skills/carto-preview-builder-map"
     },
     {

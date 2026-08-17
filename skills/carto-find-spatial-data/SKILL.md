@@ -10,6 +10,8 @@ The **CARTO Data Observatory (DO)** is a catalog of curated external spatial dat
 
 This skill covers **discovery and subscription**. Once subscribed, the data lives in the user's warehouse and is queryable like any other table — see [`carto-query-datawarehouse`](../carto-query-datawarehouse).
 
+> **Access-path routing.** With the CARTO MCP server attached, discovery goes through `search_data_observatory` (available even on token-authenticated sessions) and subscription management through `manage_data_observatory_subscriptions` (OAuth sessions only). Use the `carto do` CLI when the server isn't attached, for scripted use, or to subscribe when the MCP session is token-authenticated. The evaluation guidance below (coverage, licensing, cadence) applies on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## When to use this skill
 
 - The user asks for "demographics", "points of interest", "boundaries", "mobility data", "weather", or any other category of *external* spatial data.

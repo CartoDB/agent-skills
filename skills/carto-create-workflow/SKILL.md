@@ -12,7 +12,9 @@ CARTO Workflows is a visual DAG authoring app that compiles to warehouse SQL. Ea
 
 For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) — workflows are for repeatable, scheduled, multi-step DAGs.
 
-Bundle structure, component schemas, input formats, and gotchas are all served by the CLI — **never hardcode or assume them**. The CLI is the source of truth.
+> **Access-path routing.** With the CARTO MCP server attached (OAuth-authenticated session), the interactive lifecycle maps to MCP tools: `create_workflow`, `update_workflow`, `validate_workflow`, `read_workflows`, `run_workflow` (method=run|status|results), `schedule_workflow`, and `read_workflow_components` (the component catalog). The development phases below apply on either path — where a step names a `carto workflows` command, substitute the matching MCP tool. Stay on the CLI for scripting/CI, bundle-schema introspection (`carto workflows schema` — no MCP equivalent), cross-profile copy (`carto workflows copy` — CLI-only), and MCP-tool publishing (`carto workflows mcp publish`); fall back to it when the server isn't attached or the MCP session is token-authenticated (authoring tools are hidden on token sessions; `run_workflow` and `validate_workflow` remain). Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
+Bundle structure, component schemas, input formats, and gotchas are all served live — by the CLI (`carto workflows schema` / `components`) or, on the MCP path, by `read_workflow_components`. **Never hardcode or assume them.** Live introspection is the source of truth.
 
 Live introspection commands (use these before reaching for any reference file):
 

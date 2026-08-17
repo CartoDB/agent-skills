@@ -6,7 +6,7 @@ license: MIT
 
 Use this skill whenever the user wants to create a composite score, index, or multi-variable ranking in a CARTO Workflow.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process.
+**Prerequisites**: Load `carto-create-workflow` for the development process — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
 ## Instructions
 
