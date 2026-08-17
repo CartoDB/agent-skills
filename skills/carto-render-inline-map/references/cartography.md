@@ -1,20 +1,16 @@
 # Cartography reference — for `view_map` deck.gl declarative specs
 
-> **This is a reference, not a standalone skill.** Read alongside the `carto-render-inline-map` `SKILL.md` when composing a `view_map` spec that needs cartographic decisions. The `view_map` tool description carries the *syntax* (layer-source compatibility, `aggregationExp`, `@@function` shapes, expression-eval restrictions). This file layers *what to pick* on top — palette, scale, basemap, stroke, drawing order, hierarchy, picking, anti-patterns — once the agent knows *how to encode*.
-
-> **Different from `carto-create-builder-maps/references/cartography.md`.** That reference is for Builder/kepler-config maps authored via the CLI. The shapes don't transfer to deck.gl declarative — they target a different runtime.
-
-> **Different from `carto-develop-app/references/layers.md`.** That skill targets developers writing TypeScript/JavaScript app code with full `@deck.gl/carto` access (auth, scaffolds, React/Vue, full deck.gl surface including `Math.*` and arbitrary layers). This file targets agents emitting the `@deck.gl/json` declarative spec consumed by the `view_map` MCP tool — restricted to CARTO classes registered in the JSONConverter and the `@@=` expression-eval engine.
-
-> The cartographic *principles* are the same across all three contexts; the *encodings* are not.
-
-> **Only CARTO layers and primitives.** `view_map` accepts only the layers/sources/helpers from `@deck.gl/carto`: `VectorTileLayer`, `H3TileLayer`, `QuadbinTileLayer`, `ClusterTileLayer`, `HeatmapTileLayer`, `RasterTileLayer`, `PointLabelLayer`. Generic deck.gl layers are **not accepted**.
-
-**Audience:** an LLM agent composing a `view_map` deck.gl declarative spec.
+> **A reference, not a standalone skill.** Read alongside `carto-render-inline-map` `SKILL.md` when a `view_map` spec needs cartographic decisions. The `view_map` tool description carries the *syntax* (layer-source compatibility, `aggregationExp`, `@@function` shapes, expression-eval restrictions); this file layers *what to pick* — palette, scale, basemap, stroke, drawing order, hierarchy, picking, anti-patterns.
+>
+> **Not the same as** `carto-create-builder-maps/references/cartography.md` (Builder/kepler-config maps) or `carto-develop-app/references/layers.md` (TypeScript app code with full `@deck.gl/carto`). The cartographic *principles* transfer; the *encodings* do not. Here the target is the `@deck.gl/json` declarative spec — restricted to CARTO classes in the JSONConverter and the `@@=` expression engine.
+>
+> **Only CARTO layers.** `view_map` accepts only `@deck.gl/carto` layers/sources/helpers: `VectorTileLayer`, `H3TileLayer`, `QuadbinTileLayer`, `ClusterTileLayer`, `HeatmapTileLayer`, `RasterTileLayer`, `PointLabelLayer`. Generic deck.gl layers are **not accepted**.
 
 ---
 
 ## 0. Before you pick anything
+
+**Discovery tool.** All schema/stats calls below go through the **`explore_data`** MCP tool, in `describe` mode — written here as `describe(…)` for brevity. (`list_resources` is likewise the `explore_data` `list_resources` method.) `explore_data` is available on both OAuth and token MCP sessions. Off-MCP, the CLI equivalent is `carto explore describe`.
 
 **Know the data.** Use `describe` rather than guessing — two-step flow:
 
@@ -284,23 +280,24 @@ Use `layer.id` (hoisted as a sibling in PickingInfo), NOT `object.layer.id`.
 
 ## 9. Anti-patterns — do not emit these
 
-- **Hardcoded `colorBins` domain values without `describe` first.** You can't pick informed breakpoints for an unknown distribution.
-- **Palette family mismatched to data character.** Sequential on signed data hides the sign; diverging on unsigned implies a midpoint that doesn't exist; sequential / diverging on a string column implies an ordering or midpoint string data rarely carries. String columns → qualitative palette.
-- **Rainbow palette (`Prism`, `Vivid`) on ordered data.** Hue order doesn't match value order — readers misread.
-- **More than 7 `colorBins` buckets, or more than 12 `colorCategories` values.** Eye stops distinguishing.
-- **Palette reflex across sessions.** If your previous spec ended on a given palette, re-derive from the family principle this time. The answer may legitimately be the same palette, but should be a fresh fit — not a reach.
-- **Multi-layer mono-culture.** Multiple layers in one map sharing the same hue family → ambiguous which is which. Distinct families per layer.
-- **Mixing tile schemes** (`vectorTableSource` → `HeatmapTileLayer`, etc.). Silent empty render.
-- **Encoding the same column on color and size.** Wastes a channel.
-- **Three+ data-driven layers stacked.** Hierarchy collapses. Cap at two.
-- **Hardcoded raster `getFillColor` ternaries with 10+ branches.** Silently fails — use range bins.
-- **Function calls in `@@=` expressions.** Forbidden — no `Math.sqrt`, `.toFixed()`, template literals, optional chaining. Precompute in SQL.
-- **Opacity-as-channel.** Reserve `opacity` for layer-stacking and design hierarchy (§3.1), not per-feature encoding.
-- **`stroked: true` on covering H3/Quadbin layers.** Adjacent cells share boundaries; double-painting.
-- **Contrasting stroke on dense small-polygon choropleths.** Edges become more prominent than the data. Derive stroke from fill or skip stroke entirely (§4).
-- **Labels mid-stack** (`PointLabelLayer` not last in the layers array). Subsequent layers paint over them.
-- **`getFillColor` / `getLineColor` on `HeatmapTileLayer`.** Silently ignored. Use `colorRange` + `colorDomain`.
-- **Generic deck.gl layers** (`ScatterplotLayer`, `HexagonLayer`, `GeoJsonLayer`). Silently produces nothing.
+**Silent-failure traps** (render nothing / ignore the prop, no error):
+- **Mixing tile schemes** (`vectorTableSource` → `HeatmapTileLayer`, etc.) — empty render.
+- **Generic deck.gl layers** (`ScatterplotLayer`, `HexagonLayer`, `GeoJsonLayer`) — the JSONConverter only registers CARTO classes.
+- **`getFillColor` / `getLineColor` on `HeatmapTileLayer`** — use `colorRange` + `colorDomain`.
+- **Function calls in `@@=` expressions** (`Math.sqrt`, `.toFixed()`, template literals, optional chaining) — precompute in SQL.
+- **Hardcoded raster `getFillColor` ternaries with 10+ branches** — use range bins.
+
+**Misleading-map traps** (renders, but reads wrong):
+- **Palette family mismatched to data character** — sequential hides a sign; diverging invents a midpoint; sequential/diverging on strings implies an ordering. String columns → qualitative.
+- **Rainbow palette (`Prism`, `Vivid`) on ordered data** — hue order ≠ value order.
+- **Hardcoded `colorBins` domain without `describe` first** — no informed breakpoints for an unknown distribution.
+- **>7 `colorBins` buckets or >12 `colorCategories` values** — eye stops distinguishing.
+- **Multi-layer mono-culture** (same hue family) or **3+ data-driven layers** — hierarchy collapses; distinct families, cap at two.
+- **Encoding the same column on color and size** — wastes a channel.
+- **Opacity-as-channel** — reserve `opacity` for stacking/hierarchy (§3.1), not per-feature encoding.
+- **`stroked: true` on covering H3/Quadbin layers**, or contrasting stroke on dense small-polygon choropleths — double-painted edges out-shout the fill (§4).
+- **Labels mid-stack** (`PointLabelLayer` not last) — later layers paint over them.
+- **Palette reflex across sessions** — re-derive from the family principle each map; the same answer must be a fresh fit, not a reach.
 
 ---
 
@@ -456,4 +453,4 @@ Before emitting a `view_map` spec where styling is in scope:
 - [ ] `mapStyle` set explicitly to a CARTO basemap URL?
 - [ ] `getTooltip` uses `layer.id` for multi-layer dispatch (not `object.layer.id`)?
 - [ ] Bucket / category count within legibility limits (≤ 7 numeric buckets, ≤ 12 categories)?
-- [ ] Plan to emit an HTML legend after the render — via a widget tool if available, else inline HTML — per the `view_map` tool description's LEGEND section?
+- [ ] Plan to render a legend after the map — via the host's widget tool if available, else a plain-text markdown fallback (never HTML in chat; it renders as raw text). See SKILL.md and the `view_map` tool description's LEGEND section.

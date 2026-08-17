@@ -83,11 +83,9 @@ The aliased columns are what you reference in `getFillColor`, `getElevation`, an
 
 The same `filters` object lives on the source *and* on widget calls (so charts and the map agree). See [`filters.md`](filters.md). Mutating it triggers re-fetch.
 
-## When to use Query vs Table
+## Table vs Query vs Tileset
 
-- **Table**: trivial, just a table.
-- **Query**: needs `WHERE`, `JOIN`, `CASE`, computed columns, or input parameters via `queryParameters`.
-- **Tileset**: data is huge AND read-only AND already prepared as a tileset. Filters are applied client-side, not pushed to SQL — different perf profile.
+Table for a plain read; Query when you need `WHERE` / `JOIN` / `CASE` / computed columns / `queryParameters`; Tileset when data is huge, read-only, and already prepared (filters run client-side, not pushed to SQL — a different perf profile).
 
 ## Gotchas
 

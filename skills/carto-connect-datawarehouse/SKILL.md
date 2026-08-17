@@ -8,7 +8,13 @@ license: MIT
 
 CARTO runs spatial analytics in the user's own data warehouse. **A connection is the bridge** between CARTO and that warehouse: it carries credentials, target project/database scoping, and sometimes a service account or PAT. Most other CARTO operations (querying, importing, building maps, running workflows) require an existing connection.
 
-> **Access-path routing.** With the CARTO MCP server attached, list and inspect connections with `explore_data` (`list_connections` / `get_connection` — works even on token-authenticated sessions), create or update them with `manage_connections`, and remove them with `delete` (kind=connection) — the latter two need an OAuth-authenticated session. Use the `carto connections` CLI when the server isn't attached, for scripted setups, or as the fallback on token sessions. The engine-choice guidance and pitfalls below apply on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+| Task | MCP | CLI (fallback) |
+|---|---|---|
+| List / inspect connections | `explore_data` (`list_connections`, `get_connection`) — works on token sessions | `carto connections list` / `get` |
+| Create / update a connection | `manage_connections` (`create`, `update`) — **OAuth session only** | `carto connections create` / `update` |
+| Delete a connection | `delete` (kind=connection) — **OAuth session only** | `carto connections delete` |
+
+> **Access-path routing.** With the MCP server attached, list/inspect over `explore_data`; create/update over `manage_connections`; delete over `delete`. The write tools require an OAuth-authenticated session — on a token session they're hidden, so fall back to the `carto connections` CLI. Also use the CLI when the server isn't attached or for scripted setups. The engine-choice guidance and pitfalls below apply on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 ## When to use this skill
 
@@ -19,49 +25,38 @@ CARTO runs spatial analytics in the user's own data warehouse. **A connection is
 
 Use [`carto-explore-datawarehouse`](../carto-explore-datawarehouse) once a connection exists and you want to inspect what's inside it.
 
-## Quick lifecycle
+## Quick lifecycle (CLI)
 
 ```bash
-carto connections list --json             # what's already connected?
+carto connections list --json             # what's already connected? (--all, --search "prod")
 carto connections get <id>                # detailed view of one connection
 carto connections create                  # interactive create
 carto connections update <id>             # rotate credentials, change scoping
 carto connections delete <id>             # remove (irreversible)
 ```
 
-`connections list` and `connections get` are non-destructive — agents should run them freely before deciding what to do.
+List/inspect are non-destructive — run them freely before deciding what to do. **If the user already has a connection, don't push a new one — use the existing one.**
 
 ## Choosing an engine
 
 | Engine | When to choose it | Reference |
 |---|---|---|
 | **BigQuery** | Google Cloud users; CARTO's flagship integration; rich GIS functions native. | [references/bigquery.md](references/bigquery.md) |
-| **Snowflake** | Snowflake-shop customers; geospatial via SQL functions and Snowflake-native types. | [references/snowflake.md](references/snowflake.md) |
+| **Snowflake** | Snowflake-shop customers; geospatial via SQL functions and native types. | [references/snowflake.md](references/snowflake.md) |
 | **Redshift** | AWS-shop customers on Redshift Serverless or RA3 clusters. | [references/redshift.md](references/redshift.md) |
 | **Postgres** | Self-hosted or RDS Postgres with PostGIS; common for small/medium deployments. | [references/postgres.md](references/postgres.md) |
-| **Databricks** | Lakehouse / Unity Catalog users; SQL Warehouses recommended for interactive workloads. | [references/databricks.md](references/databricks.md) |
-| **Oracle** | Oracle Database with Spatial; on-prem or OCI / Autonomous Database deployments. | [references/oracle.md](references/oracle.md) |
-
-> If the user already has a connection (`connections list` returns at least one), don't push a new one — use the existing one.
-
-## Listing options
-
-```bash
-carto connections list                    # default page (10)
-carto connections list --all              # all pages
-carto connections list --search "prod"    # filter by name
-carto connections list --json             # machine-readable
-```
+| **Databricks** | Lakehouse / Unity Catalog users; SQL Warehouses for interactive workloads. | [references/databricks.md](references/databricks.md) |
+| **Oracle** | Oracle Database with Spatial; on-prem or OCI / Autonomous Database. | [references/oracle.md](references/oracle.md) |
 
 ## Common pitfalls
 
 - **Auth-mode mismatch**: BigQuery supports OAuth (interactive) *and* service-account JSON (CI). Pick one consistently per environment; mixing the two breaks shared connections.
 - **Region vs project**: Some engines need both an account/project and a region (Snowflake, Redshift). Skipping the region typically yields "endpoint not found" rather than a permissions error.
-- **Default database/schema scoping**: CARTO can write tilesets, named sources, and analytics output back into the warehouse. Confirm with the user *which* dataset/schema CARTO is allowed to write to before creating the connection.
-- **Permissions** for `connections describe` and table reads come from the credential CARTO holds, not from the user's CARTO role. A CARTO Admin with a low-privilege service account will still see "permission denied" from the warehouse.
+- **Default database/schema scoping**: CARTO writes tilesets, named sources, and analytics output back into the warehouse. Confirm *which* dataset/schema CARTO may write to before creating the connection.
+- **Permissions** for describe and table reads come from the credential CARTO holds, not the user's CARTO role. A CARTO Admin with a low-privilege service account still sees "permission denied" from the warehouse.
 
 ## What this skill doesn't cover
 
-- Browsing tables/schemas of an existing connection — that's [`carto-explore-datawarehouse`](../carto-explore-datawarehouse).
-- Running SQL against the warehouse — that's [`carto-query-datawarehouse`](../carto-query-datawarehouse).
-- Importing files into the warehouse — that's [`carto-import-export-data`](../carto-import-export-data).
+- Browsing tables/schemas of an existing connection — [`carto-explore-datawarehouse`](../carto-explore-datawarehouse).
+- Running SQL against the warehouse — [`carto-query-datawarehouse`](../carto-query-datawarehouse).
+- Importing files into the warehouse — [`carto-import-export-data`](../carto-import-export-data).

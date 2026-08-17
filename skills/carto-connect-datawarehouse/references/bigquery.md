@@ -24,24 +24,9 @@ For the carto-demo-data project (read-only public data CARTO ships):
 
 - `roles/bigquery.dataViewer` on `carto-demo-data` (or rely on default public access).
 
-## Worked example
+## Creating it
 
-```bash
-# Confirm no existing BQ connection
-carto connections list --json | jq '.[] | select(.provider == "bigquery") | {id, name}'
-
-# Interactive create
-carto connections create
-# Choose: provider = bigquery
-#         auth = service-account
-#         upload your JSON key
-#         project_id = my-gcp-project-12345
-#         default_dataset = carto_outputs
-
-# Verify
-carto connections list --search "bigquery" --json
-carto connections describe <connection-name> "carto-demo-data.demo_tables.nyc_collisions"
-```
+The fields above feed either `manage_connections` (`create`, MCP) or the interactive `carto connections create` (choose provider `bigquery`, auth `service-account`, upload the JSON key, set `project_id` and `default_dataset`). Verify with a `describe` on a known table, e.g. `carto-demo-data.demo_tables.nyc_collisions`.
 
 ## Troubleshooting
 

@@ -13,11 +13,7 @@ For everything else, hand-roll with [`data-sources.md`](data-sources.md) + [`lay
 
 A Builder map URL looks like `https://{tenant}.app.carto.com/builder/{mapId}`. The trailing UUID is `cartoMapId`.
 
-To list maps from the CLI:
-
-```bash
-carto maps list --json --mine
-```
+To find the ID: `carto maps list --json --mine` on the CLI, or `read_maps` (method `list`) over an attached MCP session.
 
 ## Public maps (no auth needed)
 

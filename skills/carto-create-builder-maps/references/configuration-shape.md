@@ -1,6 +1,6 @@
 # Map configuration shape — JSON skeleton + dataset reference
 
-The annotated tree below shows every top-level field the CLI accepts, plus per-dataset structure and `mapSettings` rules. For the authoritative field-level reference, run `carto maps schema [section]` (sections: `bundle`, `dataset`, `privacy`, `agent`, `mapstate`, `mapstyle`, `mapsettings`, `layer`, etc.).
+The annotated tree below shows every top-level field the map API accepts, plus per-dataset structure and `mapSettings` rules. For the authoritative field-level reference, run `carto maps schema [section]` (sections: `bundle`, `dataset`, `privacy`, `agent`, `mapstate`, `mapstyle`, `mapsettings`, `layer`, etc. — CLI-only). This config is identical whether you send it via `create_map` / `update_map` (MCP) or `carto maps create` / `update` (CLI); "the CLI" coercion and Tier-1 rules noted below run on both paths (the MCP map tools wrap the same pipeline).
 
 ## Top-level structure
 
@@ -139,7 +139,7 @@ For aggregated layers (`h3` / `quadbin` / `heatmapTile` / `clusterTile`) there a
 
 **Default recommendation:** dynamic binning (raw table + `h3:` / `quadbin:` `geoColumn`) unless the table is genuinely too big to bin per-request.
 
-> **Inspect tilejson before authoring against any pre-built tileset (raster, h3, quadbin).** The column catalogue isn't in `INFORMATION_SCHEMA` — it's only in tilejson metadata. Run `carto connections describe <conn> <table>` to confirm the dataset is a tileset, then read the tilejson to see what columns exist (and at what aliases). Authoring blind to it produces silent blank renders. Same advice [`layers.md`](layers.md) gives for raster / h3 / quadbin pre-built tilesets — applies equally everywhere a tilejson is the source of truth.
+> **Inspect tilejson before authoring against any pre-built tileset (raster, h3, quadbin).** The column catalogue isn't in `INFORMATION_SCHEMA` — it's only in tilejson metadata. Run `explore_data describe` / `carto connections describe <conn> <table>` to confirm the dataset is a tileset, then read the tilejson to see what columns exist (and at what aliases). Authoring blind to it produces silent blank renders. Same advice [`layers.md`](layers.md) gives for raster / h3 / quadbin pre-built tilesets — applies equally everywhere a tilejson is the source of truth.
 
 ### `type: "table"` — a full warehouse table
 
@@ -150,7 +150,7 @@ Works against any warehouse CARTO connects to — BigQuery, Snowflake, Redshift,
   "$ref": "sources",
   "type": "table",
   "source": "carto-demo-data.demo_tables.nyc_collisions",   // FQN, no backticks
-  "connectionId": "<uuid>",                                  // `carto connections list`
+  "connectionId": "<uuid>",                                  // explore_data list_connections / carto connections list
   "geoColumn": "geom",
   "columns": ["geom"],
   "format": "tilejson",

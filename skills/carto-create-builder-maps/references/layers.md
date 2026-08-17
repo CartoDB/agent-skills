@@ -1,6 +1,6 @@
 # Layers — per-layer-type authoring
 
-Every `keplerMapConfig.visState.layers[]` entry has the same top-level shape. The difference between layer types is the `type` field and the defaults Kepler fills in. This file documents each layer type's authoring shape, decision criteria, and the gotchas that aren't visible from `carto maps schema layer.<type>`.
+Every `keplerMapConfig.visState.layers[]` entry has the same top-level shape. The difference between layer types is the `type` field and the defaults Kepler fills in. This file documents each layer type's authoring shape, decision criteria, and the gotchas that aren't visible from `carto maps schema layer.<type>` (schema is CLI-only). The "CLI auto-fills / auto-composes / Tier-1 rejects" behaviours below run identically on the MCP `create_map` / `update_map` / `validate_map` pipeline — the config is the same object on either path.
 
 For cartographic decisions (which layer to pick by data character, which palette family, which scale), read `cartography.md` first — that's *what to pick*; this file is *how to encode it*.
 
@@ -266,7 +266,7 @@ Preserve it as-is on read + update. Don't author it on new maps — go straight 
 
 ### `type: "h3"` — hex-cell aggregation for H3 datasets
 
-> **Pre-built H3/quadbin tilesets — `colorField.name` is the upstream alias.** When the dataset is a **pre-built tileset** (`dataset.type: "tileset"`) rather than a dynamically-binned table, `visualChannels.colorField.name` must match the **post-aggregation column inside the tile** — typically `<col>_<agg>` (`population_sum`, `revenue_avg`, etc.) as named by the tileset author. Builder's bridging convention (where the CLI emits `aggregationExp` and Kepler bridges the rename internally — see *"`aggregationExp` — let the CLI compose it"* below) applies **only to dynamic binning**. With a pre-built tileset the rename has already happened upstream — you reference the post-aggregation alias directly. Always inspect the tilejson first (run `carto connections describe <conn> <table>`) to learn what columns exist.
+> **Pre-built H3/quadbin tilesets — `colorField.name` is the upstream alias.** When the dataset is a **pre-built tileset** (`dataset.type: "tileset"`) rather than a dynamically-binned table, `visualChannels.colorField.name` must match the **post-aggregation column inside the tile** — typically `<col>_<agg>` (`population_sum`, `revenue_avg`, etc.) as named by the tileset author. Builder's bridging convention (where the CLI emits `aggregationExp` and Kepler bridges the rename internally — see *"`aggregationExp` — let the CLI compose it"* below) applies **only to dynamic binning**. With a pre-built tileset the rename has already happened upstream — you reference the post-aggregation alias directly. Always inspect the tilejson first (`explore_data describe` / `carto connections describe <conn> <table>`) to learn what columns exist.
 
 Use with a dataset whose `geoColumn` is `h3:<colname>` and (for non-tileset sources) `aggregationExp` is set. Two shapes work:
 

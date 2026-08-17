@@ -32,21 +32,9 @@ GRANT CREATE TABLE ON SCHEMA MY_DB.PUBLIC TO ROLE CARTO_ROLE;
 GRANT CREATE VIEW  ON SCHEMA MY_DB.PUBLIC TO ROLE CARTO_ROLE;
 ```
 
-## Worked example
+## Creating it
 
-```bash
-carto connections create
-# provider = snowflake
-# account  = xy12345.us-east-1
-# user     = CARTO_USER
-# auth     = key-pair (paste private key)
-# warehouse = COMPUTE_WH
-# database  = ANALYTICS
-# schema    = PUBLIC
-# role      = CARTO_ROLE
-
-carto connections describe <name> "ANALYTICS.PUBLIC.STORES"
-```
+The fields above feed either `manage_connections` (`create`, MCP) or the interactive `carto connections create` (provider `snowflake`, auth `key-pair`, then account / user / warehouse / database / schema / role). Verify with a `describe`, e.g. `ANALYTICS.PUBLIC.STORES`.
 
 ## Troubleshooting
 

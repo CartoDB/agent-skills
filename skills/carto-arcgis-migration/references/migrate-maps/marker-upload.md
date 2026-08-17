@@ -1,8 +1,8 @@
 # Marker upload — preserving ArcGIS picture marker symbols
 
-ArcGIS layers frequently style points with custom icons via `esriPMS` (Picture Marker Symbol). The image lives on the symbol as either a URL or base64-encoded `imageData`. To preserve these in the migrated Builder map, upload each unique icon to CARTO's workspace-api **`POST /assets`** endpoint with `type=MapMarker`, then reference the returned URL in the kepler layer's marker config.
+ArcGIS layers frequently style points with custom icons via `esriPMS` (Picture Marker Symbol). The image lives on the symbol as either a URL or base64-encoded `imageData`. To preserve these in the migrated Builder map, upload each unique icon to CARTO's workspace-api **`POST /assets`** endpoint, then reference the returned asset `id` in the kepler layer's marker config.
 
-> **There is no `carto maps markers` CLI subcommand.** The CARTO CLI's `carto maps` surface is `list / get / create / update / delete / copy / validate / publish / schema / datasets / agents / screenshot` only. Marker assets upload via a multipart `POST /assets` call (`type=MapMarker`, `file=<binary>`) to the workspace API — the same endpoint Builder's UI uses when a user uploads a custom marker. Response shape: `{ id, url }`. Permission required: `write:maps`. Accepted extensions: `png`, `svg`.
+> **There is no `carto maps markers` CLI subcommand.** The CARTO CLI's `carto maps` surface is `list / get / create / update / delete / copy / validate / publish / schema / datasets / agents / screenshot` only. Marker assets upload via a multipart `POST /assets` call to the workspace API — the same endpoint Builder's UI uses when a user uploads a custom marker. **The `type` enum is `mapMarker`** (camelCase — `MapMarker` is 400-rejected: `Invalid enum value … Expected 'accountLogo' | 'mapMarker'`). `file=<binary>`. Response: `{ id, url }`. Permission required: `write:maps`. Accepted extensions: `png`, `svg` only.
 
 This file documents the **detect → acquire → dedup → upload → reference → fallback** flow. The renderer translators in [`renderer-mapping.md`](renderer-mapping.md) call into this flow when they encounter `esriPMS` symbols on `simple` or `uniqueValue` renderers.
 
@@ -74,95 +74,64 @@ def _ext_from_bytes_or_url(data, url):
     return "png"  # default; CARTO will reject if truly unsupported
 ```
 
-`POST /assets` (with `type=MapMarker`) accepts **PNG and SVG only** — see [`workspace-api/src/services/assets-service.ts`](../../../../../../cloud-native/workspace-api/src/services/assets-service.ts) `hasValidExtension`. JPEG and GIF must be converted to PNG before upload (`Pillow`'s `Image.open(...).save("file.png")` — one frame only for animated PNG / APNG / GIF).
+`POST /assets` accepts **PNG and SVG only** (`workspace-api/src/services/assets-service.ts` `hasValidExtension`). JPEG and GIF must be converted to PNG before upload (`Pillow`'s `Image.open(...).save("file.png")` — one frame only for animated PNG / APNG / GIF).
 
 ## Dedup via content hash
 
-A single Web Map can reference the same icon across 5+ layers (e.g. a "store" icon shared across regions). Hash the bytes (`sha256` truncated to 16 chars is fine) and use the hash as the cache key. Same icon → single `POST /assets` call → same returned URL reused across layers.
-
-Local cache structure under `out/markers/`:
-
-```
-out/markers/
-├── .cache.json              # { "<hash>": { url, content_type, width, height, uploaded_at } }
-├── 1a2b3c4d5e6f7g8h.png     # icon files keyed by content hash
-└── 9z8y7x6w5v4u3t2s.svg
-```
-
-Maintain `out/markers/.cache.json` as the dedup index. The cache survives across Web Map migrations and across re-runs — re-running `migrate-maps` against a failed entry won't re-upload icons that already succeeded.
-
-```python
-import json
-from datetime import datetime, timezone
-
-CACHE_PATH = MARKERS_DIR / ".cache.json"
-
-def load_cache():
-    if CACHE_PATH.exists():
-        return json.loads(CACHE_PATH.read_text())
-    return {}
-
-def save_cache(cache):
-    CACHE_PATH.write_text(json.dumps(cache, indent=2))
-
-def upload_or_reuse(digest, local_path, content_type):
-    cache = load_cache()
-    if digest in cache:
-        return cache[digest]  # { id, url }
-    asset = _post_marker_asset(local_path, content_type)  # see "Upload" below
-    cache[digest] = {
-        "id": asset["id"],
-        "url": asset["url"],
-        "content_type": content_type,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
-    }
-    save_cache(cache)
-    return cache[digest]
-```
+A single Web Map often references the same icon across 5+ layers (a "store" icon shared across regions). Hash the bytes (`sha256` truncated to 16 chars) and key the upload on the hash — same icon → single `POST /assets` call, reused across layers. The `upload_marker_asset` helper below carries an in-process `_ASSET_CACHE`; persist it to `out/markers/.cache.json` (`{ "<hash>": { id, url, content_type, uploaded_at } }`) so the cache survives across Web Map migrations AND re-runs — re-running `migrate-maps` against a failed entry won't re-upload icons that already succeeded. Icon files also land under `out/markers/<hash>.<ext>` for post-mortem inspection.
 
 ## Upload
 
-Multipart `POST /assets` to the workspace API. The token + workspace URL come from `~/.carto_credentials.json` and `carto auth status --json` (so the agent doesn't hardcode tenants).
+Multipart `POST /assets` to the workspace API. Resolve the base URL and token from `carto auth status --json` + `~/.carto_credentials.json` so no tenant is hardcoded. **The `type` field is `mapMarker`** (camelCase — `MapMarker` 400s). Sniff the bytes header before trusting the source's `contentType` (ArcGIS sometimes lies — National Rail's PNG was declared `image/jpeg` and the workspace-api 400'd on it).
 
 ```python
-import json, subprocess
+import io, json, subprocess, base64, hashlib
 from pathlib import Path
+from PIL import Image
 
-def _workspace_api_base() -> str:
+def _workspace_api_base():
     status = json.loads(subprocess.check_output(["carto", "auth", "status", "--json"]))
     return f"https://workspace-{status['tenant_id']}.app.carto.com"
 
-def _bearer_token() -> str:
+def _bearer_token():
     creds = json.loads(Path("~/.carto_credentials.json").expanduser().read_text())
     return creds["profiles"][creds["current_profile"]]["token"]
 
-def _post_marker_asset(local_path: Path, content_type: str) -> dict:
-    """POST /assets with multipart/form-data; type=MapMarker. Returns {id, url}."""
-    api = _workspace_api_base()
-    token = _bearer_token()
-    result = subprocess.run(
-        [
-            "curl", "-sS", "-X", "POST",
-            "-H", f"Authorization: Bearer {token}",
-            "-F", "type=MapMarker",
-            "-F", f"file=@{local_path};type={content_type}",
-            f"{api}/assets",
-        ],
-        capture_output=True, text=True, check=True,
+def _sniff(raw):
+    """Return (content_type, ext, raw) — converting JPEG to PNG."""
+    if raw.startswith(b"\x89PNG\r\n\x1a\n"):               return "image/png", "png", raw
+    if raw.startswith(b"<svg") or raw.startswith(b"<?xml"): return "image/svg+xml", "svg", raw
+    if raw.startswith(b"\xff\xd8\xff"):                     # JPEG → PNG
+        buf = io.BytesIO()
+        Image.open(io.BytesIO(raw)).convert("RGBA").save(buf, format="PNG", optimize=True)
+        return "image/png", "png", buf.getvalue()
+    return "image/png", "png", raw
+
+_ASSET_CACHE = {}  # content-hash -> {id, url}
+
+def upload_marker_asset(raw, name="icon"):
+    """Content-hash-dedup'd multipart POST /assets. Returns {id, url} or None."""
+    ct, ext, raw = _sniff(raw)
+    h = hashlib.sha256(raw).hexdigest()[:16]
+    if h in _ASSET_CACHE:
+        return _ASSET_CACHE[h]
+    tmp = f"/tmp/marker_{h}.{ext}"
+    Path(tmp).write_bytes(raw)
+    r = subprocess.run(
+        ["curl", "-sS", "-X", "POST", f"{_workspace_api_base()}/assets",
+         "-H", f"Authorization: Bearer {_bearer_token()}",
+         "-F", "type=mapMarker",
+         "-F", f"file=@{tmp};type={ct}"],
+        capture_output=True, text=True,
     )
-    response = json.loads(result.stdout)
-    if "id" not in response or "url" not in response:
-        raise RuntimeError(f"Unexpected /assets response: {response!r}")
-    return response  # { "id": "...", "url": "https://..." }
+    resp = json.loads(r.stdout)
+    if "id" in resp:
+        _ASSET_CACHE[h] = resp
+        return resp
+    return None
 ```
 
-The response shape is small and stable:
-
-```json
-{ "id": "<uuid>", "url": "https://<workspace-api-host>/...?fileName=<name>" }
-```
-
-The `url` is a 7-day presigned GET URL — long enough for migration runs but rotated by the asset store, so capture `id` to the cache too. Builder's `KeplerMapConfigSerializer` resolves `customMarkersId` → fresh presigned URL on every map read ([`workspace-api/src/serializers/kepler-map-config-serializer.ts`](../../../../../../cloud-native/workspace-api/src/serializers/kepler-map-config-serializer.ts)), so the durable reference in kepler config should be the asset `id`. The transient `url` is only for the immediate migration's verification screenshot.
+Response: `{ "id": "<uuid>", "url": "<presigned-GET>" }`. The `url` is a **7-day presigned GET** that rotates, so persist **only the `id`** on the layer — Builder's `KeplerMapConfigSerializer` resolves `customMarkersId` → a fresh presigned `customMarkersUrl` on every map read. The transient `url` is only for the immediate verification screenshot. Persist the cache to `out/markers/.cache.json` too so re-runs of a failed entry don't re-upload — the workspace-api creates a new asset record per call, so client-side dedup is the only thing preventing duplicate uploads.
 
 ## Reference in kepler
 
@@ -238,109 +207,26 @@ vc["customMarkerSize"] = target             # legacy mirror, harmless
 
 `symbol.angle` (rotation) is supported by some kepler subtypes via `visConfig.iconRotation` or similar — set it if the live schema exposes the field; otherwise drop with `Notes: marker-rotation-dropped: <angle>` if `angle != 0`.
 
-## Multi-color icons: upload via `POST /assets` + set `visConfig.filled: false`
+## Multi-color icons: uploaded asset + `visConfig.filled: false`
 
-Two things must happen together to preserve a multi-color source PNG (Underground roundel = red outline + WHITE interior + BLUE crossing line, etc.):
+Two changes must land together on the same layer to preserve a multi-color source PNG (Underground roundel = red outline + white interior + blue line):
 
-1. **Upload the PNG to the workspace-api `/assets` endpoint** and reference it on the layer via `customMarkersId` (the server hydrates a fresh presigned `customMarkersUrl` on every map read — see `workspace-api/src/serializers/kepler-map-config-serializer.ts`).
-2. **Set `visConfig.filled: false` on the icon layer.** Kepler's TileLayer applies its `getFillColor` accessor only when `visConfig.filled` is truthy (see `workspace-www/src/features/builder/ui/KeplerGl/layers/TileLayer.ts`, the color channel's `condition`). With `filled: true`, every non-transparent icon pixel is replaced by `getFillColor` (derived from `layer.config.color`) and the icon collapses into a single shade. With `filled: false`, the tint is skipped and the icon renders with its source PNG colors.
+1. **Upload the PNG** (via `upload_marker_asset` above) and store the returned asset `id` in `visConfig.customMarkersId`.
+2. **Set `visConfig.filled: false`.** Kepler's TileLayer applies its `getFillColor` accessor only when `filled` is truthy (`workspace-www/.../KeplerGl/layers/TileLayer.ts`). With `filled: true`, every non-transparent pixel is replaced by `getFillColor` (from `layer.config.color`) and the icon collapses to one shade.
 
-**Either alone is insufficient.** A data URI in `customMarkersUrl` with `filled: false` still renders monochromatic. An uploaded asset with `filled: true` (the kepler default) also renders monochromatic. Both fixes have to be applied to the same layer.
-
-Verified via the TfL PTAL LSOA migration (rounds 5–7):
-
-- Round 5: set `visConfig.fillColor` to white. Server zeroed `fillColor` to `null` for icon layers; Builder fell back to `layer.config.color` → uniformly red.
-- Round 6: set `layer.config.color` to white. Builder rendered every pixel **white** — proves it's a color REPLACE, not a multiplicative tint.
-- Round 7: uploaded each PNG to `/assets`, set `customMarkersId`, set `filled: false` → multi-color icons render with their source colors. **Working state.**
-
-### Endpoint and request shape
-
-`POST {workspaceApiUrl}/assets` — the workspace-api base URL comes from the tenant's `/config.yaml` under `apis.workspaceUrl`. For the `clausa.app.carto.com` tenant it's `https://workspace-gcp-us-east1.app.carto.com`. Resolve once per migration:
-
-```bash
-curl -sS https://<tenant>.app.carto.com/config.yaml | grep workspaceUrl
-# apis:
-#   workspaceUrl: "https://workspace-gcp-us-east1.app.carto.com"
-```
-
-Request:
-
-```bash
-curl -sS -X POST "${WORKSPACE_URL}/assets" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -F "type=mapMarker" \
-  -F "file=@icon.png;type=image/png"
-```
-
-**Casing matters.** The `type` enum is **`mapMarker`** (camelCase, lowercase first letter) — the docs / older lessons that said `MapMarker` are wrong. The server returns `400 Invalid enum value … Expected 'accountLogo' | 'mapMarker'` if you send `MapMarker`.
-
-Response: `{ id: "<uuid>", url: "<presigned-GET-7-day-TTL>" }`. Persist **only the `id`** on the layer — the server-side serializer hydrates `customMarkersUrl` on every map read, so storing the URL is unnecessary and the URL will expire after 7 days.
-
-Accepted file types: `png`, `svg` only (`workspace-api/src/services/assets-service.ts` `hasValidExtension`). JPEG → convert to PNG first (PIL: `Image.open(buf).convert("RGBA").save(out, "PNG")`).
-
-**Sniff the bytes header** before trusting the source's `contentType`. ArcGIS occasionally lies — National Rail's PNG bytes were declared `image/jpeg` in the source, which the workspace-api 400'd on. Sniff:
+**Either alone stays monochromatic** — a `data:` URI with `filled: false`, or an uploaded asset with `filled: true` (the default), both render as one shade. TfL PTAL LSOA rounds 5–7 established this: round 5 (`fillColor` white) → server zeroed it, uniformly red; round 6 (`layer.config.color` white) → every pixel white, proving it's a REPLACE not a tint; round 7 (uploaded `customMarkersId` + `filled: false`) → source colors render.
 
 ```python
-if raw_bytes.startswith(b"\x89PNG\r\n\x1a\n"):       ct, ext = "image/png", "png"
-elif raw_bytes.startswith(b"<svg") or \
-     raw_bytes.startswith(b"<?xml"):                  ct, ext = "image/svg+xml", "svg"
-elif raw_bytes.startswith(b"\xff\xd8\xff"):           # JPEG — convert to PNG via PIL
-    img = Image.open(io.BytesIO(raw_bytes)).convert("RGBA")
-    buf = io.BytesIO(); img.save(buf, format="PNG", optimize=True)
-    raw_bytes = buf.getvalue(); ct, ext = "image/png", "png"
-```
-
-### Worked composer pattern
-
-```python
-import json, subprocess, hashlib
-from pathlib import Path
-
-ASSETS_ENDPOINT = "https://workspace-gcp-us-east1.app.carto.com/assets"
-
-def _carto_token():
-    creds = json.load(open(Path.home() / ".carto_credentials.json"))
-    return creds["profiles"][creds["current_profile"]]["token"]
-
-_ASSET_CACHE = {}  # hash -> {id, url}
-
-def upload_marker_asset(raw_bytes, name="icon"):
-    # ...sniff content_type + extension from header (see above)...
-    h = hashlib.sha256(raw_bytes).hexdigest()[:16]
-    if h in _ASSET_CACHE:
-        return _ASSET_CACHE[h]
-    tmp = f"/tmp/marker_{h}.{ext}"
-    open(tmp, "wb").write(raw_bytes)
-    r = subprocess.run([
-        "curl", "-sS", "-X", "POST", ASSETS_ENDPOINT,
-        "-H", f"Authorization: Bearer {_carto_token()}",
-        "-F", "type=mapMarker",
-        "-F", f"file=@{tmp};type={ct}",
-    ], capture_output=True, text=True)
-    resp = json.loads(r.stdout)
-    if "id" in resp:
-        _ASSET_CACHE[h] = resp
-        return resp
-    return None
-
-# In the per-layer post-build step:
 if vc.get("customMarkers"):
-    vc["filled"] = False                                 # <-- required for non-monochromatic
+    vc["filled"] = False                                          # required for non-monochromatic
     if vc.get("customMarkersUrl", "").startswith("data:"):
         raw = base64.b64decode(vc["customMarkersUrl"].split(",", 1)[1])
         asset = upload_marker_asset(raw, layer_label)
         if asset:
-            vc["customMarkersId"]  = asset["id"]
-            vc["customMarkersUrl"] = asset["url"]        # nice-to-have; server overwrites on read
+            vc["customMarkersId"] = asset["id"]                   # durable ref; server hydrates the URL
 ```
 
-### Content-hash dedup is still important
-
-A single Web Map often shares one icon across multiple layers (per-region store icons, etc.). Hash the bytes, key the upload cache on the hash, upload once per unique PNG. The workspace-api creates a new asset record per call, so client-side dedup is the only thing preventing duplicate uploads. Truncated sha256 (16 chars) is fine.
-
-### Brand color stays in `strokeColor`
-
-With `filled: false`, the layer's fill never renders. Put the brand color in `visConfig.strokeColor` and `initialStrokeColor` so the icon gets a brand-colored outline ring around it, and so the data-panel chip in Builder's sidebar still reads "Underground" / "Elizabeth Line" / etc. (Builder also uses `strokeColor` as the chip color when fill is disabled on point layers.)
+**Brand color stays in `strokeColor`** (and `initialStrokeColor`): with `filled: false` the fill never renders, but Builder uses `strokeColor` for the icon's outline ring AND for the sidebar data-panel chip, so brand identity ("Underground" / "Elizabeth Line") is preserved there.
 
 ## Aspect-ratio preservation — pad non-square PNGs to square
 

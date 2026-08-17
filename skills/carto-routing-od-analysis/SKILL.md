@@ -6,11 +6,12 @@ license: MIT
 
 # Routing and Origin-Destination Analysis
 
-Builds CARTO Workflows that compute routes, travel time/distance matrices, and isoline catchment areas. Supports driving and walking modes. Also covers OD flow pattern analysis using spatial indexing.
+Computes routes, travel time/distance matrices, and isoline catchment areas (driving and walking modes), plus OD flow pattern analysis via spatial indexing. Two access paths, by scale:
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
+- **Single / ad-hoc (MCP-first)**: for one route, one location's isolines, or a small OD matrix, the CARTO MCP tools `route`, `calculate_isolines`, and `calculate_od_matrix` answer directly (each also has a `capabilities` operation to list supported modes/range types). No workflow needed. These run on any MCP host, including sandboxed chat hosts where the CLI can't. Prefer them for interactive requests.
+- **Table-scale / repeatable**: for computing over a whole table or a reusable pipeline, use the Workflow patterns below. Load `carto-create-workflow` for the development process, JSON structure, and validation — it covers both paths (MCP `create_workflow` / `validate_workflow` / `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
-**Ad-hoc requests**: if the CARTO MCP server is attached and the user needs a single route, isoline, or small OD matrix interactively, the MCP `route`, `calculate_isolines`, and `calculate_od_matrix` tools answer directly — reserve the workflow patterns below for table-scale, repeatable analysis.
+Over an API-token MCP session the ad-hoc/authoring tools are hidden (read/discovery only) — fall back to the CLI or reconnect over OAuth.
 
 ---
 
@@ -60,9 +61,7 @@ Common follow-ups after isoline generation:
 
 #### Step A4: Save
 
-Use `native.saveastable` to persist isoline polygons or enriched results.
-
-**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
+Use `native.saveastable` to persist isoline polygons or enriched results, then validate and upload the workflow (MCP `create_workflow` / `validate_workflow`, or `carto workflows create`).
 
 ---
 
@@ -104,9 +103,7 @@ Common post-processing:
 
 #### Step B4: Save
 
-Use `native.saveastable`.
-
-**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
+Use `native.saveastable`, then validate and upload (MCP `create_workflow` or `carto workflows create`).
 
 ---
 
@@ -133,15 +130,11 @@ Use `native.routes` with:
 | Origins input | Connected from the origins table node |
 | Destinations input | Connected from the destinations table node |
 
-**Output**: Route line geometries with `duration_s` and `distance_m` attributes.
-
-**Success**: One route geometry per OD pair, visualizable on a map.
+**Output**: One route line geometry per OD pair (with `duration_s`, `distance_m`), visualizable on a map.
 
 #### Step C3: Save
 
-Use `native.saveastable`.
-
-**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
+Use `native.saveastable`, then validate and upload (MCP `create_workflow` or `carto workflows create`).
 
 ---
 

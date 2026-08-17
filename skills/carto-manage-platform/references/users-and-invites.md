@@ -1,5 +1,7 @@
 # User and invitation management
 
+> **Route interactively via MCP `manage_users`** (list, invite, role change, delete-with-handoff) when the server is attached over OAuth. On token sessions `manage_users` is hidden — use the CLI below. The CLI is also the path for scripted/bulk provisioning and headless runs. Same semantics either way; the flags/roles below apply to both.
+
 ## Listing users
 
 ```bash
@@ -69,12 +71,7 @@ Tokens come from the invitations list output. Re-sending is useful when the orig
 
 ## Role changes
 
-There's no dedicated `users update-role` subcommand in the current CLI. Two routes:
-
-1. **Workspace UI** — Settings → Users → click user → change role.
-2. **API** — direct API call (out of scope for this skill).
-
-If `carto users update` lands in a future CLI version, prefer it.
+MCP `manage_users` handles role changes directly over OAuth. The current CLI has **no** `users update-role` subcommand — on a token session or CLI-only host, change roles in the Workspace UI (Settings → Users → change role) or via a direct API call.
 
 ## Deleting users
 
@@ -82,7 +79,7 @@ If `carto users update` lands in a future CLI version, prefer it.
 carto users delete <user-id|email> <receiver-id|email>
 ```
 
-**Both arguments are required.** The receiver inherits the departed user's owned resources (maps, workflows, connections). CARTO won't orphan resources.
+**Both arguments are required** (MCP `manage_users` delete and the CLI alike). The receiver inherits the departed user's owned resources — CARTO won't orphan them.
 
 ```bash
 carto users delete alice@x.com bob@x.com
@@ -92,7 +89,7 @@ If no obvious receiver exists, create a "former-employees" service account and u
 
 ## Common gotchas
 
-- **Inviting an existing user** errors. Check `users list --search` first.
-- **Pending invites count against quota** in some plans. If you're at user-cap, cancel stale invites to free slots.
-- **Email-vs-ID inconsistency** — `users get alice@x.com` works; `users delete <numeric-id> <email>` works too. The CLI accepts either.
-- **Audit trail**: `UserCreated`, `UserDeleted`, `UserRoleUpdated` events land in the activity log. To verify an invite turned into a real account, query for `UserCreated` events filtered by the invitee's email.
+- **Inviting an existing user** errors — check the user list first.
+- **Pending invites count against quota** in some plans. At user-cap, cancel stale invites to free slots.
+- **Email or ID accepted interchangeably** wherever a user is named (get, delete, invite).
+- **Audit trail**: `UserCreated` / `UserDeleted` / `UserRoleUpdated` events land in the activity log. To verify an invite became a real account, query `UserCreated` filtered by the invitee's email.

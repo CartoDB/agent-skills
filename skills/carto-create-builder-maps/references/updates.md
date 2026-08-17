@@ -2,6 +2,8 @@
 
 CRUD operations for an existing map (read → modify → write), the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), and the validation levers available pre-create. For starting-from-scratch JSON templates, see `examples.md`.
 
+> Recipes are shown as `carto maps` commands; on MCP substitute `read_maps get` (read), `update_map` (update / update_dataset / publish), `create_map` (create), `delete` (kind=map). The merge/wipe rules and validation levers below hold on both paths — `update_map` replaces `keplerMapConfig` wholesale exactly as the CLI does.
+
 ## Recipes
 
 ### Duplicate an existing map

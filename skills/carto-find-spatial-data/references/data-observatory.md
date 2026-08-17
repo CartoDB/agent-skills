@@ -1,18 +1,19 @@
 # Discovering datasets in the Data Observatory
 
+Discovery works on any MCP session (OAuth or token) via `search_data_observatory`, or on the CLI via `carto do`. Same filters and result shape on both.
+
 ## Search
 
-```bash
-carto do search [options] --json
-```
+- **MCP:** `search_data_observatory` `method: "list_datasets"` with `keyword`, `country`, `category`, `license`, and pagination fields. Use `method: "list_filters"` to enumerate the valid filter values, and `method: "search_variables"` to search individual columns/variables across datasets.
+- **CLI:** `carto do search [options] --json`.
 
-| Flag | Effect |
+| Filter | Effect |
 |---|---|
-| `--keyword <term>` | Free-text search across name, description, tags. |
-| `--country <code>` | ISO country code filter (`usa`, `gbr`, `esp`, …). |
-| `--category <name>` | Filter by category (demographics, points-of-interest, mobility, environment, financial, …). |
-| `--license free\|paid` | Free public-domain datasets vs licensed/paid. |
-| `--page-size <n>` / `--page <n>` | Pagination. |
+| `keyword` / `--keyword <term>` | Free-text across name, description, tags. |
+| `country` / `--country <code>` | ISO country code (`usa`, `gbr`, `esp`, …). |
+| `category` / `--category <name>` | demographics, points-of-interest, mobility, environment, financial, … |
+| `license` / `--license free\|paid` | Free public-domain vs licensed/paid. |
+| page size / page | Pagination. |
 
 ```bash
 # US census tract demographics, free only
@@ -22,22 +23,18 @@ carto do search --keyword "census" --country usa --license free --json
 carto do search --category mobility --license paid --json
 ```
 
-The result is a list of dataset summaries: `{ id, name, provider, category, license, country, geography_level, time_coverage }`.
+Results are dataset summaries: `{ id, name, provider, category, license, country, geography_level, time_coverage }`.
 
 ## Inspecting a dataset
 
-```bash
-carto do get <dataset-id> --json
-```
+`search_data_observatory` `method: "get_dataset"` (or `method: "sample"` to preview rows), or `carto do get <dataset-id> --json`. Returns the full record:
 
-Returns the full dataset record:
-
-- **Schema** — column names and types (essential before subscribing — confirms the table will have the columns you need).
+- **Schema** — column names and types (confirm the table will have the columns you need before subscribing).
 - **Coverage** — geographic extent (countries, regions) and temporal range.
 - **Geography level** — block group, tract, ZIP code, country, H3 hex resolution, etc.
-- **Update cadence** — how often the source data refreshes (monthly, quarterly, never, real-time).
+- **Update cadence** — monthly, quarterly, never, real-time.
 - **License & pricing tier** — free, freemium, premium-tier-1, etc.
-- **Provider** — original data publisher (US Census Bureau, Mastercard, etc.).
+- **Provider** — original publisher (US Census Bureau, Mastercard, etc.).
 
 ## Categories worth knowing
 
@@ -57,16 +54,12 @@ Returns the full dataset record:
 Before recommending a dataset, check:
 
 1. **Country coverage** matches the user's question.
-2. **Geography level** is at or finer than what the analysis needs (you can aggregate up; you can't downscale without statistical inference).
+2. **Geography level** is at or finer than the analysis needs (you can aggregate up; you can't downscale without statistical inference).
 3. **Time coverage** spans the user's date range.
 4. **License** matches their plan and budget.
 
-If any of these don't fit, surface that explicitly — pushing a dataset that "almost works" wastes a subscription slot.
+If any don't fit, surface that explicitly — pushing a dataset that "almost works" wastes a subscription slot.
 
 ## Listing your subscriptions
 
-```bash
-carto do subscriptions list --json
-```
-
-Shows datasets you've already subscribed to, with status (`active`, `expired`, `pending`), destination table, and last refresh timestamp.
+`manage_data_observatory_subscriptions` `method: "list"` (OAuth session), or `carto do subscriptions list --json`. Shows datasets already subscribed, with status (`active`, `expired`, `pending`), destination table, and last refresh timestamp.

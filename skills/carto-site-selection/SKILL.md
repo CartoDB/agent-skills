@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that identify optimal locations for new facilities (stores, stations, offices) by combining spatial criteria, and that quantify cannibalization risk from overlapping catchment areas. Also covers twin-area and similar-location discovery.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`). Load `carto-trade-area-analysis` if the workflow involves isochrones, buffers, or catchment enrichment — that skill covers the catchment pipeline in detail.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation. It covers both access paths — the MCP server's workflow tools (`create_workflow`, `validate_workflow`, `run_workflow`) when attached, the `carto workflows` CLI otherwise. Routing signals: `carto-basics/references/access-paths.md`. Load `carto-trade-area-analysis` if the workflow involves isochrones, buffers, or catchment enrichment — it covers the catchment pipeline in detail.
 
 ---
 
@@ -56,9 +56,7 @@ If candidates are continuous polygons (catchments / districts) rather than a gri
 
 #### Step 4: Filter by Proximity to Existing Locations
 
-Use `native.h3distance` to compute hop distance from each candidate cell to the nearest existing location. Filter out cells that are too close (cannibalization risk) or too far (logistics cost).
-
-- `native.h3distance` returns **hop count**, not physical distance. Convert using the approximate edge length for the resolution (e.g. H3 res 8 ~ 460m edge, so 3 hops ~ 1.4 km).
+Use `native.h3distance` to compute hop distance from each candidate cell to the nearest existing location. Filter out cells that are too close (cannibalization risk) or too far (logistics cost). Output is **hop count**, not metric distance — convert via the resolution's edge length (see Gotchas).
 
 **Distance semantics — measure cannibalization from the catchment polygon, not the candidate point.** When candidates are points with a generated trade area (isoline / buffer — see `carto-trade-area-analysis`), compute `native.distance` from the candidate's **catchment polygon** to the existing competitor points, not from the candidate point itself. Reason: `ST_DISTANCE(polygon, point) = 0` whenever the competitor sits inside the trade area — exactly the cannibalization signal you want. Point-to-point distance only reports "how far the nearest competitor is" and hides overlap. Pick the `radius` consistent with the trade-area size (e.g. ~5 km for a 10-minute walk catchment); large radii dilute the signal. This polygon-to-point pattern is the middle ground between Pattern A's H3 hop filter and Pattern B's full grid-overlap analysis — use it whenever the candidate already has a continuous catchment geometry.
 

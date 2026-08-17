@@ -52,4 +52,4 @@ If `status` is anything other than `VALID`, the connection will work but spatial
 ## Caveats inherited downstream
 
 - **Builder dynamic H3 / quadbin aggregation isn't supported on Oracle.** Maps that aggregate on-the-fly need a pre-aggregated tileset upstream (see `carto-create-builder-maps/references/layers.md`).
-- **SQL parameters** in Builder map datasets translate to `JSON_TABLE`-based binding on Oracle — handled automatically by the CLI.
+- **SQL parameters** in Builder map datasets translate to `JSON_TABLE`-based binding on Oracle — handled automatically by the platform.

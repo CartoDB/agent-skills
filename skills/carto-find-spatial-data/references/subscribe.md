@@ -1,102 +1,68 @@
 # Subscribing to a Data Observatory dataset
 
-Subscription **materializes** the dataset into the user's warehouse as a regular table. Once subscribed, querying is just `carto sql query` over a normal warehouse table.
+Subscription **materializes** the dataset into the user's warehouse as a regular table. Once subscribed, querying is just a normal warehouse read (`execute_query` / `carto sql query`).
+
+Subscribe over MCP with `manage_data_observatory_subscriptions` (`method: subscribe|unsubscribe|list`) — this needs an **OAuth** session; on a token-authenticated session the tool is hidden, so use the `carto do` CLI instead. Discovery (`search_data_observatory`) works on either session — see [data-observatory.md](data-observatory.md).
 
 ## Subscribing
 
+- **MCP:** `manage_data_observatory_subscriptions` `method: "subscribe"` with `dataset_id`, `connection`, `destination`, optional `overwrite`, `refresh_schedule`, `variables`.
+- **CLI:**
+
 ```bash
-carto do subscribe <dataset-id> \
-  --connection <connection-name> \
-  --destination <fully-qualified-table>
+carto do subscribe <dataset-id> --connection <connection-name> --destination <fully-qualified-table>
 ```
 
-Required flags:
+Required: `connection` (name from `explore_data` `list_connections` / `carto connections list` — determines which warehouse the data lands in) and `destination` (target table FQN, created/overwritten by the subscription).
 
-- `--connection` — connection name from `connections list`. Determines which warehouse the data lands in.
-- `--destination` — target table FQN in the warehouse's syntax. The table is created/overwritten by the subscription.
+Optional:
 
-Optional flags:
-
-- `--overwrite` — overwrite existing destination table.
-- `--refresh-schedule <cron>` — auto-refresh schedule (cron / Quartz / natural language depending on engine; same dialect rules as workflow scheduling).
-- `--variables <json>` — for parameterized DO datasets (e.g., year selection for ACS data).
-- `--json` — machine-readable output.
+- `overwrite` / `--overwrite` — overwrite existing destination table.
+- `refresh_schedule` / `--refresh-schedule <cron>` — auto-refresh (cron/Quartz/natural-language per engine; same dialect rules as workflow scheduling).
+- `variables` / `--variables <json>` — for parameterized DO datasets (e.g. year selection for ACS data).
 
 ```bash
 # Free dataset, one-time materialization
 carto do subscribe usa.census.tracts.acs5_2022 \
-  --connection carto_dw \
-  --destination my_project.do.acs_tracts_2022
+  --connection carto_dw --destination my_project.do.acs_tracts_2022
 
 # Premium dataset, monthly refresh
 carto do subscribe spatial-ai.poi.us \
-  --connection carto_dw \
-  --destination my_project.do.poi_us \
+  --connection carto_dw --destination my_project.do.poi_us \
   --refresh-schedule "0 0 1 * *"
 ```
 
 ## Subscription cost dimensions
 
-Three places cost can accrue:
+Three places cost can accrue — surface all three before subscribing to a premium dataset:
 
-1. **CARTO subscription fee** — paid datasets are charged per dataset per period; usually negotiated upfront in the CARTO contract. `carto do get` surfaces the pricing tier.
+1. **CARTO subscription fee** — paid datasets are charged per dataset per period, usually negotiated upfront in the CARTO contract. `get_dataset` / `carto do get` surfaces the pricing tier.
 2. **Warehouse storage** — the materialized table consumes space on the user's warehouse, billed by the warehouse provider. Demographics tables are usually small (≤100 MB per country); mobility/POI tables can be 10–100 GB.
-3. **Warehouse compute** — refresh runs spawn warehouse jobs. For frequent refresh schedules, factor this in.
-
-For premium datasets, agents should surface all three to the user before subscribing.
+3. **Warehouse compute** — refresh runs spawn warehouse jobs; factor this in for frequent schedules.
 
 ## Refresh
 
-Three refresh patterns:
-
-### One-time
-
-Default if `--refresh-schedule` isn't specified. Data is materialized once. Static datasets (US Census ACS for a fixed year) usually need only this.
-
-### Scheduled
-
-```bash
-carto do subscribe <dataset-id> \
-  --connection carto_dw \
-  --destination my_project.do.poi_us \
-  --refresh-schedule "0 0 1 * *"
-```
-
-CARTO drives the refresh server-side. The schedule expression follows the warehouse's dialect (see [`../carto-create-workflow/references/scheduling.md`](../../carto-create-workflow/references/scheduling.md)).
-
-### Manual
-
-To re-run on demand, re-subscribe with `--overwrite` — same command, replaces the table:
-
-```bash
-carto do subscribe <dataset-id> \
-  --connection carto_dw \
-  --destination my_project.do.poi_us \
-  --overwrite
-```
+- **One-time** (default, no `refresh_schedule`) — materialized once. Static datasets (ACS for a fixed year) usually need only this.
+- **Scheduled** — pass `refresh_schedule` / `--refresh-schedule "0 0 1 * *"`. CARTO drives it server-side; the expression follows the warehouse's dialect (see [`carto-create-workflow/references/scheduling.md`](../../carto-create-workflow/references/scheduling.md)).
+- **Manual** — re-subscribe with `overwrite` / `--overwrite` to replace the table on demand.
 
 ## Querying after subscribe
 
-Once subscribed, the destination is just a warehouse table. Use [`carto-query-datawarehouse`](../../carto-query-datawarehouse):
+The destination is just a warehouse table. Read it with `execute_query`, or:
 
 ```bash
-carto sql query carto_dw \
-  "SELECT geoid, total_pop FROM my_project.do.acs_tracts_2022 LIMIT 10"
+carto sql query carto_dw "SELECT geoid, total_pop FROM my_project.do.acs_tracts_2022 LIMIT 10"
 ```
 
-To **enrich** the user's internal data with the DO data, spatial-join in SQL — see the dialect-specific examples in [`../../carto-query-datawarehouse/references/spatial-sql-*.md`](../../carto-query-datawarehouse).
+To **enrich** the user's internal data with DO data, spatial-join in SQL — see the dialect-specific examples in [`carto-query-datawarehouse`](../../carto-query-datawarehouse).
 
 ## Unsubscribing
 
-```bash
-carto do subscriptions unsubscribe <subscription-id>
-```
-
-This stops future refreshes but **does not delete the destination table**. Drop it manually with `carto sql job` if no longer needed.
+`manage_data_observatory_subscriptions` `method: "unsubscribe"` with the subscription id, or `carto do subscriptions unsubscribe <subscription-id>`. This stops future refreshes but **does not delete the destination table** — drop it manually (`execute_async_query` / `carto sql job`) if no longer needed.
 
 ## Common errors
 
 - **`Dataset not found`** — typo in the ID, or the dataset is regional and not visible from the user's contracted region.
-- **`License not available for your org`** — paid dataset; needs to be added to the contract by CARTO sales.
-- **`Permission denied`** writing to the destination — connection's credential lacks write permission. Fix in the warehouse-side IAM.
+- **`License not available for your org`** — paid dataset; needs adding to the contract by CARTO sales.
+- **`Permission denied`** on the destination — connection's credential lacks write permission. Fix in warehouse-side IAM.
 - **`Spatial extension required`** — destination warehouse needs the CARTO spatial extension installed. Admin task; outside this skill.

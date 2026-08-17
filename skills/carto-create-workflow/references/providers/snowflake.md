@@ -12,7 +12,7 @@ Format: `DATABASE.SCHEMA.TABLE`
 ACME_DB.WORKFLOWS_DATA.MADRID_BIKE_ACCIDENTS
 ```
 
-Use `carto connections browse <connection>` to navigate `database > schema > table`.
+Navigate `database > schema > table` with `carto connections browse <connection>` (CLI) or `explore_data method=list_resources` (MCP).
 
 ---
 
@@ -29,7 +29,7 @@ Snowflake **uppercases all unquoted identifiers** automatically. When referencin
 }
 ```
 
-Use `carto connections describe <connection> "DATABASE.SCHEMA.TABLE"` to see exact column names. They will be uppercase.
+See exact (uppercase) column names with `carto connections describe <connection> "DATABASE.SCHEMA.TABLE"` (CLI) or `explore_data method=describe` (MCP).
 
 **Note**: Snowflake is case-insensitive for unquoted identifiers — `geom`, `Geom`, and `GEOM` all resolve to the same column. However, using UPPERCASE consistently avoids ambiguity and matches what `describe` returns.
 
@@ -41,9 +41,7 @@ Use `carto connections describe <connection> "DATABASE.SCHEMA.TABLE"` to see exa
 
 ## Analytics Toolbox
 
-Snowflake uses the Analytics Toolbox at `CARTO.CARTO`. This should be resolved automatically when using `--connection`.
-
-The AT path resolves automatically when using `--connection`.
+Snowflake uses the Analytics Toolbox at `CARTO.CARTO`, resolved automatically when using `--connection`.
 
 ---
 

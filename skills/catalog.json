@@ -60,21 +60,21 @@
       "name": "carto-create-builder-maps",
       "layer": "platform",
       "dependencies": ["carto-basics", "carto-connect-datawarehouse", "carto-explore-datawarehouse"],
-      "description": "Author, edit, publish, and validate CARTO Builder maps. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Routes to the CARTO MCP server's map tools (`create_map`, `update_map`, `validate_map`, `read_maps`) when attached, and to the `carto maps` CLI — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update` — for scripted/bulk authoring, cross-org copy, or when the server isn't attached.",
+      "description": "Author, edit, publish, and validate CARTO Builder maps. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Routes to the CARTO MCP server's map tools (`create_map`, `update_map`, `validate_map`, `read_maps`, `view_map`) when attached, and to the `carto maps` CLI — `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `copy`, `datasets update` — for scripted/bulk authoring, cross-org copy, screenshots, or when the server isn't attached.",
       "path": "skills/carto-create-builder-maps"
     },
     {
       "name": "carto-render-inline-map",
       "layer": "platform",
       "dependencies": ["carto-basics"],
-      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. For exploratory / throwaway visualizations, not permanent saved maps. Triggers on 'show me X on a map', 'visualize Y', 'make a heatmap of Z'. Distinct from carto-create-builder-maps (permanent map authoring), carto-preview-builder-map (load existing saved map), and carto-develop-app (developer app from scratch).",
+      "description": "Render an ad-hoc interactive map inline in the chat from a deck.gl declarative spec via the CARTO MCP server's view_map tool. Use whenever the user asks to map, visualize, or show the geographic distribution of points, polygons, hexagons, quadbins, clusters, density (heatmaps), or raster — and the map is exploratory or throwaway, not meant to be saved as a permanent CARTO Builder map. Triggers on \"show me X on a map\", \"visualize Y\", \"make a heatmap of Z\", \"render the points/clusters/raster of W\". Distinct from carto-create-builder-maps (authoring permanent maps), carto-preview-builder-map (loading an existing saved Builder map), and carto-develop-app (writing a from-scratch deck.gl app in TypeScript / JavaScript).",
       "path": "skills/carto-render-inline-map"
     },
     {
       "name": "carto-preview-builder-map",
       "layer": "platform",
       "dependencies": ["carto-basics"],
-      "description": "Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server — resolve URL / ID / name with read_maps, render with view_map. Renders a lightweight read-only preview (layers, basemap, viewport, popups, legend; widgets / SQL parameters / map description NOT included). Triggers on 'show me the X map', 'open the Y map', and inline previews of a freshly-created map.",
+      "description": "Preview an existing saved CARTO Builder map inline in the chat via the CARTO MCP server — resolve the map with read_maps (by name or search), then render it with view_map by map ID. Use whenever the user references a saved Builder map — by URL, by ID, or by name. Renders a lightweight read-only preview (layers, basemap, viewport, popups, legend). Widgets, SQL parameters, map description, and other Builder-only features are NOT included; the user can click \"Open in Builder\" for the full experience. Triggers on \"show me the X map\", \"open the Y map\", \"preview the Z map\", and inline previews of a freshly-created map. Distinct from carto-create-builder-maps (authoring), carto-render-inline-map (ad-hoc deck.gl spec), and carto-develop-app (developer app).",
       "path": "skills/carto-preview-builder-map"
     },
     {
@@ -88,21 +88,21 @@
       "name": "carto-hotspot-analysis",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds Getis-Ord Gi* hotspot analysis workflows in CARTO. Triggers when the user mentions hotspots, coldspots, spatial clusters, Getis-Ord, Gi*, cluster detection, concentration areas, spacetime hotspot, temporal clusters, time-varying patterns, hotspot trends, emerging hotspots, Mann-Kendall, or wants to find statistically significant spatial or spatiotemporal patterns in point or grid data.",
+      "description": "Builds Getis-Ord Gi* hotspot analysis workflows in CARTO. Triggers when the user mentions hotspots, coldspots, spatial clusters, Getis-Ord, Gi*, cluster detection, concentration areas, \"where do X cluster\", spacetime hotspot, temporal clusters, time-varying patterns, hotspot trends, emerging hotspots, Mann-Kendall, or wants to find statistically significant spatial or spatiotemporal patterns in point or grid data.",
       "path": "skills/carto-hotspot-analysis"
     },
     {
       "name": "carto-spatial-autocorrelation",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds Moran's I spatial autocorrelation workflows in CARTO. Triggers on spatial autocorrelation, Moran's I, spatial dependency, HH/HL/LH/LL quadrants, LISA, spatial weight matrix, or classifying locations into cluster types.",
+      "description": "Builds Moran's I spatial autocorrelation workflows in CARTO. Triggers when the user mentions spatial autocorrelation, Moran's I, spatial dependency, spatial correlation, spatial outliers, HH HL LH LL quadrants, high-high clusters, low-low clusters, spatial weight matrix, \"is there clustering\", \"are values spatially correlated\", local indicators of spatial association, LISA, spatial randomness test, or wants to determine whether a variable exhibits spatial clustering, dispersion, or randomness across a gridded dataset. Also relevant when the user needs to classify locations into cluster types (HH, HL, LH, LL) rather than just identifying hotspots and coldspots.",
       "path": "skills/carto-spatial-autocorrelation"
     },
     {
       "name": "carto-gwr",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds Geographically Weighted Regression (GWR) workflows in CARTO. Triggers when the user mentions GWR, geographically weighted regression, spatially varying relationships, local regression, local coefficients, spatial non-stationarity, or wants to model how predictor importance shifts across geography.",
+      "description": "Builds Geographically Weighted Regression (GWR) workflows in CARTO. Triggers when the user mentions GWR, geographically weighted regression, spatially varying relationships, local regression, local coefficients, spatial regression, \"what drives X in different areas\", \"why do prices vary spatially\", \"local factors affecting Y\", varying coefficients, coefficient maps, spatial non-stationarity, or wants to model how the relationship between a dependent variable and predictors changes across geography. Produces per-cell regression coefficients that reveal how predictor importance shifts from place to place.",
       "path": "skills/carto-gwr"
     },
     {
@@ -116,35 +116,35 @@
       "name": "carto-trade-area-analysis",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds trade area and catchment analysis workflows in CARTO. Triggers on trade area, catchment area, isochrone, drive time, walk time, billboard placement, OOH audience targeting, or scoring candidate locations.",
+      "description": "Builds trade area and catchment analysis workflows in CARTO. Triggers when the user mentions trade area, catchment area, isochrone, site selection, where to open, best location, billboard, OOH, audience targeting, drive time, walk time, coverage area, commercial hotspot, site scoring, location ranking, or wants to generate isochrones, score candidate locations, or identify the best sites for retail, advertising, or services.",
       "path": "skills/carto-trade-area-analysis"
     },
     {
       "name": "carto-site-selection",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds site selection and cannibalization analysis workflows in CARTO. Triggers on site selection, cannibalization, new store location, optimal location, twin areas, look-alike areas, or revenue impact of a new store.",
+      "description": "Builds site selection and cannibalization analysis workflows in CARTO. Triggers when the user mentions site selection, cannibalization, cannibalizing, new store location, where to open, optimal location, facility placement, network impact, overlapping catchments, twin areas, similar locations, look-alike areas, find locations like my best, store overlap, revenue impact of new store, commercial hotspots, demand hotspots, location scoring, location ranking, expand network, new branch, franchise placement, EV charging siting, or wants to evaluate candidate sites, quantify overlap between trade areas, or find areas that resemble top-performing locations.",
       "path": "skills/carto-site-selection"
     },
     {
       "name": "carto-territory-planning",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds territory planning workflows in CARTO combining territory balancing and location allocation. Triggers on sales territories, service zones, balanced territories, location allocation, depot/hub placement, response-time optimization, or demand coverage.",
+      "description": "Builds territory planning workflows in CARTO combining territory balancing and location allocation. Triggers when the user mentions territory balancing, territory planning, sales territories, service zones, workload distribution, balanced territories, location allocation, facility placement, optimal locations, maximize coverage, minimize cost, minimize travel distance, depot placement, hub placement, warehouse siting, response time optimization, demand coverage, or wants to divide an area into balanced regions or find optimal facility locations.",
       "path": "skills/carto-territory-planning"
     },
     {
       "name": "carto-routing-od-analysis",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds routing and origin-destination analysis workflows in CARTO. Triggers on routing, travel time, OD matrix, isoline, isochrone, catchment area, drive-time polygon, accessibility analysis, commute patterns, OD flow, or shortest-path computation.",
+      "description": "Builds routing and origin-destination analysis workflows in CARTO. Triggers when the user mentions routing, route calculation, travel time, travel distance, OD matrix, origin-destination, isoline, isochrone, isodistance, catchment area, reachable area, drive time polygon, walk time polygon, service area, accessibility analysis, travel time matrix, distance matrix, commute patterns, trip flow, OD flow, mobility patterns, taxi trips, ride patterns, route geometry, shortest path, network distance, or wants to compute routes, generate isolines, build travel matrices, or analyze movement patterns between origins and destinations.",
       "path": "skills/carto-routing-od-analysis"
     },
     {
       "name": "carto-geocoding",
       "layer": "use-case",
       "dependencies": ["carto-create-workflow"],
-      "description": "Builds geocoding workflows in CARTO that convert street addresses or place names into geographic coordinates. Triggers when the user has tabular data with addresses but no geometry column and needs to create one.",
+      "description": "Builds geocoding workflows in CARTO that convert street addresses or place names into geographic coordinates. Triggers when the user mentions geocoding, address to coordinates, address resolution, geolocate addresses, \"add geometry from addresses\", lat/lon from address, place name to point, address matching, forward geocoding, converting addresses to points, or has tabular data with address columns but no spatial geometry column and needs to create one.",
       "path": "skills/carto-geocoding"
     },
     {
@@ -158,7 +158,7 @@
       "name": "carto-arcgis-migration",
       "layer": "use-case",
       "dependencies": [],
-      "description": "End-to-end ArcGIS Portal / AGOL → CARTO migration. Runs three phases over a shared MIGRATION_MANIFEST.md: discover (enumerate + classify items), migrate-data (Hosted Feature Layers / Tables → CARTO tables), migrate-maps (Web Maps + simple Dashboard / Web Experience / Web Mapping Application entries → CARTO Builder maps). Default mode is batch; migrated maps are tagged `From ArcGIS` and created as private. Triggers when the user wants to migrate ArcGIS content to CARTO, asks 'what's in my Portal', or names a Portal/AGOL URL.",
+      "description": "End-to-end ArcGIS Portal / AGOL → CARTO migration. Triggers when the user wants to migrate ArcGIS content to CARTO, plan a migration, asks \"what's in my Portal\", names a Portal/AGOL URL, or asks to migrate the datasets / web maps / simple apps. Runs three phases — discover (enumerate items + write MIGRATION_MANIFEST.md), migrate-data (Hosted Feature Layers / Tables → CARTO tables), migrate-maps (Web Maps + simple Dashboards / Web Experiences / Web Mapping Apps → CARTO Builder maps). Default mode is batch; migrated maps are always tagged `From ArcGIS` and created as private.",
       "path": "skills/carto-arcgis-migration"
     }
   ]

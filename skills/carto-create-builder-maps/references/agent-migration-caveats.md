@@ -1,5 +1,7 @@
 # AI-agent migration caveats
 
+> **CLI-only** — applies after a `maps copy` (see [cross-profile-copy.md](cross-profile-copy.md)); the inspection commands here use `--profile`, which has no MCP equivalent.
+
 `maps copy` carries the source map's AI agent configuration along with the rest of the map JSON. **Most of the agent config transfers cleanly** — `instructions`, `introduction`, `enabledForViewer`, conversation starters, etc. are plain text and survive intact.
 
 What **doesn't** transfer cleanly:

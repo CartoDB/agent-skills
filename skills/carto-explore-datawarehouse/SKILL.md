@@ -6,16 +6,17 @@ license: MIT
 
 # carto-explore-datawarehouse
 
-Before writing SQL or building maps, an agent typically needs to know **what's in the warehouse**. This skill covers two CARTO surfaces for that:
+Before writing SQL or building maps, an agent usually needs to know **what's in the warehouse**. This skill covers discovery, matched across MCP and CLI:
 
-- **`carto connections browse`** — walk the warehouse hierarchy (project → dataset → table).
-- **`carto connections describe`** — inspect a specific table's columns and types.
+| Task | MCP (primary) | CLI (fallback) |
+|---|---|---|
+| List / inspect connections | `explore_data` (`list_connections`, `get_connection`) | `carto connections list` / `get` |
+| Walk the hierarchy (project → dataset → table) | `explore_data` (`list_resources`) | `carto connections browse` |
+| Full-text find a resource | `explore_data` (`search`) | — |
+| Columns + types for a table | `explore_data` (`describe`) | `carto connections describe` |
+| Find / inspect a named source | `manage_named_sources` (`list`, `get`) | `carto named-sources list` / `get` |
 
-And one CARTO-specific concept:
-
-- **Named sources** — saved, parameterized SQL that maps and apps consume as if they were tables.
-
-> **Access-path routing.** With the CARTO MCP server attached, all of this is one tool: `explore_data` (methods `list_connections`, `get_connection`, `list_resources`, `search`, `describe`) — available even on token-authenticated MCP sessions. Named-source management routes through `manage_named_sources`. Use the `carto connections` CLI commands below when the server isn't attached or the exploration is scripted/headless. Detection signals and the full routing table: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** `explore_data` works on any attached MCP session, including token-authenticated ones. `manage_named_sources` is an authoring tool, so it needs an OAuth session (it's hidden on token sessions). Use the `carto connections` / `carto named-sources` CLI when the server isn't attached or the exploration is scripted/headless. Detection signals and the full routing table: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 ## When to use this skill
 
@@ -23,45 +24,38 @@ And one CARTO-specific concept:
 - You need a column list and types before writing SQL or authoring a map.
 - The user references "the named source for X" and you need to find it.
 
-If you already know the table and just want to query it, jump straight to [`carto-query-datawarehouse`](../carto-query-datawarehouse).
+If you already know the table and just want to query it, jump to [`carto-query-datawarehouse`](../carto-query-datawarehouse).
 
-## Quick reference
+## Path syntax by engine
 
-```bash
-# What connections are registered?
-carto connections list --json
+The path passed to `list_resources` / `describe` (or `connections browse` / `describe`) depends on the engine:
 
-# Walk the hierarchy (no path = top level)
-carto connections browse <connection-name>
-
-# Drill in
-carto connections browse <connection-name> "carto-demo-data"
-carto connections browse <connection-name> "carto-demo-data.demo_tables"
-
-# Get columns + types for a specific table
-carto connections describe <connection-name> "carto-demo-data.demo_tables.nyc_collisions"
-```
-
-The exact path syntax depends on the engine:
-
-| Engine | `browse` path shape |
+| Engine | Path shape |
 |---|---|
 | BigQuery | `project.dataset.table` |
 | Snowflake | `DATABASE.SCHEMA.TABLE` |
 | Postgres / Redshift | `schema.table` (no leading project/database) |
 | Databricks | `catalog.schema.table` |
 
+CLI examples:
+
+```bash
+carto connections browse <name>                                  # top level
+carto connections browse <name> "carto-demo-data.demo_tables"    # drill in
+carto connections describe <name> "carto-demo-data.demo_tables.nyc_collisions"
+```
+
 ## What's in this skill
 
 | Topic | Reference |
 |---|---|
-| `connections browse` and `connections describe` in detail | [references/connection-browse.md](references/connection-browse.md) |
+| Browsing and describing a connection in detail | [references/connection-browse.md](references/connection-browse.md) |
 | Named sources — what they are, how to list and inspect them | [references/named-sources.md](references/named-sources.md) |
 
 ## Always-on guidance
 
-- **Browse before you query.** A two-second `connections browse` usually saves a five-minute "table not found" loop.
-- **Use `--page-size`** when a dataset has hundreds of tables; the default is 30.
-- **`describe` returns column types** — use those types to write correct SQL (e.g. don't `ST_DWithin` against a `STRING` column the user mistakenly named `geom`).
-- **Named sources ≠ tables**. They're parameterized queries. Inspect the *underlying* tables before assuming a column you see in the source exists in raw form.
-- **`carto-demo-data`** is a public BigQuery dataset CARTO ships — `carto connections browse <bq-connection> "carto-demo-data"` works on any BigQuery connection that has the right IAM, and is a fast way to validate a fresh connection without touching customer data.
+- **Browse before you query.** A two-second `list_resources` usually saves a five-minute "table not found" loop.
+- **`describe` returns column types** — use them to write correct SQL (e.g. don't `ST_DWithin` against a `STRING` column mistakenly named `geom`).
+- **Paginate long lists** — CLI `browse` defaults to `--page-size 30`; bump it for datasets with hundreds of tables.
+- **Named sources ≠ tables.** They're parameterized queries — inspect the *underlying* tables before assuming a column you see in the source exists in raw form.
+- **`carto-demo-data`** is a public BigQuery dataset CARTO ships — browsing it works on any BigQuery connection with the right IAM, a fast way to validate a fresh connection without touching customer data.

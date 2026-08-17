@@ -10,20 +10,17 @@ Renders a lightweight inline preview of an existing saved CARTO Builder map via 
 
 **Tool contract.** This skill consumes the `read_maps` and `view_map` tools exposed by the CARTO MCP server. The tools' input shapes and access-control rules (the user must own, be shared on, or have public access to the map) are documented in the tools' own MCP descriptions — read them via the MCP host's tool-inspector or by calling `tools/list`. This skill stays focused on routing, name → ID resolution, and setting expectations on the lightweight preview; it does NOT duplicate the tools' specs.
 
-This skill assumes the **CARTO MCP server is attached** (the `read_maps` and `view_map` tools are in your tool list) AND the **host supports MCP Apps** (Claude.ai, Claude Desktop, ChatGPT). If either is missing, see "Step 1 — detect what's available" below.
+This skill is **MCP-only** — there's no CLI equivalent for inline rendering — and needs an MCP-Apps host (Claude.ai, Claude Desktop, ChatGPT). Detection signals and host support: [carto-basics/references/access-paths.md](../carto-basics/references/access-paths.md).
 
 ## Step 1 — detect what's available
 
-| Check | How |
-|---|---|
-| `read_maps` and `view_map` are callable | Both tool names appear in your tool list. On a token-authenticated MCP session `view_map` is offered but `read_maps` is not — loading by explicit URL/ID still works; name-based search needs an OAuth session (or ask the user for the map URL). |
-| Host renders MCP Apps | Hosts that DO: Claude.ai, Claude Desktop, ChatGPT. Hosts that DON'T (Gemini CLI, Codex CLI, plain MCP Inspector, current MCPJam) execute the tool but only show a text confirmation — no map widget. |
+Both `view_map` and `read_maps` must be in your tool list, and the host must render MCP Apps. **Token vs OAuth:** on a token MCP session `view_map` is offered but `read_maps` is not — loading by explicit URL/ID still works; name-based search needs an OAuth session (or ask the user for the map URL).
 
 | Setup | What to do |
 |---|---|
 | Tools present + host renders | Proceed normally. |
-| Tools present + host doesn't render | Tell the user the host can't render maps inline; suggest opening the Builder URL directly. |
-| Tools not present | The MCP server isn't attached. Tell the user; don't try to reconstruct the saved map from scratch. |
+| Tools present + host doesn't render (Gemini CLI, Codex CLI, MCP Inspector, MCPJam — text-only) | Tell the user the host can't render maps inline; suggest opening the Builder URL directly. |
+| `view_map` not present | The MCP server isn't attached. Tell the user; don't try to reconstruct the saved map from scratch. |
 
 ## Resolution rules (URL / ID / name)
 
@@ -53,11 +50,7 @@ After loading, tell the user: *"Loaded [name] as a lightweight preview. Widgets,
 
 ## Post-creation preview workflow
 
-When the user creates a permanent map via `carto-create-builder-maps` — `create_map` over MCP, or `carto maps create` on the CLI — the response is a `mapId` + Builder URL. With an MCP-Apps host, preview inline immediately by passing that `mapId` to `view_map`.
-
-This is the fastest authoring loop: edit, save, preview inline, repeat. Especially useful for styling iterations.
-
-Caveat: still the lightweight preview. If the user is debugging widgets or SQL parameters, they need the full Builder experience.
+After a map is created via `carto-create-builder-maps` (`create_map` over MCP, or `carto maps create` on the CLI), pass the returned `mapId` to `view_map` to preview inline — the fastest edit → save → preview loop for styling iterations. Still the lightweight preview: debugging widgets or SQL parameters needs the full Builder.
 
 ## When to pick a different skill
 

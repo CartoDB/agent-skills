@@ -2,9 +2,11 @@
 
 `carto admin *` commands operate **across the whole org**, ignoring per-user ownership. They require Superadmin role; regular Admins will see "permission denied".
 
+> **Routing.** Cross-user *listing* has an MCP equivalent — `superadmin_carto_resources` over OAuth. Removing a **single** resource routes to MCP `delete` (`kind: map|workflow|connection|token|oauth_client|project_item`). But **bulk delete and ownership transfer have no MCP tool** — `admin batch-delete` and `admin transfer` stay CLI (and are hidden on token MCP sessions regardless). Use MCP for one-off admin, the CLI for anything scripted or bulk.
+
 ## `admin list`
 
-Cross-user listing of resources.
+Cross-user listing of resources (MCP: `superadmin_carto_resources`).
 
 ```bash
 carto admin list <type> [options]
@@ -79,11 +81,10 @@ Variants by argument shape — check `carto admin transfer --help` if a flag isn
 
 ## Safety patterns for bulk ops
 
-1. **Always run `admin list` first**, save its output to a file, eyeball the count and a sample.
-2. **Stage in dry-run** by piping `--json` through `jq` and checking the IDs match expectations.
-3. **For `batch-delete`, prefer two passes**: filter by name → manually inspect → then delete. Don't compose `admin list | jq | batch-delete` in one chain unless you've reviewed the intermediate output.
-4. **For `transfer`, do a small first batch** — transfer 5 resources, confirm the destination user can access them, then run the rest.
-5. **Audit the result**: query `MapDeleted` / `MapTransferred` events in the activity log to confirm the intended outcome. See [`activity-event-reference.md`](activity-event-reference.md).
+1. **Run `admin list` first**, save output to a file, eyeball the count and a sample of IDs — don't compose `admin list | jq | batch-delete` in one chain without reviewing the intermediate.
+2. **For `batch-delete`, two passes**: filter by name → inspect → then delete.
+3. **For `transfer`, a small first batch** — move 5 resources, confirm the destination user can access them, then run the rest.
+4. **Audit the result**: query `MapDeleted` / `MapTransferred` events to confirm the outcome. See [`activity-event-reference.md`](activity-event-reference.md).
 
 ## Permission gotchas
 

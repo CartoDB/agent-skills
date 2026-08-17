@@ -1,17 +1,17 @@
 # Scheduling workflows
 
-Command surface and schedule-expression dialects per engine are documented in the CLI itself:
+On an OAuth MCP session, scheduling maps to `schedule_workflow` (method=add|update|remove). On the CLI (or a token MCP session) use `carto workflows schedule`. Command surface and per-engine expression dialects are documented in the CLI itself:
 
 ```bash
 carto workflows --help        # see "Schedule Expression Formats" footer
 carto workflows schema schedule
 ```
 
-This file only covers what the CLI doesn't: behavioural quirks and verification.
+This file only covers what live introspection doesn't: behavioural quirks and verification.
 
 ## `add` vs. `update`
 
-`carto workflows schedule add` errors if a schedule already exists. `schedule update` replaces the existing schedule. To safely set or re-set, prefer `update` — it's idempotent on existing schedules and creates a new one when none exists.
+Adding errors if a schedule already exists; updating replaces it. To safely set or re-set, prefer `update` — it's idempotent on existing schedules and creates one when none exists.
 
 ```bash
 carto workflows schedule update <id> --expression "0 8 * * *"
@@ -27,19 +27,11 @@ carto workflows schedule add <id> --expression <expr>
 
 ## Picking the dialect
 
-If unsure which dialect the workflow's connection uses:
-
-```bash
-carto workflows get <id> --json | jq '.connectionId' \
-  | xargs -I{} carto connections list --json \
-  | jq '.[] | select(.id == "{}") | .provider'
-```
-
-The provider→dialect mapping is in `carto workflows --help` under "Schedule Expression Formats".
+If unsure which dialect the workflow's connection uses, read the workflow's `connectionId` (`carto workflows get <id> --json` or `read_workflows method=get`), then look up that connection's `provider` (`carto connections list --json` or `explore_data method=list_connections`). The provider→dialect mapping is in `carto workflows --help` under "Schedule Expression Formats".
 
 ## Verifying a schedule fired
 
-Schedule executions emit `WorkflowRun` and `WorkflowExecutionComplete` events into the activity log:
+Schedule executions emit `WorkflowRun` and `WorkflowExecutionComplete` events into the activity log. Querying it uses `carto activity query` (CLI-only — no MCP equivalent):
 
 ```bash
 carto activity query \

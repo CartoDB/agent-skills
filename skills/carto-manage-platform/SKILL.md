@@ -6,9 +6,9 @@ license: MIT
 
 # carto-manage-platform
 
-Org-level operations: managing users and invitations, monitoring quotas, auditing activity, and superadmin bulk ops on resources. **Most of these commands require Admin or Superadmin role**; non-admin users will see permission errors.
+Org-level operations: managing users and invitations, monitoring quotas, auditing activity, and superadmin bulk ops on resources. **Most of these require Admin or Superadmin role**; non-admin users will see permission errors.
 
-> **Access-path routing.** With the CARTO MCP server attached over OAuth, interactive single-item admin maps to MCP tools: `manage_users`, `manage_api_access_tokens`, `manage_oauth_clients`, `organize_projects`, `admin_carto` / `admin_carto_customizations`, `export_activity_data`, `superadmin_carto_resources`, and `delete` for single-resource removal. Admin tools are hidden on token-authenticated MCP sessions — reconnect over OAuth or use the CLI. Bulk and cross-org operations (`carto admin batch-delete`, `admin transfer`) and local DuckDB analysis over exported activity data remain CLI territory. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** With the CARTO MCP server attached over OAuth, route interactive single-item admin to MCP: `manage_users` (list/invite/role/delete-with-handoff), `manage_api_access_tokens`, `manage_oauth_clients`, `manage_connections`, `organize_projects`, `admin_carto` / `admin_carto_customizations` (org config + stats), `export_activity_data`, `superadmin_carto_resources` (cross-user resource listing), and `delete` for single-resource removal (`kind: map|workflow|connection|token|oauth_client|project_item`). These admin tools are **hidden on token-authenticated MCP sessions** (read/discovery subset only) — reconnect over OAuth or fall back to the CLI. **Stays CLI:** bulk/scripted deletes (`admin batch-delete`), ownership transfer (`admin transfer`), and local DuckDB analysis over exported activity data. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 ## When to use this skill
 
@@ -21,6 +21,8 @@ Org-level operations: managing users and invitations, monitoring quotas, auditin
 For *querying* activity data interactively (the exploratory side), use [`carto-query-datawarehouse/references/activity-queries.md`](../carto-query-datawarehouse/references/activity-queries.md). This skill is for the operational/admin surface around activity data.
 
 ## Quick reference
+
+Interactive single-item admin (MCP over OAuth): `manage_users`, `manage_api_access_tokens`, `manage_oauth_clients`, `manage_connections`, `admin_carto`, `delete`. CLI covers everything below and is the fallback on token sessions or headless/scripted runs.
 
 ```bash
 # Org overview (users, resources, quotas, AI limits)
@@ -36,7 +38,7 @@ carto activity export \
   --start-date 2026-04-01 --end-date 2026-04-28 \
   --output-dir ./apr-2026
 
-# Superadmin bulk
+# Superadmin bulk (CLI-only)
 carto admin list maps --all
 carto admin batch-delete
 carto admin transfer
@@ -55,9 +57,8 @@ carto admin transfer
 
 ## Always-on guidance
 
-- **Admin permission gates are warehouse-style, not CARTO-style.** Even a CARTO Admin will get "permission denied" from `users delete` if the receiver-id isn't valid. Pass valid emails or user IDs; check via `users get` first.
-- **`users delete` requires a receiver** to inherit the deleted user's resources. Without a receiver argument, the command fails. Plan handoff before deletion: `carto users delete <departing-user> <receiving-user>`.
-- **Activity export is plan-gated.** Enterprise Large+ only. Lower plans get a 403; surface that politely if the user is on the wrong tier.
-- **`org stats` shows what *you* can see**. Some fields (AI limits, billing) only render for Admin/Superadmin. Don't assume the absence of a field means the resource doesn't exist.
-- **Bulk operations are irreversible.** `admin batch-delete` deletes the listed resource IDs without further confirmation per item. Double-check the input list, or do a dry-run with `admin list` first.
-- **Audit trail comes from `activity` events**, not the CLI return values. To answer "who deleted map X", query the `MapDeleted` events — see the activity-queries reference.
+- **Deleting a user requires a receiver** to inherit their resources (maps, workflows, connections) — CARTO won't orphan them. Plan handoff first, then `manage_users` (MCP) or `carto users delete <departing-user> <receiving-user>`. Pass valid emails/IDs; check via `manage_users` / `users get` first or the delete fails with "permission denied".
+- **Activity export is plan-gated** to Enterprise Large+. Lower plans get a 403 (MCP `export_activity_data`) or error (CLI); surface it politely rather than working around it.
+- **`org stats` / `admin_carto` show what *you* can see** — AI limits and billing render only for Admin/Superadmin. Absence of a field isn't absence of the resource.
+- **Bulk deletes are irreversible.** `admin batch-delete` removes listed IDs with no per-item confirmation — verify the list, or dry-run with `admin list` first.
+- **Audit trail comes from `activity` events**, not tool return values. To answer "who deleted map X", query the `MapDeleted` events — see the activity references.

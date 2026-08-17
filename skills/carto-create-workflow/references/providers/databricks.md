@@ -16,7 +16,7 @@ Catalogs with special characters (hyphens, spaces) **must** be backtick-quoted:
 
 Schemas and tables with only alphanumeric/underscore characters do not need quoting.
 
-Use `carto connections browse <connection>` to navigate `catalog > schema > table`.
+Navigate `catalog > schema > table` with `carto connections browse <connection>` (CLI) or `explore_data method=list_resources` (MCP).
 
 ---
 

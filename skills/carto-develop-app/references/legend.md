@@ -92,34 +92,7 @@ const fmt = (n: number) => n.toLocaleString();
 
 ## Manual legend (React)
 
-```tsx
-import * as cartoColors from 'cartocolor';
-
-function Legend({ title, domain, palette }: {
-  title: string;
-  domain: number[];
-  palette: string;
-}) {
-  const buckets = domain.length + 1;
-  const colors = cartoColors[palette][buckets] as string[];
-  const labels = [
-    `< ${domain[0].toLocaleString()}`,
-    ...domain.slice(0, -1).map((d, i) => `${d.toLocaleString()} – ${domain[i + 1].toLocaleString()}`),
-    `≥ ${domain.at(-1)!.toLocaleString()}`,
-  ];
-  return (
-    <div className="legend">
-      <h4>{title}</h4>
-      {labels.map((label, i) => (
-        <div key={i} className="legend-row">
-          <span className="legend-swatch" style={{ background: colors[i] }} />
-          <span>{label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-```
+Same `buckets` / `colors` / `labels` computation as the vanilla version, rendered as JSX — `{labels.map((label, i) => <div className="legend-row"><span className="legend-swatch" style={{ background: colors[i] }} /><span>{label}</span></div>)}` inside `<div className="legend"><h4>{title}</h4>…</div>`. Worked example in [`recipes/react-h3-aggregation.md`](recipes/react-h3-aggregation.md).
 
 ## Categorical legend (`colorCategories`)
 

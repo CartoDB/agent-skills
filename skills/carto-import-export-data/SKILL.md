@@ -6,58 +6,49 @@ license: MIT
 
 # carto-import-export-data
 
-Move data **into** the warehouse from local files / URLs (`carto import`), pull data **out** (`carto activity export` for usage data; warehouse-native unloads for everything else), and **prepare tilesets** for performant map rendering of large geospatial datasets.
+Move data **into** the warehouse from local files / URLs, pull data **out**, transfer tables between connections, and **prepare tilesets** for performant rendering of large geospatial datasets.
 
-> **Access-path routing.** With the CARTO MCP server attached (OAuth-authenticated session), interactive moves go through `import_data`, `export_data`, and `transfer_data`; tileset materialization SQL can run through `execute_async_query`. Use the `carto import` CLI for scripted/bulk loads, headless pipelines, or when the server isn't attached; `carto activity export` (usage data to local disk) is CLI-only. The format, size-limit, and destination-syntax guidance below applies on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** With the CARTO MCP server attached (OAuth session), route interactive moves through `import_data`, `export_data`, and `transfer_data` (each `method: submit|status`), and materialize tilesets with `execute_async_query`. Fall back to the `carto import` / `carto sql job` CLI for scripted/bulk loads, headless pipelines, or when the server isn't attached — and note that over a **token-authenticated** MCP session the import/export/transfer tools are hidden (read/discovery subset only), so authoring moves there go via the CLI too. `carto activity export` (usage data → local disk) is CLI-only, no MCP equivalent. Format, size-limit, and destination-syntax guidance below applies on every path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 ## When to use this skill
 
 - The user has a CSV / GeoJSON / Shapefile / GeoParquet file and wants it queryable in the warehouse.
-- The user wants to refresh an existing table from a remote URL.
+- The user wants to refresh an existing table from a remote URL, or copy a table between connections.
 - The user wants to render a 10M+-row spatial dataset on a map (needs tileset preparation).
 - The user is bulk-exporting CARTO activity data to disk for offline analysis.
 
-If the user just wants to query a file already in the warehouse, jump to [`carto-query-datawarehouse`](../carto-query-datawarehouse). If they want to discover what's already there, [`carto-explore-datawarehouse`](../carto-explore-datawarehouse).
+To query a file already in the warehouse, jump to [`carto-query-datawarehouse`](../carto-query-datawarehouse). To discover what's already there, [`carto-explore-datawarehouse`](../carto-explore-datawarehouse).
 
 ## Quick reference
 
+MCP (OAuth session) — submit then poll:
+
+```
+import_data   { method: "submit", source: {url|file}, connection, destination, overwrite? }
+export_data   { method: "submit", ... }   → status with the returned job id
+transfer_data { method: "submit", source_connection, destination_connection, ... }
+```
+
+CLI fallback (scripted / headless / no server / token session):
+
 ```bash
-# Import a local file
-carto import --file ./data.csv \
-  --connection carto_dw \
-  --destination project.dataset.table
-
-# Import from a URL
-carto import --url https://example.com/data.geojson \
-  --connection carto_dw \
-  --destination my_project.demo.regions
-
-# Async (return immediately, poll separately)
-carto import --file ./big.parquet \
-  --connection carto_dw \
-  --destination my_project.demo.huge \
-  --async
-
-# Overwrite existing table
-carto import --file ./data.csv \
-  --connection carto_dw \
-  --destination my_project.demo.t \
-  --overwrite
+# Import a local file (or --url for a remote source; --async to poll separately; --overwrite to replace)
+carto import --file ./data.csv --connection carto_dw --destination project.dataset.table
 ```
 
 ## What's in this skill
 
 | Topic | Reference |
 |---|---|
-| `carto import` — flags, formats, size limits, async | [references/imports.md](references/imports.md) |
+| Importing — `import_data` / `carto import` flags, formats, size limits, async | [references/imports.md](references/imports.md) |
 | Tileset preparation for large maps | [references/tilesets.md](references/tilesets.md) |
-| Exporting data: warehouse-native unloads vs `activity export` | [references/exports.md](references/exports.md) |
+| Exporting & transferring: warehouse-native unloads, `export_data`/`transfer_data`, `activity export` | [references/exports.md](references/exports.md) |
 
 ## Always-on guidance
 
-- **`--connection` is the connection *name*** (from `connections list`), not the warehouse project ID. If you only know the project, run `carto connections list --json` first to find the matching connection.
-- **`--destination` is the fully-qualified target name** in the warehouse's syntax: `project.dataset.table` (BigQuery), `DATABASE.SCHEMA.TABLE` (Snowflake), `schema.table` (Postgres/Redshift), `catalog.schema.table` (Databricks), `SCHEMA.TABLE` (Oracle).
-- **1GB hard limit per file**. For larger files, split or pre-stage to cloud storage and use `--url` to a presigned URL.
-- **`--no-autoguessing` skips column type detection** — use it when you've prepared a precise schema and don't want CARTO to second-guess types (especially for columns that look numeric but should stay string, like ZIP codes).
-- **Imports are async at the API level**. The CLI defaults to polling-to-completion; pass `--async` to return immediately. The CLI prints a job ID in async mode that you can use to check progress.
-- **For tilesets**, the workflow is *import → SQL job to materialize a tileset table → reference the tileset in a map*. The tileset itself is created in the warehouse, not by the CLI.
+- **`--connection` / `connection` is the connection *name*** (discover it with `explore_data` `method: list_connections`, or `carto connections list --json`), not the warehouse project ID.
+- **`destination` is the fully-qualified target name** in the warehouse's syntax: `project.dataset.table` (BigQuery), `DATABASE.SCHEMA.TABLE` (Snowflake), `schema.table` (Postgres/Redshift), `catalog.schema.table` (Databricks), `SCHEMA.TABLE` (Oracle).
+- **1 GB hard limit per file** (CARTO-side, not a warehouse limit). For larger files, pre-stage to cloud storage and import from a presigned URL.
+- **Disable autoguessing** (`--no-autoguessing` on the CLI) when you've prepared a precise schema and don't want CARTO to second-guess types — especially numeric-looking columns that should stay string, like ZIP codes.
+- **Imports/exports are async at the API level.** MCP `import_data`/`export_data` return a job id — poll with `method: "status"`. The CLI polls to completion by default; pass `--async` to return immediately with a job id.
+- **Tilesets** follow *import → materialize tileset table (`execute_async_query` or `carto sql job`) → reference the tileset in a map*. The tileset is created in the warehouse, not by the mover itself.

@@ -1,6 +1,6 @@
 # Advanced activity analyses
 
-Curated SQL patterns for the operational/admin questions that come up repeatedly. All run against the four DuckDB-loaded tables (`activity`, `apiUsage`, `userList`, `groupList`) via `carto activity query`.
+Curated SQL patterns for recurring operational/admin questions. All run against the four DuckDB-loaded tables (`activity`, `apiUsage`, `userList`, `groupList`) via `carto activity query` — **CLI-only**; there's no MCP query surface over exported activity data.
 
 For schema and basics, see [`../../carto-query-datawarehouse/references/activity-queries.md`](../../carto-query-datawarehouse/references/activity-queries.md).
 
@@ -23,7 +23,7 @@ GROUP BY user_id, category
 ORDER BY user_id, events DESC
 ```
 
-Use to identify primary use case per user — "Alice is 80% workflows, 15% maps, 5% other".
+Identifies each user's primary use case — "Alice is 80% workflows, 15% maps".
 
 ## Most edited maps
 
@@ -42,7 +42,7 @@ ORDER BY edit_count DESC
 LIMIT 20
 ```
 
-Surfaces the maps under active development — useful before a big platform change to avoid disrupting hot work.
+Surfaces maps under active development — check before a platform change to avoid disrupting hot work.
 
 ## Workflow success rate
 
@@ -80,7 +80,7 @@ GROUP BY DATE(ts)
 ORDER BY date DESC
 ```
 
-7-day rolling average smooths the spike-pattern view — useful for capacity planning.
+7-day rolling average smooths the spike view for capacity planning.
 
 ## Connection usage by provider
 
@@ -97,7 +97,7 @@ GROUP BY provider
 ORDER BY events DESC
 ```
 
-Tells you which warehouse engines actually drive your org's traffic — informs CARTO contract negotiation and SE/SA staffing.
+Shows which warehouse engines actually drive your org's traffic.
 
 ## Inactive users
 

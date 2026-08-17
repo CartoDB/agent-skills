@@ -12,39 +12,33 @@ CARTO Workflows is a visual DAG authoring app that compiles to warehouse SQL. Ea
 
 For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) — workflows are for repeatable, scheduled, multi-step DAGs.
 
-> **Access-path routing.** With the CARTO MCP server attached (OAuth-authenticated session), the interactive lifecycle maps to MCP tools: `create_workflow`, `update_workflow`, `validate_workflow`, `read_workflows`, `run_workflow` (method=run|status|results), `schedule_workflow`, and `read_workflow_components` (the component catalog). The development phases below apply on either path — where a step names a `carto workflows` command, substitute the matching MCP tool. Stay on the CLI for scripting/CI, bundle-schema introspection (`carto workflows schema` — no MCP equivalent), cross-profile copy (`carto workflows copy` — CLI-only), and MCP-tool publishing (`carto workflows mcp publish`); fall back to it when the server isn't attached or the MCP session is token-authenticated (authoring tools are hidden on token sessions; `run_workflow` and `validate_workflow` remain). Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** The interactive lifecycle maps to MCP tools on an OAuth-authenticated MCP session: `create_workflow`, `update_workflow` (method=update|share|unshare|publish|unpublish), `validate_workflow` (method=validate|verify|to_sql), `read_workflows` (method=list|get|list_mcp_tools|get_mcp_tool), `run_workflow` (method=run|status|results), `schedule_workflow` (method=add|update|remove), and `read_workflow_components` (method=list|get — the component catalog). The phases below apply on either path — where a step names a `carto workflows` command, substitute the matching MCP tool (e.g. `verify-remote` → `validate_workflow method=verify`). Stay on the CLI for scripting/CI, bundle-schema introspection (`carto workflows schema` — no MCP equivalent), cross-profile copy (`carto workflows copy` — CLI-only), and usage-log auditing (`carto activity query` — CLI-only). Fall back to the CLI when the server isn't attached, or when the MCP session is **token**-authenticated — authoring/admin tools are hidden there; only `run_workflow` and `validate_workflow` remain. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
-Bundle structure, component schemas, input formats, and gotchas are all served live — by the CLI (`carto workflows schema` / `components`) or, on the MCP path, by `read_workflow_components`. **Never hardcode or assume them.** Live introspection is the source of truth.
+Bundle structure, component schemas, input formats, and gotchas are all served live — by the CLI (`carto workflows schema` / `components`) or, on the MCP path, by `read_workflow_components` (method=list|get). **Never hardcode or assume them.** Live introspection is the source of truth.
 
-Live introspection commands (use these before reaching for any reference file):
+Live introspection (use before reaching for any reference file). On MCP, `read_workflow_components` (method=list|get) covers the component rows; the bundle/DAG `schema` sections are CLI-only.
 
 | Command | What it serves |
 |---|---|
 | `carto workflows schema` | Index of all bundle/DAG schema sections |
 | `carto workflows schema bundle` | Top-level bundle shape (id, title, connectionId, config, privacy, tags). `privacy` is a `$ref` — fetch its shape with `carto workflows schema privacy`. Minimal valid form: `"privacy": { "privacy": "private" }` (the inner string is *not* a bare `"private"` — `enums` lists the allowed values for that inner field). |
 | `carto workflows schema config` | Full DAG config (schemaVersion, connectionProvider enum, nodes, edges, variables, viewport, useCache, executionSettings, schedule) |
-| `carto workflows schema node` | Generic node shape, including `data.version` requirement and `data.title` vs `data.label` |
-| `carto workflows schema node.source` | Source/`ReadTable` node shape and the `data.id == data.inputs[0].value` invariant |
-| `carto workflows schema node.customsql` | Full customsql node spec |
+| `carto workflows schema node[.source\|.customsql]` | Generic node shape (`data.version`, `data.title` vs `data.label`); `.source` adds the `data.id == data.inputs[0].value` invariant; `.customsql` the full customsql spec |
 | `carto workflows schema customsql` | Copy-paste customsql node template (with `version: "2.0.0"`) |
-| `carto workflows schema edge` | Edge shape |
-| `carto workflows schema handles` | **Edge handle naming reference** — sourceHandle/targetHandle by node type, by operator, by component. Critical for valid edges. |
+| `carto workflows schema edge` / `schema handles` | Edge shape; and the **edge handle naming reference** (sourceHandle/targetHandle by node type, operator, component — critical for valid edges) |
 | `carto workflows schema variable` | Variable (parameter) shape — `{ order, name, type, value, public }` |
-| `carto workflows schema schedule` | Declarative schedule metadata fields |
-| `carto workflows schema enums` | All valid enums (node types, providers, privacies, schedule frequencies) |
-| `carto workflows components list --connection <conn> --json` | Component catalog for the connected warehouse |
-| `carto workflows components get <names> --connection <conn> --json` | Per-component `inputs`, `outputs`, `notes` |
-| `carto workflows components get <names> --connection <conn> --input-formats --json` | Input-type `format`, `examples`, `pitfalls` |
+| `carto workflows schema schedule` / `schema enums` | Declarative schedule metadata; and all valid enums (node types, providers, privacies, schedule frequencies) |
+| `carto workflows components list \| get <names> --connection <conn> --json` | Component catalog; per-component `inputs`, `outputs`, `notes`. Add `--input-formats` to `get` for input-type `format`, `examples`, `pitfalls`. MCP: `read_workflow_components`. |
 | `carto workflows --help` | Full command reference, including schedule-expression dialects per engine |
 
-References (only for what the CLI doesn't serve):
+References (only for what live introspection doesn't serve):
 - [`references/providers/`](references/providers/) — per-warehouse details (BigQuery, Snowflake, Databricks): identifier quoting, column casing, AT path.
 - [`references/scheduling.md`](references/scheduling.md) — `add` vs `update` semantics, bundle-level schedule warning, activity-log verification.
-- [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — publishing a workflow as an MCP tool or callable API endpoint: bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
-- [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `workflows copy` mechanics, connection mapping (`--connection-mapping` / `--connection`), `--skip-source-validation`, why copies are always new workflows.
+- [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — publishing a workflow as an MCP tool or callable API endpoint (MCP: `update_workflow method=publish`): bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
+- [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `workflows copy` mechanics (CLI-only), connection mapping, `--skip-source-validation`, why copies are always new workflows.
 - [`references/schedule-readd.md`](references/schedule-readd.md) — schedules don't transfer across `workflows copy`; how to re-add them, including dialect translation when source and destination engines differ.
 
-> **`connectionProvider` must match the connection.** `config.connectionProvider` (enum in `schema enums`) must match the connection's actual provider — mismatches generate the wrong SQL dialect and error at runtime. Look it up with `carto connections list --search <name> --json` (`connections get` requires a UUID).
+> **`connectionProvider` must match the connection.** `config.connectionProvider` (enum in `schema enums`) must match the connection's actual provider — mismatches generate the wrong SQL dialect and error at runtime. Look it up with `carto connections list --search <name> --json` (CLI) or `explore_data` (method=list_connections|get_connection) on the MCP path.
 
 ---
 
@@ -54,9 +48,9 @@ References (only for what the CLI doesn't serve):
 
 ### Phase 1 — Gather information
 
-1. **Identify data sources.** If the user named tables, note them. Otherwise discover what's available with `carto connections list` and `carto connections describe <connection> "<fqn>"`.
+1. **Identify data sources.** If the user named tables, note them. Otherwise discover what's available — CLI `carto connections list` / `carto connections describe <connection> "<fqn>"`, or MCP `explore_data` (method=list_connections|list_resources|describe).
 2. **Clarify the goal.** What transformation? What output? What filters/conditions?
-3. **Determine the connection.** `carto connections list | head -n 20`. Note its `provider` (`bigquery` / `snowflake` / `databricks`) — you will need it for the next step.
+3. **Determine the connection** and note its `provider` (`bigquery` / `snowflake` / `databricks`) — you need it for the next step. CLI `carto connections list` or MCP `explore_data method=list_connections`.
 4. **Read the provider reference.**
 
    <critical-rule id="read-provider-reference">
@@ -66,13 +60,13 @@ References (only for what the CLI doesn't serve):
 
    <do-not>Do not skip this step because the next phases look concrete. Do not rely on memory of a previous run — provider files change.</do-not>
    </critical-rule>
-5. **Fetch the component catalog.** `carto workflows components list --connection <connection> --json` — your only source of truth for component names.
+5. **Fetch the component catalog** — `carto workflows components list --connection <connection> --json` (CLI) or `read_workflow_components method=list` (MCP). Your only source of truth for component names.
 
 ### Phase 2 — Design the approach
 
 1. **Select components** from the catalog you fetched.
-2. **Fetch schemas for every component you plan to use.** `carto workflows components get <name1>,<name2>,<name3> --connection <connection> --json` returns `inputs`, `outputs`, and `notes`. Read the `notes` array carefully — it contains gotchas.
-3. **Fetch input type formats.** `carto workflows components get <component1>,<component2> --connection <connection> --input-formats --json` returns `format`, `examples`, and `pitfalls` for each input/output type. Pass **component names** (e.g. `native.buffer`), NOT input-type names.
+2. **Fetch schemas for every component you plan to use.** CLI `carto workflows components get <name1>,<name2> --connection <connection> --json` (or MCP `read_workflow_components method=get`) returns `inputs`, `outputs`, and `notes`. Read the `notes` array carefully — it contains gotchas.
+3. **Fetch input type formats.** CLI `carto workflows components get <component1>,<component2> --connection <connection> --input-formats --json` returns `format`, `examples`, and `pitfalls` for each input/output type. Pass **component names** (e.g. `native.buffer`), NOT input-type names.
 4. **Design principles:**
    - Preserve identifier and spatial columns throughout.
    - **Prefer native components over `native.customsql`. This is not a soft preference.** See [Native-first rule](#native-first-rule).
@@ -101,21 +95,20 @@ For each gap, **propose a sensible default with its rationale** (e.g. "p-value t
 
    **Canvas layout & naming — apply on every node, every workflow.** None of this affects execution, but the user opens the DAG in Workflows and a sloppy canvas reads as low quality. The numbers are small and stable; just apply them.
 
-   - **Snap grid is 16 px.** Every `x` and `y` you write must be `% 16 == 0`. The Workflows canvas snaps drags to this grid; off-grid values look subtly misaligned next to anything the user nudged.
-   - **Card widths are fixed by node type:** source nodes render at **192 px** (12 cells), generic components at **64 px** (4 cells). Knowing this is what lets you reason about gaps.
-   - **Card heights are fixed:** every component card and source card is **80 px** (5 cells) tall, with a **16 px** label rendered below the card body. The label is not part of the card — it lives in the gap to the next card.
-   - **Canonical inter-card gap (right edge → next left edge):** 80 px (5 cells) for tight linear placement; 128 px (8 cells) at a fan-in (a join's left input, where an edge from another row needs room). The *gap* is the constant; left-edge-to-left-edge Δx differs across patterns only because cards have different widths. So a generic→generic linear step is Δx=144 (9 cells); a source→generic step at the same gap is Δx=272 (17 cells); a generic→generic fan-in step is Δx=192 (12 cells).
-   - **Canonical vertical gap (card body bottom → next card body top):** 80 px (5 cells), of which the first 16 px is the card's label and the remaining 64 px is whitespace. The label always sits inside the gap, never inside the card. So a stacked-card step is top-to-top **Δy = 160 px (10 cells)** — 80 (body) + 16 (label) + 64 (whitespace).
-   - **Layout.** Source nodes stack at the leftmost column with the same `x`, Δy = 144 px (9 cells). The main pipeline runs at the y-midline of the source rows — e.g. sources at y=80 and y=224 → pipeline at y=160. Joins on the midline visually receive both inputs symmetrically.
-   - **`data.title` and `data.label` are different fields** — never duplicate. `title` = short instance-specific verb (≤ 15 chars) describing what *this* node does in *this* DAG (`"Rank"`, `"Join to score"`, `"To H3"`). `label` = the component's canonical type name as Workflows shows it on a fresh drop (`"Join"`, `"Create Column"`, `"H3 from GeoPoint"`) — read from `carto workflows components get <name> --json` → `components[0].title`. Source nodes only render `data.label` on canvas (treat it as a short alias for the table: `"Candidates"`, `"Score grid C"`).
-2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately:
+   - **Snap grid is 16 px.** Every `x` and `y` must be `% 16 == 0`; off-grid values look subtly misaligned next to anything the user nudged.
+   - **Card widths by node type:** source nodes **192 px** (12 cells), generic components **64 px** (4 cells). **Heights fixed:** every card is **80 px** (5 cells) tall, with a **16 px** label rendered below the body (the label lives in the gap to the next card, not inside the card).
+   - **Canonical inter-card gap (right edge → next left edge):** 80 px (5 cells) tight/linear; 128 px (8 cells) at a fan-in (a join's left input, where an edge from another row needs room). The *gap* is the constant; left-edge Δx differs by card width — generic→generic linear = Δx 144 (9 cells), source→generic = Δx 272 (17 cells), generic→generic fan-in = Δx 192 (12 cells).
+   - **Canonical vertical gap (body bottom → next body top):** 80 px (5 cells) = 16 px label + 64 px whitespace. So a stacked step is top-to-top **Δy = 160 px (10 cells)**.
+   - **Layout.** Source nodes stack at the leftmost column, same `x`, Δy = 144 px (9 cells). The main pipeline runs at the y-midline of the source rows (sources at y=80 and y=224 → pipeline at y=160), so joins receive both inputs symmetrically.
+   - **`data.title` and `data.label` are different fields** — never duplicate. `title` = short instance-specific verb (≤ 15 chars) for what *this* node does (`"Rank"`, `"Join to score"`, `"To H3"`). `label` = the component's canonical type name on a fresh drop (`"Join"`, `"Create Column"`) — read from `components get <name> --json` → `components[0].title`. Source nodes only render `data.label` (a short alias for the table: `"Candidates"`, `"Score grid C"`).
+2. **Run `validate` after every write to the file.** It's offline, fast, and catches structural errors immediately — CLI `carto workflows validate workflow.json --json`, or MCP `validate_workflow method=validate`:
    ```bash
    carto workflows validate workflow.json --json
    ```
    Treat any save without a passing `validate` as broken — fix before continuing to the next node/edge.
 
    **`validate` is authoritative.** If a component schema from `components get` disagrees with what `validate` accepts, trust `validate` and adjust the bundle to satisfy it. Do not "fix" the bundle to match the schema if it's already passing validation.
-3. **Run `verify` at branch boundaries**, not on every save. It hits the warehouse (slower, requires auth), so reserve it for whole sub-DAGs once their structure validates clean, and once at the end before presenting:
+3. **Run `verify` at branch boundaries**, not on every save. It hits the warehouse (slower, requires auth), so reserve it for whole sub-DAGs once their structure validates clean, and once at the end before presenting — CLI `verify-remote`, or MCP `validate_workflow method=verify`:
    ```bash
    carto workflows verify-remote workflow.json --connection <connection-name> --json
    ```
@@ -132,12 +125,12 @@ Summarize what was built. Confirm validation success. Wait for user confirmation
 ### Phase 6 — Upload to CARTO
 
 1. Ask if the user wants to upload.
-2. Upload and provide the URL:
+2. Upload and provide the URL — CLI `carto workflows create`, or MCP `create_workflow`:
    ```bash
    carto workflows create --file workflow.json --verify
    ```
    The connection comes from `connectionId` inside the bundle — no `--connection` flag here.
-3. **Confirm the upload didn't silently drop inputs.** Immediately after `create`, run `carto workflows get <id> --json` and diff `config.nodes[*].data.inputs` against the bundle you uploaded. The engine silently rejects values at save-time when an input fails validation (most commonly a Selection input fed a display label instead of a wire value — see "Display labels vs wire values" in [Fetching component & input information](#fetching-component--input-information)). When this happens, `validate`, `verify-remote` (when `deep.valid: true` with `deep.warnings` only), and `create` all report success; Workflows renders the node with a red error indicator on first open. Any `value` present locally but missing on the server was silently rejected — fix the source bundle and re-upload (don't try to edit on the server).
+3. **Confirm the upload didn't silently drop inputs.** Immediately after create, read the saved workflow (`carto workflows get <id> --json` or `read_workflows method=get`) and diff `config.nodes[*].data.inputs` against the bundle you uploaded. The engine silently rejects values at save-time when an input fails validation (most commonly a Selection input fed a display label instead of a wire value — see "Display labels vs wire values" in [Fetching component & input information](#fetching-component--input-information)). When this happens, `validate`, `verify` (when `deep.valid: true` with `deep.warnings` only), and create all report success; Workflows renders the node with a red error indicator on first open. Any `value` present locally but missing on the server was silently rejected — fix the source bundle and re-upload (don't try to edit on the server).
 4. Do NOT auto-execute unless explicitly requested.
 
 ---
@@ -184,13 +177,7 @@ When customsql is genuinely the right call, the per-warehouse SQL-dialect footgu
 
 ## Fetching component & input information
 
-**Do not rely on memorized component schemas or input formats.** Always fetch live data from the CLI.
-
-| Command | Purpose |
-|---------|---------|
-| `carto workflows components list --connection <conn> --json` | List all available components |
-| `carto workflows components get <names> --connection <conn> --json` | Component schemas with `inputs`, `outputs`, and `notes` |
-| `carto workflows components get <names> --connection <conn> --input-formats --json` | Input type `format`, `examples`, `pitfalls` for the types those components use |
+**Do not rely on memorized component schemas or input formats.** Always fetch live — `carto workflows components list | get <names> [--input-formats] --connection <conn> --json` (CLI) or `read_workflow_components` (method=list|get) on the MCP path (see the introspection table above).
 
 What to look for in the response:
 
@@ -211,29 +198,18 @@ For values that may evolve over time (component versions, bundle/config defaults
 
 ## Provider-specific notes
 
-Different warehouses have different SQL dialects, table-naming conventions, and column-casing rules. Always check the matching provider guide:
-
-- [`references/providers/bigquery.md`](references/providers/bigquery.md)
-- [`references/providers/snowflake.md`](references/providers/snowflake.md)
-- [`references/providers/databricks.md`](references/providers/databricks.md)
-
-Input-type formats (`Table`, `Column`, `ColumnsForJoin`, `SelectColumnAggregation`, etc.) and per-component gotchas (including the "AT components need `verify`, not `validate`" rule) are served by the CLI itself — see [Fetching component & input information](#fetching-component--input-information).
+Different warehouses have different SQL dialects, table-naming conventions, and column-casing rules — always check the matching provider guide ([bigquery](references/providers/bigquery.md), [snowflake](references/providers/snowflake.md), [databricks](references/providers/databricks.md)). Input-type formats (`Table`, `Column`, `ColumnsForJoin`, `SelectColumnAggregation`, etc.) and per-component gotchas (including the "AT components need `verify`, not `validate`" rule) come from live introspection — see [Fetching component & input information](#fetching-component--input-information).
 
 ---
 
 ## Operating a workflow (after it's built)
 
-Once a workflow exists in CARTO, the CLI exposes CRUD and schedule management. Quick reference:
+Once a workflow exists in CARTO, both paths expose CRUD, run, and schedule management. MCP: `read_workflows` (list|get), `update_workflow` (update|share|unshare|publish|unpublish), `run_workflow` (run|status|results), `schedule_workflow` (add|update|remove), `delete kind=workflow`. CLI quick reference:
 
 ```bash
-# List / inspect
-carto workflows list --json
+carto workflows list --json                                   # list / inspect
 carto workflows get <id>
-
-# Update with edited JSON
-carto workflows update <id> --file workflow.json
-
-# Add / remove a schedule
+carto workflows update <id> --file workflow.json              # update (replaces whole DAG)
 carto workflows schedule add <id> --expression "every day 08:00"
 carto workflows schedule remove <id>
 ```
@@ -242,7 +218,7 @@ Always-on guidance:
 
 - **Workflows run on the connection's warehouse.** A workflow with a BigQuery connection cannot use Snowflake-specific SQL.
 - **Schedule expression syntax depends on the engine** — natural-language for BQ/CARTO DW (`"every day 08:00"`), cron for Snowflake/Postgres (`"0 8 * * *"`), Quartz cron for Databricks (`"0 0 8 * * ?"`). See [`references/scheduling.md`](references/scheduling.md). Picking the wrong dialect fails at schedule-add time.
-- **Copying a workflow across profiles** (dev → prod, customer-segregated workspaces) is covered in [`references/cross-profile-copy.md`](references/cross-profile-copy.md). Schedules don't transfer — see [`references/schedule-readd.md`](references/schedule-readd.md).
-- **Deleting a workflow doesn't delete its outputs.** Tables/views the workflow created in the warehouse persist; clean them up with `carto sql job` if needed.
-- **`workflows update` replaces the whole DAG.** There's no per-node patch. Always `get` first, edit, then `update`.
+- **Copying a workflow across profiles** (dev → prod, customer-segregated workspaces) is CLI-only — see [`references/cross-profile-copy.md`](references/cross-profile-copy.md). Schedules don't transfer — see [`references/schedule-readd.md`](references/schedule-readd.md).
+- **Deleting a workflow doesn't delete its outputs.** Tables/views the workflow created in the warehouse persist; clean them up with `carto sql job` (or MCP `execute_query`) if needed.
+- **`update` replaces the whole DAG.** There's no per-node patch. Always `get` first, edit, then `update`.
 - **Workflow execution status** lives in the activity log (`WorkflowRun`, `WorkflowExecutionComplete` event types). For health monitoring of scheduled workflows, query that log via [`carto-query-datawarehouse`](../carto-query-datawarehouse) — see `references/activity-queries.md` in that skill.

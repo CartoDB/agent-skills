@@ -96,30 +96,15 @@ tmp.replace(manifest)
 
 Don't open the manifest in append mode and don't write line-by-line — partial writes corrupt the markdown.
 
-## Worked transitions
+## Worked transition
 
-### Pending → in-progress
+The `pending → in-progress → done` path (drop `In-progress at:` on the terminal transition; add the `done` fields):
 
 ```diff
  ### Stores (Hosted Feature Layer)
- - Source: https://services1.arcgis.com/.../Stores/FeatureServer/0
  - Item ID: 4ae23afb1c1248bda1d3
  - Type: Feature Service
 -- State: pending
-+- State: in-progress
-+- In-progress at: 2026-05-07T14:32:00Z
- - Recommended path: carto-arcgis-migrate-data
-```
-
-### In-progress → done
-
-```diff
- ### Stores (Hosted Feature Layer)
- - Source: https://services1.arcgis.com/.../Stores/FeatureServer/0
- - Item ID: 4ae23afb1c1248bda1d3
- - Type: Feature Service
--- State: in-progress
--- In-progress at: 2026-05-07T14:32:00Z
 +- State: done
  - Recommended path: carto-arcgis-migrate-data
 +- Target FQN: demo-bq.migration.stores
@@ -127,37 +112,9 @@ Don't open the manifest in append mode and don't write line-by-line — partial 
 +- Migrated at: 2026-05-07T14:33:12Z
 ```
 
-### In-progress → skipped (oversize)
+The other terminal transitions replace the state line and add their own fields per the tables above: `skipped` adds `Reason:` (+ `Estimated size:` / `Source rows:` for oversize); `failed` adds `Failure: <summary>`.
 
-```diff
- ### LargeRoads (Hosted Feature Layer)
- - Source: https://services1.arcgis.com/.../LargeRoads/FeatureServer/0
- - Item ID: 8de4...
- - Type: Feature Service
--- State: in-progress
--- In-progress at: 2026-05-07T14:33:30Z
-+- State: skipped
- - Recommended path: carto-arcgis-migrate-data
-+- Reason: exceeds-1gb-staging-not-implemented
-+- Estimated size: 1.4 GB
-+- Source rows: 4823017
-```
-
-### In-progress → failed (count mismatch)
-
-```diff
- ### Sales (Hosted Feature Layer)
- - Source: https://services1.arcgis.com/.../Sales/FeatureServer/0
- - Item ID: c2f1...
- - Type: Feature Service
--- State: in-progress
--- In-progress at: 2026-05-07T14:34:10Z
-+- State: failed
- - Recommended path: carto-arcgis-migrate-data
-+- Failure: row count mismatch (source=8421, target=8420)
-```
-
-## Final batch summary (Phase 5)
+## Final batch summary (Phase B.5)
 
 Print to chat (not the manifest) at the end of every run. Format:
 

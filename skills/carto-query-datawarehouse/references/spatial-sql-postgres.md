@@ -70,7 +70,7 @@ FROM stores
 ## Redshift differences
 
 - Redshift supports most PostGIS functions but not all (no `ST_GeogFromText`; no `H3_*`).
-- Redshift Serverless billing per query — favor `sql job` over many small `sql query` calls.
+- Redshift Serverless bills per query — batch into fewer async jobs rather than many small sync reads.
 - Spatial indexes are implicit / managed by Redshift — no explicit `CREATE INDEX` needed.
 
 ## Gotchas

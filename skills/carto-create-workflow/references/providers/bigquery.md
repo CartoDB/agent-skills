@@ -12,7 +12,7 @@ Format: `project.dataset.table`
 cartodb-on-gcp-datascience.my_dataset.my_table
 ```
 
-Use `carto connections browse <connection>` to navigate `project > dataset > table`.
+Navigate `project > dataset > table` with `carto connections browse <connection>` (CLI) or `explore_data method=list_resources` (MCP).
 
 ---
 

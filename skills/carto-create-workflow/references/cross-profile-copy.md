@@ -1,6 +1,6 @@
 # Cross-profile workflow copy
 
-`workflows copy` moves a workflow definition from one CARTO profile (org / environment) to another. Mechanical replication — no creation, no agentic decisions.
+`workflows copy` moves a workflow definition from one CARTO profile (org / environment) to another. Mechanical replication — no creation, no agentic decisions. **CLI-only: there is no MCP equivalent** (cross-profile promotion spans two authenticated profiles, which a single MCP session doesn't hold). To replicate on the MCP path, `read_workflows method=get` the source, remap connections yourself, and `create_workflow` in the destination session.
 
 ## Lifecycle
 
@@ -77,17 +77,10 @@ By default, `workflows copy` validates that source tables referenced by the work
 - The destination workflow is intended to populate those tables itself.
 - You're staging a workflow before the upstream data is ready.
 
-## Title override
+## Other flags
 
-```bash
---title "My Workflow (prod)"
-```
-
-Useful when the source title contains `"-dev"` you want to strip.
-
-## Preserving privacy
-
-`workflows copy` defaults to copying the source's privacy setting. Pass `--keep-privacy` to be explicit (default: true) or omit for the default.
+- `--title "My Workflow (prod)"` — override the copied title (e.g. to strip a `"-dev"` suffix).
+- `--keep-privacy` — copy the source's privacy setting (default: true; the flag just makes it explicit).
 
 ## Updating a previously-copied workflow
 

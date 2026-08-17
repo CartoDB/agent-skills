@@ -1,4 +1,4 @@
-description = "Builds geocoding workflows in CARTO that convert street addresses or place names into geographic coordinates. Triggers when the user has tabular data with addresses but no geometry column and needs to create one (carto-skills)"
+description = "Builds geocoding workflows in CARTO that convert street addresses or place names into geographic coordinates. Triggers when the user mentions geocoding, address to coordinates, address resolution, geolocate addresses, "add geometry from addresses", lat/lon from address, place name to point, address matching, forward geocoding, converting addresses to points, or has tabular data with address columns but no spatial geometry column and needs to create one (carto-skills)"
 
 prompt = """
 Apply the `carto-geocoding` skill from the carto-skills catalog to the user's request.

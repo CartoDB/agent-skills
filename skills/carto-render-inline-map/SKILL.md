@@ -12,20 +12,17 @@ Renders an ad-hoc interactive map inline in the chat via the CARTO MCP server's 
 
 **Tool contract.** This skill consumes the `view_map` tool exposed by the CARTO MCP server. The tool's input shape (`deckglProps`), layer-source compatibility, `aggregationExp` requirements, and `@@=` expression-eval restrictions are documented in the tool's own MCP description — read it via the MCP host's tool-inspector or by calling `tools/list`. This skill stays focused on routing, cartography, and the agent's reply; it does NOT duplicate the tool's spec.
 
-This skill assumes the **CARTO MCP server is attached** (the `view_map` tool is in your tool list) AND the **host supports MCP Apps** (interactive widgets — Claude.ai, Claude Desktop, ChatGPT). If either is missing, see "Step 1 — detect what's available" below.
+This skill is **MCP-only**: `view_map` renders inline ONLY on the CARTO MCP server, and ONLY on hosts that support MCP Apps (Claude.ai, Claude Desktop, ChatGPT). There is no CLI equivalent for inline rendering. `view_map` is offered on both OAuth and token MCP sessions.
 
 ## Step 1 — detect what's available
 
-| Check | How |
-|---|---|
-| `view_map` is callable | Tool name `view_map` is in your tool list. |
-| Host renders MCP Apps | Hosts that DO: Claude.ai, Claude Desktop, ChatGPT. Hosts that DON'T (Gemini CLI, Codex CLI, plain MCP Inspector, current MCPJam) execute the tool but only show a text confirmation — no map widget. |
+For detection signals and host support, see [carto-basics/references/access-paths.md](../carto-basics/references/access-paths.md). Quick check: `view_map` must be in your tool list, and the host must render MCP Apps.
 
 | Setup | What to do |
 |---|---|
-| Tool present + host renders | Proceed normally. |
-| Tool present + host doesn't render | Tell the user the host can't render maps inline; suggest switching hosts or — where a shell is available — `carto-create-builder-maps` + `carto maps screenshot` for a PNG-based alternative. |
-| Tool not present | The MCP server isn't attached. Tell the user; don't fall back to a generic visualization widget. |
+| `view_map` present + host renders | Proceed normally. |
+| `view_map` present + host doesn't render (Gemini CLI, Codex CLI, MCP Inspector, MCPJam — text-only) | Tell the user the host can't render maps inline; suggest switching hosts or — where a shell is available — `carto-create-builder-maps` + `carto maps screenshot` for a PNG. |
+| `view_map` not present | The MCP server isn't attached. Tell the user; don't fall back to a generic visualization widget. |
 
 ## When to pick a different skill
 
@@ -35,11 +32,11 @@ This skill assumes the **CARTO MCP server is attached** (the `view_map` tool is 
 
 ## Discovery flow before composing the spec
 
-Discovery runs through the `explore_data` tool, which groups the methods this skill (and its cartography reference) names bare — `list_connections`, `search`, `list_resources`, `describe`.
+Discovery runs through the **`explore_data`** MCP tool (available on OAuth and token sessions). Its methods are what the cartography reference writes bare as `list_connections`, `search`, `list_resources`, `describe`.
 
 1. `explore_data` (`list_connections`) → identify the right connection (often `carto_dw`).
 2. `explore_data` (`search` by name, or `list_resources` by FQN) to find the table.
-3. **Always fetch column stats via `explore_data` (`describe` in stats mode) for any unfamiliar numeric column you'll bin on** — quantiles, min, max, categories. Skipping this and hardcoding `colorBins` thresholds is the #1 styling failure mode.
+3. **Always fetch column stats via `explore_data` (`describe`, stats mode) for any unfamiliar numeric column you'll bin on** — quantiles, min, max, categories. Skipping this and hardcoding `colorBins` thresholds is the #1 styling failure mode.
 4. Compose the `view_map` spec.
 
 ## Composition essentials
@@ -48,15 +45,14 @@ For the full deck.gl declarative spec — layer-source compatibility, `aggregati
 
 For cartographic decisions on the spec (palette, scale, basemap, stroke, drawing order, hierarchy, picking, anti-patterns, worked recipes), read [`references/cartography.md`](references/cartography.md). Mandatory before composing any styled spec.
 
-## Anti-patterns to surface or self-correct
+## Routing anti-patterns
 
 - **Falling back to a generic visualization widget when `view_map` is available.** If the tool is in your list, use it.
 - **Hand-building a spec for a saved map referenced by name.** Switch to `carto-preview-builder-map` and resolve it via `read_maps` first.
-- **Hardcoded `colorBins` domain values without fetching stats.** Always fetch real percentiles for unfamiliar columns via `explore_data` (`describe`).
-- **Mixing tile schemes** (e.g., `vectorTableSource` → `HeatmapTileLayer`). Silent empty render. The `view_map` tool description has the full compatibility matrix.
-- **Generic deck.gl layers** (`ScatterplotLayer`, `HexagonLayer`, `GeoJsonLayer`, etc.). The MCP JSON converter only registers CARTO layers — anything else silently produces nothing.
-- **Treating an inline preview as a saved/shareable map.** It isn't. If the user wants to keep it, route to `carto-create-builder-maps`.
+- **Treating an inline preview as a saved/shareable map.** It isn't — specs live in the chat. If the user wants to keep it, route to `carto-create-builder-maps`.
 
-## Post-creation preview pattern
+(Spec-composition anti-patterns — tile-scheme mismatches, generic layers, hardcoded bins — are in [`references/cartography.md`](references/cartography.md) §9.)
 
-When the user creates a permanent map via `carto-create-builder-maps` (`create_map` over MCP, or `carto maps create` on the CLI), the response is a `mapId` + Builder URL. The fastest way to verify the result inline is loading the saved map by that ID (see `carto-preview-builder-map`) — NOT a re-rendered ad-hoc spec. Hand off to that skill rather than reconstructing the spec from scratch.
+## Post-creation preview
+
+After a permanent map is created via `carto-create-builder-maps` (`create_map` over MCP, or `carto maps create` on the CLI), verify it inline by loading the saved map by its `mapId` (`carto-preview-builder-map`) — NOT a re-rendered ad-hoc spec.

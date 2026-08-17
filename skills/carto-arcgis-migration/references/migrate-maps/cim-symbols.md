@@ -149,7 +149,7 @@ def extract_cim_picture_bytes(picture_marker_layer):
     return raw, _ext_from_bytes_or_url(raw, url)
 ```
 
-After extraction, the rest is identical: content-hash dedup → `POST /assets` (multipart, `type=MapMarker`) → reference the returned `id` in kepler `visConfig.customMarkersId` (or `customMarkersField` + `customMarkersRange.markerMap[]` for categorical). The `out/markers/.cache.json` cache treats CIM-extracted icons no differently from `esriPMS` ones — same icon (by content hash) uploads once. See [`marker-upload.md`](marker-upload.md) "Upload" for the multipart helper.
+After extraction, the rest is identical: content-hash dedup → `POST /assets` (multipart, `type=mapMarker`) → reference the returned `id` in kepler `visConfig.customMarkersId` (or `customMarkersField` + `customMarkersRange.markerMap[]` for categorical). The `out/markers/.cache.json` cache treats CIM-extracted icons no differently from `esriPMS` ones — same icon (by content hash) uploads once. See [`marker-upload.md`](marker-upload.md) "Upload" for the multipart helper.
 
 ## Vector marker color extraction (graceful collapse)
 

@@ -1,5 +1,7 @@
 # Cross-profile map copy
 
+> **CLI-only.** `maps copy` / `maps clone` and the `--profile` / `--source-profile` / `--dest-profile` flags have no MCP equivalent — cross-org promotion runs on the CLI. On a token-authed or sandboxed-chat MCP session, there's no way to do this; use the CLI.
+
 `maps copy` duplicates a map across CARTO profiles. The destination gets a new map ID, fresh per-org metadata, and a fresh share state. Source content (datasets, layers, styles, AI-agent config) transfers; share links, comments, and collaboration state do not.
 
 ## Lifecycle

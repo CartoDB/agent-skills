@@ -38,24 +38,22 @@ Symptom→fix table for common authoring mistakes, antipatterns to avoid emittin
 ---
 
 
-## Visual verification — `carto maps screenshot`
+## Visual verification — `carto maps screenshot` (CLI) / `view_map` (MCP-Apps)
 
-After a create or update, the agent can render the map to PNG and inspect it. This closes the loop on "the JSON validates and the warehouse query works, but does the map look right?" — which Tier-1 + the source/render checks can't answer (palette contrast, layer occlusion, popup contents, label collision).
+After a create or update, inspect what actually rendered. This closes the loop on "the JSON validates and the warehouse query works, but does the map look right?" — which Tier-1 + the source/render checks can't answer (palette contrast, layer occlusion, popup contents, label collision). On MCP-Apps hosts (Claude.ai, Claude Desktop, ChatGPT) `view_map <id>` previews inline with no shell. `carto maps screenshot` (below) needs a shell but renders to a PNG file and offers the `light`/`full` engine choice.
 
 ```bash
 carto maps screenshot <mapId> -o /tmp/m.png
 carto maps screenshot <mapId> --lat 40.42 --lng -3.70 --zoom 12 -o /tmp/madrid.png
 ```
 
-**Two render engines — pick by what you need to verify:**
+**Two render engines — pick by what you need to verify** (decision rubric in `SKILL.md` *Visual verification*):
 
 | Engine | Renders | Speed | Use when |
 |---|---|---|---|
-| `light` (**default**) | Layers + basemap + viewport only | ~8s warm | Verifying layer rendering, palette, contrast, geometry, layer order. The common case. |
-| `full` (`--render-engine full`) | Everything: layers + widgets + legends + popups + side panel | ~20s warm | Verifying widget contents/order, legend categories/order, popup field selection, or any UI element the user will interact with. |
+| `light` (**default**) | Layers + basemap + viewport only | ~8s warm | Layer rendering, palette, contrast, geometry, layer order. The common case. |
+| `full` (`--render-engine full`) | Adds widgets + legends + side panel | ~20s warm | Widget contents/order, legend categories/order. |
 
-If you authored `widgets[]`, `legendSettings`, or `popupSettings` in this turn, **screenshot with `--render-engine full`** before reporting completion — `light` paints only the map surface and won't show whether the widget panel renders the bins you expected, or whether the legend categories landed in the right order. Conversely, when the user only asked for "show me a map of X", `light` is the right call.
+Neither engine renders **popups** (hover / click / info-panel / custom HTML) — verify those in Builder, not a screenshot.
 
-**One-time install** (the user will see the missing-Chromium error if they haven't done this): `npx playwright install chromium`. The Chromium binary is ~150 MB; first run is slow because it downloads it. Subsequent runs use a persistent profile at `~/.carto/screenshot-cache` (bypass with `--no-cache`).
-
-The screenshot is also useful as **agent feedback during iteration**: render → inspect the PNG → adjust the configuration → re-render. Faster than asking the user to open Builder for every tweak. Keep `light` for fast iteration; switch to `full` for final verification.
+**One-time install** (the user sees a missing-Chromium error otherwise): `npx playwright install chromium` (~150 MB, first run only). Subsequent runs use a persistent profile at `~/.carto/screenshot-cache` (bypass with `--no-cache`).

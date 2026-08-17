@@ -105,8 +105,6 @@ Use `native.saveastable` to persist results. The H3/Quadbin column is directly v
 | `p_value` | Statistical significance -- lower = more confident |
 | `quadrant` | Cluster classification: `HH`, `HL`, `LH`, or `LL` |
 
-The engine declares these lowercase. See the Provider casing note in Gotchas for Snowflake.
-
 ### Interpreting Results
 
 **Global Moran's I** (overall pattern):
@@ -127,8 +125,8 @@ The engine declares these lowercase. See the Provider casing note in Gotchas for
 ## Gotchas
 
 - **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `INDEX`, `MORANS_I`, `P_VALUE`, `QUADRANT`, `GEOID_COUNT` in expressions. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
-- The Moran's I component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
-- The output column is named `index`, not `h3` or `quadbin`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`). This is the same behavior as Getis-Ord.
+- The Moran's I component requires the Analytics Toolbox. Offline validation can't resolve the AT location — confirm it with a remote verify before running: `validate_workflow` `method: verify` over MCP, or `carto workflows verify-remote --connection <conn>` on the CLI.
+- The output column is named `index`, not `h3` or `quadbin`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`).
 - The `valuecol` must be numeric. If you are counting features, the group-by step must produce a count column -- do not pass the raw index column as the value.
 - Resolution too high + large area = very many cells, which can be slow or hit memory limits. Start with a moderate resolution and refine.
 - Moran's I is sensitive to the definition of neighborhood. Both k-ring size and decay function choice materially affect results. Document your choices and consider testing alternatives.

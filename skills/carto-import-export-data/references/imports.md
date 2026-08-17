@@ -1,23 +1,24 @@
-# `carto import` reference
+# Importing data
 
-```bash
-carto import [options]
-```
+Two paths, same semantics (formats, 1 GB limit, destination syntax, autoguessing all identical):
 
-## Required flags
+- **MCP** `import_data` (OAuth session) — `method: "submit"` with `source` (a `url`, or an uploaded/staged `file`), `connection`, `destination`, optional `overwrite`; then `method: "status"` with the returned job id. Hidden on token-authenticated sessions — use the CLI there.
+- **CLI** `carto import` — scripted/bulk/headless, or when the MCP server isn't attached.
 
-- `--connection <name>` — connection name from `connections list`.
-- `--destination <fqn>` — target table name in the warehouse's native syntax.
-- One of `--file <path>` or `--url <url>` — the source.
+## Required inputs
 
-## Optional flags
+- `connection` / `--connection <name>` — connection name (`explore_data` `list_connections`, or `carto connections list`).
+- `destination` / `--destination <fqn>` — target table in the warehouse's native syntax.
+- A source: a `url` / `--url`, or an uploaded / local `file` / `--file`.
 
-| Flag | Effect |
-|---|---|
-| `--overwrite` | Overwrite the destination table if it exists. Default: error if table exists. |
-| `--no-autoguessing` | Disable column type detection. Use a pre-built schema instead. |
-| `--async` | Return immediately, don't wait for the import to finish. Prints the job ID. |
-| `--json` | Machine-readable output. |
+## Optional inputs
+
+| CLI flag | `import_data` | Effect |
+|---|---|---|
+| `--overwrite` | `overwrite: true` | Replace the destination if it exists. Default: error if it exists. |
+| `--no-autoguessing` | — | Disable column type detection; use a pre-built schema. |
+| `--async` | (submit returns a job id; poll `status`) | Return immediately instead of polling to completion. |
+| `--json` | — | Machine-readable output. |
 
 ## Supported formats
 
@@ -25,56 +26,31 @@ CSV, GeoJSON, GeoPackage, GeoParquet, KML, KMZ, Shapefile (must be zipped — `.
 
 ## Size limit
 
-**1 GB per file.** This is a CARTO-side limit, not a warehouse limit.
-
-For larger files:
+**1 GB per file** (CARTO-side, not a warehouse limit). For larger files:
 
 1. Upload the raw file to cloud storage (S3, GCS, Azure Blob).
 2. Generate a presigned / signed URL.
-3. Run `carto import --url <signed-url> --connection ... --destination ...`.
+3. Import from that URL (`import_data` `source: {url}` or `carto import --url`).
 
-The signed URL must be reachable from CARTO's import workers. CARTO publishes a static IP allowlist for SaaS — verify with support if the bucket is firewalled.
+The signed URL must be reachable from CARTO's import workers. CARTO Cloud publishes a static IP allowlist — verify with support if the bucket is firewalled.
 
-## Examples
-
-### Local CSV
+## CLI examples
 
 ```bash
-carto import \
-  --file ./stores.csv \
-  --connection carto_dw \
-  --destination my_project.demo.stores
-```
+# Local CSV
+carto import --file ./stores.csv --connection carto_dw --destination my_project.demo.stores
 
-### Remote GeoJSON, overwrite
+# Remote GeoJSON, overwrite
+carto import --url https://example.com/regions.geojson \
+  --connection carto_dw --destination my_project.demo.regions --overwrite
 
-```bash
-carto import \
-  --url https://example.com/regions.geojson \
-  --connection carto_dw \
-  --destination my_project.demo.regions \
-  --overwrite
-```
+# Async with explicit schema
+carto import --file ./events.parquet --connection carto_dw \
+  --destination my_project.demo.events --no-autoguessing --async
 
-### Async with explicit schema
-
-```bash
-carto import \
-  --file ./events.parquet \
-  --connection carto_dw \
-  --destination my_project.demo.events \
-  --no-autoguessing \
-  --async
-```
-
-### Shapefile (zipped)
-
-```bash
-zip neighborhoods.zip neighborhoods.shp neighborhoods.shx \
-                      neighborhoods.dbf neighborhoods.prj
-carto import \
-  --file ./neighborhoods.zip \
-  --connection carto_dw \
+# Shapefile (zipped first)
+zip neighborhoods.zip neighborhoods.shp neighborhoods.shx neighborhoods.dbf neighborhoods.prj
+carto import --file ./neighborhoods.zip --connection carto_dw \
   --destination my_project.demo.neighborhoods
 ```
 
@@ -82,14 +58,14 @@ carto import \
 
 1. Uploads the file (or fetches the URL) to a CARTO-managed staging area.
 2. Spawns an import job in the warehouse using the connection's credentials.
-3. The job parses the source, infers the schema (unless `--no-autoguessing`), creates the destination table, and loads the rows.
-4. CARTO records the import in its activity log (visible via `carto activity export`).
+3. Parses the source, infers the schema (unless autoguessing is off), creates the destination table, loads the rows.
+4. Records the import in the activity log (see [exports.md](exports.md) → `carto activity export`).
 
-Geometries are stored in the warehouse's native spatial type — `GEOGRAPHY` (BigQuery, Snowflake), `GEOMETRY` (Postgres/PostGIS, Redshift, Databricks), `SDO_GEOMETRY` (Oracle Spatial).
+Geometries land in the warehouse's native spatial type — `GEOGRAPHY` (BigQuery, Snowflake), `GEOMETRY` (Postgres/PostGIS, Redshift, Databricks), `SDO_GEOMETRY` (Oracle Spatial).
 
 ## Common errors
 
-- **`Permission denied`** writing to the destination — the connection's service account lacks `dataEditor` (BQ) / `CREATE TABLE` (others). Fix in the warehouse, not in CARTO.
-- **`File too large`** — split the file or stage it as cloud-storage URL.
-- **`Unable to detect format`** — pass the file extension explicitly or rename so the extension matches the actual format.
-- **`Geometry parsing failed`** — geometry column has invalid WKT/WKB or mixed SRIDs. Pre-clean before import.
+- **`Permission denied`** on the destination — the connection's service account lacks `dataEditor` (BQ) / `CREATE TABLE` (others). Fix in the warehouse, not in CARTO.
+- **`File too large`** — split the file or stage it as a cloud-storage URL.
+- **`Unable to detect format`** — pass the file extension explicitly or rename so it matches the actual format.
+- **`Geometry parsing failed`** — invalid WKT/WKB or mixed SRIDs in the geometry column. Pre-clean before import.

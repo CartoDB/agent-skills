@@ -6,7 +6,7 @@ license: MIT
 
 Use this skill whenever the user wants to create a composite score, index, or multi-variable ranking in a CARTO Workflow.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
+**Prerequisites**: Load `carto-create-workflow` for the development process. It covers both access paths — the MCP server's workflow tools (`create_workflow`, `validate_workflow`, `run_workflow`) when attached, the `carto workflows` CLI otherwise. Routing signals: `carto-basics/references/access-paths.md`.
 
 ## Instructions
 
@@ -61,13 +61,12 @@ Ask the user the following decision tree:
 ## Gotchas
 
 - **Provider casing & SQL dialect.** This skill uses lowercase column names (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `POPULATION_DENSITY`, `ACCIDENT_RATE`, etc. in weights, expressions, and downstream SQL. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
-- **All input variables must be numeric.** Ordinal strings (e.g. "low"/"medium"/"high") must be manually encoded via CASE WHEN before passing to the component.
-- **Variable direction matters.** If "higher is worse" for a variable, multiply by -1 before scoring. Forgetting this inverts the score meaning.
+- **All input variables must be numeric, with aligned direction.** Encode ordinal strings ("low"/"medium"/"high") via CASE WHEN first, and where "higher is worse" multiply by -1 (or set the `reverse` flag) before scoring — forgetting this inverts the score meaning.
 - **Supervised R-squared threshold** (default 0.4) is permissive. If model fit is poor, the residual-based score is mostly noise. Inspect model diagnostics.
 - **Custom weights are normalized internally** to sum to 1. The absolute values do not matter, only the ratios.
 - **Supervised scores are residuals**, not raw values. The score identifies areas that DEVIATE from the model, not areas with the highest raw values.
 - **Drop the spatial index column and geometry** from the feature selection — only pass actual feature variables to the scoring component.
-- **`weights` type label is misreported by the CLI.** `carto workflows components get native.spatialcompositeunsupervised --json` lists `weights` as `type: "ColumnNumber"`, but the actual wire shape is a `ColumnAndNumber` JSON-encoded string of triples `[[<column>, <weight>, <reverse>], ...]` (see Step 2 of the unsupervised pipeline above). Trust this skill and the reference templates over the CLI's reported type label for this input.
+- **`weights` type label is misreported.** The component schema (via `read_workflow_components` MCP or `carto workflows components get native.spatialcompositeunsupervised --json`) lists `weights` as `type: "ColumnNumber"`, but the actual wire shape is a `ColumnAndNumber` JSON-encoded string of triples `[[<column>, <weight>, <reverse>], ...]` (see Step 2 above). Trust this skill and the reference templates over the reported type label.
 - **`indexcol.allowedColumns` is a UI hint, not a validator.** The schema lists `["geoid", "h3", "quadbin"]` for `native.spatialcompositeunsupervised.indexcol`, but it's a Workflows dropdown hint — any unique identifier column works at runtime (e.g. `store_id`, `cell_id`).
 
 ## Reference Templates
