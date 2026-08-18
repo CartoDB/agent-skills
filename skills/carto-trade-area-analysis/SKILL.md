@@ -10,7 +10,7 @@ Builds CARTO Workflows that define catchment areas around candidate locations, e
 
 **Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation. It covers both access paths — the MCP server's workflow tools (`create_workflow`, `validate_workflow`, `run_workflow`) when attached, the `carto workflows` CLI otherwise. Routing signals: `carto-basics/references/access-paths.md`.
 
-**Ad-hoc catchments**: for a one-off isochrone around a handful of points, use the `calculate_isolines` MCP tool (needs an OAuth session — it's hidden on token sessions) — the workflow patterns below are for table-scale, repeatable analysis.
+**Ad-hoc catchments**: for a one-off isochrone around a handful of points, use the `calculate_isolines` MCP tool (available over OAuth, or on a token session whose Allowed APIs include **LDS**) — the workflow patterns below are for table-scale, repeatable analysis.
 
 ---
 

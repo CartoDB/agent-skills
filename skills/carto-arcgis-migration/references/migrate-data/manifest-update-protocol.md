@@ -7,20 +7,20 @@ The skill writes to `MIGRATION_MANIFEST.md` after every state change. Crashes mi
 ```
 pending  ─►  in-progress  ─►  done
                   │
-                  ├──►  skipped  (empty source / > 1 GB)
+                  ├──►  skipped  (empty source / > 5 GB)
                   └──►  failed   (with Failure: line; retryable on next run)
 ```
 
 - **pending → in-progress** at the start of Phase 1 (one transition per entry, written immediately).
 - **in-progress → done** when import + verification succeed.
-- **in-progress → skipped** when the entry is empty (`Reason: empty-source`) or oversized (`Reason: exceeds-1gb-staging-not-implemented`).
+- **in-progress → skipped** when the entry is empty (`Reason: empty-source`) or oversized (`Reason: exceeds-5gb-staging-not-implemented`).
 - **in-progress → failed** when extraction errors out persistently OR the post-import row count doesn't match.
 
 Re-runs handle states as follows:
 
 - `done` → silently skipped (idempotency precheck confirms the table still matches).
 - `skipped` (empty-source) → silently skipped.
-- `skipped` (exceeds-1gb-staging-not-implemented) → silently skipped (will resume when the staging-fallback feature ships).
+- `skipped` (exceeds-5gb-staging-not-implemented) → silently skipped (will resume when the staging-fallback feature ships).
 - `failed` → re-attempted. Phase 1 transitions back to `in-progress`; Phase 4 uses `--overwrite`.
 
 ## Required fields per state
@@ -47,9 +47,9 @@ Remove the `In-progress at:` line.
 
 Add:
 - `State: skipped`
-- `Reason: empty-source` OR `Reason: exceeds-1gb-staging-not-implemented`
+- `Reason: empty-source` OR `Reason: exceeds-5gb-staging-not-implemented`
 
-For `exceeds-1gb-staging-not-implemented`, also add:
+For `exceeds-5gb-staging-not-implemented`, also add:
 - `Estimated size: <human-readable>` (e.g. `1.4 GB`)
 - `Source rows: <int>` (from the probe)
 
@@ -128,7 +128,7 @@ Migrated (2):
 Skipped — empty (1):
   - LegacyContacts                      no rows in source
 
-Skipped — > 1 GB (1):
+Skipped — > 5 GB (1):
   - LargeRoads                          1.4 GB est., 4823017 rows
                                         (staging fallback not yet implemented)
 

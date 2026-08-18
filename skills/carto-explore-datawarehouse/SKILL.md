@@ -16,7 +16,7 @@ Before writing SQL or building maps, an agent usually needs to know **what's in 
 | Columns + types for a table | `explore_data` (`describe`) | `carto connections describe` |
 | Find / inspect a named source | `manage_named_sources` (`list`, `get`) | `carto named-sources list` / `get` |
 
-> **Access-path routing.** `explore_data` works on any attached MCP session, including token-authenticated ones. `manage_named_sources` is an authoring tool, so it needs an OAuth session (it's hidden on token sessions). Use the `carto connections` / `carto named-sources` CLI when the server isn't attached or the exploration is scripted/headless. Detection signals and the full routing table: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** `explore_data` works on any attached MCP session, but not all its methods do on a token: `list_connections`, `list_resources`, and `search` need only the **MCP Server** scope, while **`describe` additionally needs the Maps API** on a token session (it's always available over OAuth). `manage_named_sources` is an authoring tool, so it needs an OAuth session (it's hidden on token sessions). Use the `carto connections` / `carto named-sources` CLI when the server isn't attached, when a token lacks the scope for `describe`, or when the exploration is scripted/headless. Detection signals and the full routing table: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 ## When to use this skill
 

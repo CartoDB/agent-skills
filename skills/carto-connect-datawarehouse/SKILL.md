@@ -10,11 +10,11 @@ CARTO runs spatial analytics in the user's own data warehouse. **A connection is
 
 | Task | MCP | CLI (fallback) |
 |---|---|---|
-| List / inspect connections | `explore_data` (`list_connections`, `get_connection`) — works on token sessions | `carto connections list` / `get` |
+| List / inspect connections | `explore_data` (`list_connections` on any session; `get_connection` is OAuth-only) | `carto connections list` / `get` |
 | Create / update a connection | `manage_connections` (`create`, `update`) — **OAuth session only** | `carto connections create` / `update` |
 | Delete a connection | `delete` (kind=connection) — **OAuth session only** | `carto connections delete` |
 
-> **Access-path routing.** With the MCP server attached, list/inspect over `explore_data`; create/update over `manage_connections`; delete over `delete`. The write tools require an OAuth-authenticated session — on a token session they're hidden, so fall back to the `carto connections` CLI. Also use the CLI when the server isn't attached or for scripted setups. The engine-choice guidance and pitfalls below apply on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** With the MCP server attached, list over `explore_data` (`list_connections`); create/update over `manage_connections`; delete over `delete`. On a token session only `list_connections` is available — `get_connection` and the write tools (`manage_connections`, `delete`) need OAuth, so fall back to the `carto connections` CLI. Also use the CLI when the server isn't attached or for scripted setups. The engine-choice guidance and pitfalls below apply on either path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 ## When to use this skill
 

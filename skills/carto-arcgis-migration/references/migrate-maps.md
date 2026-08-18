@@ -52,7 +52,7 @@ For each `operationalLayer`:
 
 1. Match the layer's `url` against the manifest's Datasets entries — including `Source aliases:` (a Map Service URL may have collapsed into a Feature Service entry during discover's A.4 dedup). The migrated `Target FQN` belongs to the canonical entry.
 2. If no Datasets entry matches → mark the Web Map `State: failed`, `Failure: depends-on-unmigrated-data: <layer-name>`, continue to the next entry. **Do not auto-run [`migrate-data.md`](migrate-data.md).**
-3. If the matched entry's `State` is not `done` (e.g. `skipped` because > 1 GB) → `Failure: depends-on-skipped-data: <layer-name> (<reason>)`. Same continue-the-batch behavior.
+3. If the matched entry's `State` is not `done` (e.g. `skipped` because > 5 GB) → `Failure: depends-on-skipped-data: <layer-name> (<reason>)`. Same continue-the-batch behavior.
 
 ### C.4 — Translate each layer (and, for app entries, the app overlay)
 

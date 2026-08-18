@@ -32,7 +32,7 @@ For detection signals and host support, see [carto-basics/references/access-path
 
 ## Discovery flow before composing the spec
 
-Discovery runs through the **`explore_data`** MCP tool (available on OAuth and token sessions). Its methods are what the cartography reference writes bare as `list_connections`, `search`, `list_resources`, `describe`.
+Discovery runs through the **`explore_data`** MCP tool. Its methods are what the cartography reference writes bare as `list_connections`, `search`, `list_resources`, `describe`. All are available over OAuth; on a **token** session `list_connections` / `search` / `list_resources` need only the MCP Server scope, but **`describe` needs the Maps API** — without it, the stats step below has no data to work from, so fall back to the `carto connections describe` CLI (or reconnect over OAuth).
 
 1. `explore_data` (`list_connections`) → identify the right connection (often `carto_dw`).
 2. `explore_data` (`search` by name, or `list_resources` by FQN) to find the table.

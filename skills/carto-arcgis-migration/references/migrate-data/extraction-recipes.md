@@ -26,7 +26,7 @@ SAMPLE_ROWS=$(jq '.features | length' /tmp/probe.geojson)
 
 Estimate full size: `est_bytes = (SAMPLE_BYTES / SAMPLE_ROWS) × total_rows × 1.3`.
 
-If `est_bytes > 1 GB`, mark the entry `skipped` with `Reason: exceeds-1gb-staging-not-implemented` and continue to the next entry.
+If `est_bytes > 5 GB` (the CARTO import file-size limit), mark the entry `skipped` with `Reason: exceeds-5gb-staging-not-implemented` and continue to the next entry.
 
 ## Recipe 1: `arcgis` Python + `geopandas`
 
@@ -146,8 +146,8 @@ inv = json.loads(open("MIGRATION_INVENTORY.json").read())
 size_bytes = next(
     r["size"] for r in inv["search"]["results"] if r["id"] == ITEM_ID
 )
-if size_bytes > 1_000_000_000:
-    # Mark skipped: exceeds-1gb-staging-not-implemented
+if size_bytes > 5_000_000_000:  # 5 GB — the CARTO import file-size limit
+    # Mark skipped: exceeds-5gb-staging-not-implemented
     ...
 ```
 
@@ -227,7 +227,7 @@ gdf.to_parquet(OUT / f"{item_id}.parquet", index=False)
 
 For file-format **tables** (a `GeoJson` with no geometry would be unusual; `CSV` is the typical no-geometry file type) the same flow holds, minus the geometry handling — `pd.read_csv` instead of `gpd.read_file`, and `df.to_parquet` instead of `gdf.to_parquet`.
 
-**Why no `/query` paging**: these items are blobs in AGOL's content store (served verbatim at `/sharing/rest/content/items/<id>/data`) — no spatial index, no SQL filter, no `resultOffset` surface. The download is one HTTP GET; paging/filtering happen locally on read. For a subset of a large file-format item (e.g. one layer of a 5 GB GeoPackage), v1's answer is `State: skipped`, `Reason: exceeds-1gb-staging-not-implemented`.
+**Why no `/query` paging**: these items are blobs in AGOL's content store (served verbatim at `/sharing/rest/content/items/<id>/data`) — no spatial index, no SQL filter, no `resultOffset` surface. The download is one HTTP GET; paging/filtering happen locally on read. For a subset of an over-limit file-format item (e.g. one layer of an 8 GB GeoPackage), v1's answer is `State: skipped`, `Reason: exceeds-5gb-staging-not-implemented`.
 
 ## Hosted Tables (no geometry)
 
