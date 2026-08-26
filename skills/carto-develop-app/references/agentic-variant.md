@@ -54,7 +54,7 @@ export async function chat(req, res) {
 }
 ```
 
-The library also ships `getToolsForOpenAIAgents` (OpenAI Agents SDK) and `getToolsForGoogleADK`. Pick the one that matches your backend stack — the reference repo's `examples/backend-*` folders have full setups.
+The library also ships `getToolsForOpenAIAgents` (OpenAI Agents SDK) and `getToolsForGoogleADK`. Pick the backend that matches your stack and **copy its reference setup — don't build one from scratch**: OpenAI Agents (`backend-openai-agents`, most polished, needs an OpenAI key), Vercel AI SDK v6 (`backend-vercel-ai`, provider-agnostic across Anthropic/OpenAI/Google, best for production), or Google ADK (`backend-google-adk`, for Vertex/Gemini). Swap your provider key, deploy.
 
 ## Frontend tool execution
 
@@ -155,16 +155,6 @@ Streaming responses (token-by-token) is what the reference backends do — switc
 ## Reserved layer IDs
 
 The library reserves layer IDs prefixed with `__` for system layers (markers, masks, agent state). Don't name your own layers `__anything`.
-
-## Backends — pick one
-
-The reference repo ships three:
-
-- **OpenAI Agents SDK** (default) — most polished, requires OpenAI API key.
-- **Vercel AI SDK v6** — provider-agnostic (Anthropic, OpenAI, Google), best for production.
-- **Google ADK** — for Vertex / Gemini.
-
-Don't build a backend from scratch. Copy one of the reference backends, swap your provider key, deploy.
 
 ## Auth
 

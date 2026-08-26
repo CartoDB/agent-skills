@@ -2,9 +2,9 @@
 
 > **This is a reference, not a standalone skill.** Read alongside `SKILL.md` in the same directory when composing a CARTO map that needs cartographic decisions. `SKILL.md` is the primary authoring entry point — commands, configuration shape, field reference, validation. This file layers *what to pick* on top (palette family, scale type, basemap pairing) once the agent knows *how to encode* the configuration.
 
-**Audience:** an LLM agent composing or editing a CARTO map configuration via the CARTO CLI. This reference teaches *what to pick* — layer type, channel, scale, palette, basemap, legend — so the resulting map reads well at a glance.
+**Audience:** an LLM agent composing or editing a CARTO map configuration — via `create_map` / `update_map` (MCP) or the `carto maps` CLI. This reference teaches *what to pick* — layer type, channel, scale, palette, basemap, legend — so the resulting map reads well at a glance.
 
-**Scope:** maps authored through the CLI configuration — the same object model Builder renders. Layer types: `tileset`, `h3`, `quadbin`, `heatmapTile`, `clusterTile`, `raster`.
+**Scope:** the map configuration object — the same model Builder renders on either path. Layer types: `tileset`, `h3`, `quadbin`, `heatmapTile`, `clusterTile`, `raster`.
 
 ## Table of contents
 
@@ -29,7 +29,7 @@ Cartographic choices depend on the data and on what story the map tells. Before 
 
 | Question | Where to get it |
 |---|---|
-| What geometry does the dataset carry? | `carto connections describe <conn> <table>` — surfaces the geo column, any spatial index, the shape type |
+| What geometry does the dataset carry? | `explore_data describe` / `carto connections describe <conn> <table>` — surfaces the geo column, any spatial index, the shape type |
 | What columns exist, and what types? | Same `describe` call — note numeric vs. string vs. timestamp vs. boolean |
 | Is the measure a count, a rate, a share, a magnitude, a delta, a category? | From the user's prompt + column semantics. Ask if genuinely ambiguous |
 | What's the cardinality / shape of the coloring column? | For string: unique-value count. For numeric: min/max, skew |
@@ -63,7 +63,7 @@ If the user names the measure but not the column (*"map population density by co
 | A polygon tileset | `tileset` | No |
 | **A point source** | `tileset` **or** aggregate | **Yes — §1.0** |
 
-Trust the source. If `carto connections describe` reports a quadbin index, the layer is `quadbin` — don't second-guess from column names or user phrasing.
+Trust the source. If `describe` (`explore_data` / `carto connections describe`) reports a quadbin index, the layer is `quadbin` — don't second-guess from column names or user phrasing.
 
 **Only points get the aggregation pathway.** Lines and polygons are always `tileset`. Rasters are always `raster`. H3 / quadbin tables always render at their own layer type.
 
@@ -486,7 +486,7 @@ When the dataset carries its own hex column (or a SQL query projects one), the r
 
 **Don't use when:** column name suggests colours but doesn't contain hex strings (verify first), user wants cartographic control (colorblind / luminance / palette rotation), continuous numeric measures.
 
-**Layer-type caveat:** reliable on `tileset` (every row reaches the renderer unchanged). On `h3` / `quadbin` the color column must propagate through the spatial-index aggregation expression, which the CLI doesn't auto-handle — prefer tileset or pre-aggregate manually.
+**Layer-type caveat:** reliable on `tileset` (every row reaches the renderer unchanged). On `h3` / `quadbin` the color column must propagate through the spatial-index aggregation expression, which isn't auto-handled — prefer tileset or pre-aggregate manually.
 
 ---
 
@@ -531,7 +531,7 @@ Auto-generated per layer unless suppressed. Type inferred from `colorScale`:
 
 **Never suppress** the primary choropleth legend — the map is illegible without it.
 
-**Legend entry order — bake into the configuration.** For CLI-authored maps, the legend's visible order is dictated by config, not the UI:
+**Legend entry order — bake into the configuration.** For programmatically-authored maps, the legend's visible order is dictated by config, not the UI:
 
 | `colorScale` | Source of truth |
 |---|---|
@@ -547,7 +547,7 @@ Auto-generated per layer unless suppressed. Type inferred from `colorScale`:
 `popupStyle`: `light`, `lightWithHiFirst`, `dark`, `darkWithHiFirst`, `panel`, `none`.
 
 **Rules:**
-- **Hover popup:** capped at 5 columns by the CLI. Prefer 2–4.
+- **Hover popup:** capped at 5 columns by Tier-1 validation. Prefer 2–4.
 - **Click popup:** no hard cap. Scope by relevance — don't dump 30 columns.
 - **Style:** `light` on positron/voyager, `dark` on dark-matter. `WithHiFirst` promotes the hovered field to the top.
 - **`panel`** docks the popup to a side panel — choose for dense detail or mobile-portrait.

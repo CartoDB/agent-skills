@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that identify statistically significant spatial clusters (hotspots and coldspots) using the Getis-Ord Gi* statistic.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
 ---
 
@@ -88,7 +88,7 @@ Use `native.where` to keep only statistically significant cells:
 
 Use `native.saveastable` to persist results. The H3/Quadbin column is directly visualizable in CARTO Builder without geometry conversion.
 
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+**Success**: Validated workflow that can be uploaded via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -100,14 +100,12 @@ Use `native.saveastable` to persist results. The H3/Quadbin column is directly v
 | `gi` | Gi* z-score — positive = hotspot, negative = coldspot |
 | `p_value` | Statistical significance — lower = more confident |
 
-The engine declares these lowercase. See the Provider casing note in Gotchas for Snowflake.
-
 ---
 
 ## Gotchas
 
 - **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `INDEX`, `GI`, `P_VALUE`, `H3_COUNT` in expressions. For dialect-specific SQL fragments (e.g. `DATETIME_TRUNC` below), see `carto-create-workflow/references/providers/<provider>.md` for the equivalents table.
-- The Getis-Ord component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
+- The Getis-Ord component requires the Analytics Toolbox. Offline validation (`validate_workflow` over MCP, or `carto workflows validate`) can't resolve the AT location — confirm it with the CLI-only `carto workflows verify-remote --connection <conn>` before running.
 - The output column is named `index`, not `h3` or `quadbin`. If you need to join back to original data, rename it (e.g. with `native.renamecolumn`).
 - If you call `native.h3boundary` to materialize cell geometries for visualization, the new column is named `<h3col>_geo` (e.g. `index_geo`), **not** `geom`. Reference it accordingly in downstream nodes.
 - The `valuecol` must be numeric. If you're counting features, the group-by step must produce a count column — don't pass the raw index column as the value.
@@ -144,7 +142,7 @@ The engine declares these lowercase. See the Provider casing note in Gotchas for
 
 ## Reference Templates
 
-These files are working examples (skill-local files in `hotspot-analysis/`, others in the project root):
+These files are working examples (skill-local, in this skill's folder):
 
 | File | Description |
 |------|-------------|
@@ -161,5 +159,4 @@ These files are working examples (skill-local files in `hotspot-analysis/`, othe
 | Polygon input instead of points | Use `native.h3polyfill` instead of `native.h3frompoint` |
 | Enrich existing grid | Use `native.h3enrich` to count points into a grid (avoids manual group-by + join) |
 | Combine with other data | Join Getis-Ord output with enrichment or attribute tables before saving |
-| Spacetime hotspots | Use `native.getisordspacetime` — see Spacetime Variants section above |
-| Classify hotspot trends | Use `native.spacetimehotspotsclassification` — chains after spacetime Gi* output |
+| Spacetime / trend classification | See the Spacetime Variants section above |

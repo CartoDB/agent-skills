@@ -73,7 +73,7 @@ const dataSource = vectorQuerySource({
 });
 ```
 
-**On-demand, parameterized — call the compiled procedure.** Enable "API access" on the workflow in the Workflows UI (CLI can't toggle this yet). The workflow compiles to a stored procedure; the app `CALL`s it through the SQL API via `query()`, passing the user's inputs as parameters. Get the exact procedure FQN and `CALL` signature from `carto workflows mcp describe <id>` or the Workflows UI — **don't guess the name** (it's a hash-based identifier in the connection's workspace dataset, not `wf_<title>`).
+**On-demand, parameterized — call the compiled procedure.** Enable "API access" on the workflow in the Workflows UI (CLI can't toggle this yet). The workflow compiles to a stored procedure; the app `CALL`s it through the SQL API via `query()`, passing the user's inputs as parameters. Get the exact procedure FQN and `CALL` signature from `read_workflows` (method `get_mcp_tool`) over MCP, `carto workflows mcp describe <id>` on the CLI, or the Workflows UI — **don't guess the name** (it's a hash-based identifier in the connection's workspace dataset, not `wf_<title>`).
 
 ```ts
 await query({
@@ -101,11 +101,12 @@ When the app has an **embedded agent** ([`agentic-variant.md`](agentic-variant.m
 
 ```bash
 # In carto-create-workflow: shape the workflow with a native.mcptooloutput
-# terminal node + variables scoped to `mcptool`, then:
+# terminal node + variables scoped to `mcptool`, then publish (CLI-only):
 carto workflows mcp publish <id> --name predict_revenue \
   --description "Predict revenue for a candidate site given catchment inputs"
-carto workflows mcp describe <id>     # → tool name, inputs, the CALL signature
 ```
+
+Read back the tool name, inputs, and `CALL` signature with `carto workflows mcp describe <id>` on the CLI, or `read_workflows` (method `get_mcp_tool`) over an attached MCP session.
 
 The agent's tool result is rows; map them to a layer spec (or a new `vectorQuerySource` over the output table) and apply via the agent's `set-deck-state` path. Full publish requirements — the `native.mcptooloutput` node, `mcptool`-scoped variables, per-input descriptions, the `Number → FLOAT64`/`LIMIT` gotcha — are in [`carto-create-workflow`'s mcp-and-api-publish.md](../../carto-create-workflow/references/mcp-and-api-publish.md). Author the workflow first with [`carto-create-workflow`](../../carto-create-workflow).
 

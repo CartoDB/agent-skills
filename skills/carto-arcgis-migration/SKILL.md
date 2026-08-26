@@ -14,6 +14,8 @@ A single skill that takes an ArcGIS Portal / AGOL endpoint and lands its content
 
 The manifest accumulates state — every phase updates entries from `pending` → `in-progress` → `done` / `skipped` / `failed`. Re-runs are idempotent: `done` entries are skipped; `failed` entries are retried.
 
+> **Access path — CLI-native.** Migration is a bulk, scripted, disk-state workflow (manifest files on disk, Python extraction, batch `carto` runs). Run it where a real shell exists (Claude Code, Codex, Antigravity, etc.); it does **not** run on MCP-only chat hosts (Claude.ai, ChatGPT), which have no filesystem or Python. The CARTO-side read checks it makes — table-exists probes, column/geometry introspection, imports — do have MCP equivalents (`execute_query`, `explore_data` describe, `import_data`), but the overall batch loop, the manifest ledger, and ArcGIS extraction are CLI-only, so the skill drives the `carto` CLI throughout. See [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md) for the routing model.
+
 ## Prerequisites
 
 - The `carto-skills` plugin (this catalog). The migration phases delegate CARTO-side mechanics — imports, queries, map authoring — to `carto-import-export-data`, `carto-query-datawarehouse`, `carto-explore-datawarehouse`, and `carto-create-builder-maps`.
@@ -47,5 +49,5 @@ If the user names a single item, filter the relevant phase to that entry.
 - **Never abort a batch on per-item failures**, except CARTO auth expiry (parse `--json` 401/403 → leave the in-progress item alone, stop the batch, ask the user to `carto auth login` and re-invoke).
 - **Idempotency.** `done` entries are skipped silently. `failed` entries are retried (`migrate-data` with `--overwrite`; `migrate-maps` title-and-tag precheck).
 - **Tag every migrated map `From ArcGIS`**, leave privacy default (private). The tag is the sole signal for the idempotency precheck and customer-side filtering.
-- **Capture lessons as you go.** Each migrate-* phase appends non-obvious patterns to `SESSION_LESSONS.md` in the working directory and surfaces it at end of batch. **Never auto-edit the cached skill files** — the references are read-only from the agent's perspective at runtime; the maintainer merges upstream.
-- **Consult the relevant `references/*.md` before writing migration code.** Renderer mappings, popup translation, Arcade subset, basemap mapping, dataset config requirements, and the migration-specific "lessons from the field" all live there. Re-discovering documented quirks wastes the user's time.
+- **Capture lessons as you go** in `SESSION_LESSONS.md`; surface it at end of batch. **Never auto-edit the cached skill files** — references are read-only at runtime; the maintainer merges upstream.
+- **Consult the relevant `references/*.md` before writing migration code.** Renderer mappings, popup/Arcade/basemap translation, dataset-config requirements, and the "lessons from the field" all live there — re-discovering documented quirks wastes the user's time. Delegate CARTO platform mechanics (`carto import`, `carto sql query`, `carto maps *`, `carto connections *`) to the matching carto-skill's tested recipe rather than guessing flags.

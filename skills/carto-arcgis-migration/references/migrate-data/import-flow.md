@@ -29,7 +29,7 @@ carto import \
 
 Defaults are correct for the common case:
 
-- **Sync** (no `--async`): the CLI polls until completion and exits 0/1 based on the import job result. Good for ≤ 1 GB items where waiting a minute or two is fine.
+- **Sync** (no `--async`): the CLI polls until completion and exits 0/1 based on the import job result. Good for smaller items (roughly ≤ 1 GB) where waiting a minute or two is fine; for larger files up to the 5 GB limit, prefer the async path below.
 - **Autoguessing on**: column type detection runs at the warehouse. Only pass `--no-autoguessing` when the user has reported a column-type bug from a previous run (e.g. zip codes parsed as integers, leading zeros lost). In that case ask the user before disabling.
 
 ## Building the target FQN
@@ -115,7 +115,7 @@ Compare the returned `n` to the Phase-2 source row count. Tolerance: ±1 row. Mi
 
 ## Async path (rare)
 
-For files near the 1 GB limit (estimated 0.8–1.0 GB), the sync wait can be long. The agent may pass `--async` to get a job ID immediately:
+For larger files (roughly 1 GB and up, to the 5 GB import limit), the sync wait can be long. The agent may pass `--async` to get a job ID immediately:
 
 ```bash
 JOB_ID=$(carto import --file ./out/<item-id>.parquet \

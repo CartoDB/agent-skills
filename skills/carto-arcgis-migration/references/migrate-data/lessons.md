@@ -1,8 +1,6 @@
 # Lessons from the field — data migration phase
 
-Patterns discovered during real migrations. The agent **reads this file before writing any extraction or import script** and follows the documented patterns. New lessons are surfaced via `SESSION_LESSONS.md` in the working directory at end-of-batch and merged here when the user confirms.
-
-The point: every quirky pagination corner case, every auth-expiry surprise, every type-coercion gotcha that bit a previous run — captured once, never re-discovered.
+Patterns discovered during real migrations. The agent **reads this file before writing any extraction or import script**. New lessons surface via `SESSION_LESSONS.md` at end-of-batch and merge here when the user confirms. Every quirky pagination case, auth-expiry surprise, and type-coercion gotcha that bit a previous run — captured once, never re-discovered.
 
 ---
 
@@ -238,19 +236,9 @@ carto sql query --connection carto_dw --query "SELECT 1" --json
 
 ### `INFORMATION_SCHEMA` is not queryable on `carto_dw`
 
-**Symptom**: any query against `INFORMATION_SCHEMA.*` (or `*.INFORMATION_SCHEMA.SCHEMATA`, `*.INFORMATION_SCHEMA.TABLES`, etc.) on the built-in CARTO Data Warehouse connection (`carto_dw`) returns a permission error. The user-bound token doesn't have access to system metadata.
+**Symptom**: any query against `INFORMATION_SCHEMA.*` on the built-in CARTO Data Warehouse (`carto_dw`) returns a permission error — the user-bound token has no access to system metadata.
 
-**Action**: never use `INFORMATION_SCHEMA` to check if a table exists, list datasets, or introspect the warehouse on `carto_dw`. Use direct queries against the target table — `SELECT COUNT(*) FROM <fqn>` fails with a recognizable "table not found" error if the table doesn't exist, which is enough signal for idempotency.
-
-**Default destination dataset on `carto_dw`**: assume a dataset named `shared` exists for ArcGIS imports. Compose the target FQN as:
-
-```
-<carto_dw_project>.shared.<table_name>
-```
-
-Resolve `<carto_dw_project>` from `carto connections describe carto_dw --json` (the connection metadata exposes the project ID). Don't try `SELECT * FROM INFORMATION_SCHEMA.SCHEMATA` to find the user's datasets — it will fail.
-
-For customer-owned warehouses (BigQuery, Snowflake, Redshift, Postgres, Oracle, Databricks), `INFORMATION_SCHEMA` is usually queryable, but the agent should still default to direct table-existence probes for portability.
+**Action**: never use `INFORMATION_SCHEMA` to check table existence, list datasets, or introspect the warehouse on `carto_dw`. Probe the target table directly — `SELECT COUNT(*) FROM <fqn>` returns a recognizable "table not found" when absent, which is enough signal for idempotency. Default the destination dataset to `shared` (`<carto_dw_project>.shared.<table_name>`, project from `carto connections describe carto_dw --json`) — see [`import-flow.md`](import-flow.md) "Special case — connection is `carto_dw`". Customer-owned warehouses usually allow `INFORMATION_SCHEMA`, but prefer direct table-existence probes for portability.
 
 ---
 
@@ -258,30 +246,24 @@ For customer-owned warehouses (BigQuery, Snowflake, Redshift, Postgres, Oracle, 
 
 ### Consult `carto-agent-skills` first — don't trial-and-error CLI flags
 
-**Symptom**: the agent runs `carto --help`, `carto imports create --help`, or guesses flag names, and ends up with outdated, wrong, or under-documented invocations. Wastes turns and produces broken scripts.
-
-**Action**: every CARTO platform interaction has a dedicated skill in [`CartoDB/carto-agent-skills`](https://github.com/CartoDB/carto-agent-skills) with a live, tested recipe. Read the matching skill **before** writing any `carto` invocation:
+Every CARTO platform interaction has a dedicated skill in [`CartoDB/carto-agent-skills`](https://github.com/CartoDB/carto-agent-skills) with a live, tested recipe encoding the right flags, JSON shapes, async-polling, and error patterns. Read the matching skill **before** writing any `carto` invocation — the skill is the source of truth, not `--help` (running `carto --help` / guessing flag names produces outdated, broken scripts):
 
 | Need | Skill |
 |---|---|
-| `carto imports create` (datasets, tilesets) | `carto-import-export-data` |
+| `carto import` (datasets, tilesets) | `carto-import-export-data` |
 | `carto maps *` (Builder maps) | `carto-create-builder-maps` |
-| `carto workflows *` (workflows) | `carto-create-workflow` |
+| `carto workflows *` | `carto-create-workflow` |
 | `carto sql query` / `sql job` | `carto-query-datawarehouse` |
-| `carto connections list/describe` (warehouse metadata) | `carto-connect-datawarehouse` / `carto-explore-datawarehouse` |
-| `carto auth login/status` (auth) | `carto-basics` |
+| `carto connections list/describe` | `carto-connect-datawarehouse` / `carto-explore-datawarehouse` |
+| `carto auth login/status` | `carto-basics` |
 
-These skills already encode the right flag combinations, JSON-shape conventions, async-job polling, error patterns, and "do silently, don't ask" defaults. They're updated when the CLI changes — the skill is the source of truth, not the CLI's `--help`.
-
-If a recipe seems wrong or out-of-date for what you're observing on disk, the next-best move is `carto <subcommand> --json` and inspect the structured output (most subcommands self-describe) — but only after the relevant carto-skill is consulted.
-
-This is a hard rule for the data migration phase: we don't reimplement CARTO platform mechanics, we delegate. The migration-specific logic (paged ArcGIS extraction, GeoParquet writing, manifest updates) is what lives in *this* phase; everything CARTO-side is borrowed.
+We don't reimplement CARTO platform mechanics — we delegate. The migration-specific logic (paged ArcGIS extraction, GeoParquet writing, manifest updates) lives in *this* phase; everything CARTO-side is borrowed. The one exception to "don't `--help`" is confirming a noun shape after an `unknown command` error (see the `carto import` singular lesson above).
 
 ---
 
 ## How to add a lesson
 
-When the agent encounters a non-obvious quirk during a run, append to `SESSION_LESSONS.md` in the working directory using this template:
+When the agent hits a non-obvious quirk during a run, append to `SESSION_LESSONS.md` in the working directory using this template:
 
 ```markdown
 ## <symptom in one line>
@@ -290,23 +272,9 @@ When the agent encounters a non-obvious quirk during a run, append to `SESSION_L
 **Source**: `<service URL or item type>`
 **Fix**: <what worked>
 **Detection**: <how to spot this proactively>
-**Code (if applicable)**:
-\`\`\`python
-...
-\`\`\`
 ```
 
-At end of batch (Phase 5), the agent prints `SESSION_LESSONS.md` and surfaces two follow-up paths. **The agent never edits this file (`references/lessons.md`) directly at runtime** — for plugin end-users, the file lives under `~/.claude/plugins/cache/...` and any write there is overwritten on the next plugin update.
+At end of batch (Phase B.5) the agent prints `SESSION_LESSONS.md` and surfaces two follow-up paths. **The agent never edits this cached file at runtime** — for plugin end-users it lives under `~/.claude/plugins/cache/...` and any write is overwritten on the next update.
 
-**Maintainer path** (only when the source repo `carto-arcgis-skills` is cloned somewhere writable, e.g. `projects/2026/esri-migration/`):
-
-1. Open the source-repo `references/lessons.md`, append each session lesson under the matching section (Auth expiry / Pagination / Type coercion / Geometry / Service-specific).
-2. Bump `version` in `skills/catalog.json` (PATCH for an addition).
-3. `make sync && make validate`.
-4. Commit + push per `CLAUDE.md`. The next plugin release ships the new lessons; all installs benefit on `/plugin uninstall && /plugin install`.
-
-**End-user path** (plugin installed via marketplace, no source repo locally):
-
-Keep `SESSION_LESSONS.md` in the engagement directory. If a captured pattern is widely useful (likely to bite other migrations), share the file with the skill maintainer — they'll fold it into the upstream `references/lessons.md` and ship it in the next release.
-
-A future improvement (not yet implemented) is a **user-local lessons file** that the agent reads on every run alongside this one, so end-users accumulate per-machine lessons without depending on upstream releases. Until that exists, end-user lessons stay engagement-scoped.
+- **Maintainer** (source repo cloned somewhere writable): append each lesson under the matching section here, bump `version` in `skills/catalog.json` (PATCH), run `make sync && make validate`, commit per `CLAUDE.md`. The next release ships the lessons.
+- **End-user** (marketplace install): keep `SESSION_LESSONS.md` for the engagement; share widely-useful patterns with the skill maintainer.

@@ -1,4 +1,4 @@
-description = "Builds site selection and cannibalization analysis workflows in CARTO. Triggers on site selection, cannibalization, new store location, optimal location, twin areas, look-alike areas, or revenue impact of a new store (carto-skills)"
+description = "Builds site selection and cannibalization analysis workflows in CARTO. Triggers when the user mentions site selection, cannibalization, cannibalizing, new store location, where to open, optimal location, facility placement, network impact, overlapping catchments, twin areas, similar locations, look-alike areas, find locations like my best, store overlap, revenue impact of new store, commercial hotspots, demand hotspots, location scoring, location ranking, expand network, new branch, franchise placement, EV charging siting, or wants to evaluate candidate sites, quantify overlap between trade areas, or find areas that resemble top-performing locations (carto-skills)"
 
 prompt = """
 Apply the `carto-site-selection` skill from the carto-skills catalog to the user's request.

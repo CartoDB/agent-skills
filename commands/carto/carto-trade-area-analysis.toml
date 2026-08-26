@@ -1,4 +1,4 @@
-description = "Builds trade area and catchment analysis workflows in CARTO. Triggers on trade area, catchment area, isochrone, drive time, walk time, billboard placement, OOH audience targeting, or scoring candidate locations (carto-skills)"
+description = "Builds trade area and catchment analysis workflows in CARTO. Triggers when the user mentions trade area, catchment area, isochrone, site selection, where to open, best location, billboard, OOH, audience targeting, drive time, walk time, coverage area, commercial hotspot, site scoring, location ranking, or wants to generate isochrones, score candidate locations, or identify the best sites for retail, advertising, or services (carto-skills)"
 
 prompt = """
 Apply the `carto-trade-area-analysis` skill from the carto-skills catalog to the user's request.

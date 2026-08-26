@@ -4,6 +4,8 @@ For apps that show **public or shared data** to anyone (no login). The token shi
 
 **Best practice: one token, multiple grants.** Don't mint a separate token per table — bundle them into one token with one grant per source. The CLI supports this, but the syntax has a sharp edge (see below).
 
+> Over an OAuth MCP session (no shell), mint, list, and inspect the same tokens with `manage_api_access_tokens`. Everything else in this file is CLI, and a **token-authenticated** MCP session can't mint tokens at all — fall back to the CLI.
+
 ## Issue the token autonomously
 
 The agent should run these itself, not ask the user. Always pass `--json` and parse the result.
@@ -143,11 +145,8 @@ carto credentials delete token <id>                               # revoke
 
 ## Gotchas
 
-- **One token, multiple grants — not multiple tokens.** Bundling sources into a single token keeps the bundle small, lets the app reuse one `accessToken`, and consolidates rotation. Mint per-table tokens only when the *referer* set actually differs.
-- **`--connection` must repeat alongside every `--source`** (positional pairing). See "Multi-grant syntax" above.
-- **No `--source` = full-connection access.** A grant without source restriction reads every table on that connection.
-- **Use `--referers` (plural, CSV) — not repeated `--referer`.** The CLI parser overwrites repeated `--referer`; only the last wins. `--referers 'http://localhost:5173*,https://myapp.example.com*'` is the correct form.
-- **Referers are wildcard-matched against the full page URL — end local-dev patterns with `*`.** The browser sends its whole page URL as `Referer`, and for a site root that always carries a trailing slash (`http://localhost:5173/`). A literal grant of `http://localhost:5173` has no wildcard, so it does **not** match and every tile 403s with body `{"error":"Unauthorized referer"}`. The token call itself succeeds and the HTTP status alone tells you nothing — you have to read the response body. Use `--referers 'http://localhost:5173*,https://myapp.example.com*'` (quoted, so the shell doesn't glob) and the whole class of failure disappears (it also covers sub-paths and ports you add later). To diagnose: DevTools → Network → click a failed tile → compare the request `Referer` header against `carto credentials get token <id> --json`. Note an **empty** referers list means "allow any referer" — convenient locally, never right for production.
-- **Tokens don't expire by default**, so rotate on a schedule and on incidents (`credentials delete` then `create` fresh).
-- **Vite reads `.env` only at startup — restart the dev server after minting a new token.** A reload (even a hard one) keeps serving the old value baked into the bundle, so the app still 403s while the same token succeeds from curl or the devtools console. That mismatch reliably sends you debugging the token instead of the server. Also treat stale console errors with suspicion after any restart: check timestamps before concluding a request is still failing.
-- **Don't use this for private data.** If the user has data their users shouldn't see, use [`auth-private-oauth.md`](auth-private-oauth.md) — the bundle is world-readable.
+- **No `--source` = full-connection access.** A grant without source restriction reads every table on that connection. (Multi-grant `--connection` pairing and `--referers` plural form are covered above — both are common 403 causes.)
+- **Referers 403 with a valid-looking token.** The browser sends its whole page URL as `Referer` (site root carries a trailing slash: `http://localhost:5173/`), so a literal `http://localhost:5173` grant has no wildcard and every tile 403s with body `{"error":"Unauthorized referer"}` — while the token *call* succeeds, so HTTP status alone misleads. Diagnose: DevTools → Network → a failed tile's request `Referer` vs `carto credentials get token <id> --json`. An **empty** referers list means "allow any" — fine locally, never in production.
+- **Tokens don't expire by default** — rotate on a schedule and on incidents (`credentials delete` then `create` fresh).
+- **Vite reads `.env` only at startup — restart the dev server after minting a new token.** A reload keeps serving the old value baked into the bundle, so the app 403s while the same token succeeds from curl. Also check console-error timestamps after any restart before concluding a request still fails.
+- **Don't use this for private data** — the bundle is world-readable. Use [`auth-private-oauth.md`](auth-private-oauth.md).

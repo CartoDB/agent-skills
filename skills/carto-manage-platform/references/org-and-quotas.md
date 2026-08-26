@@ -1,6 +1,8 @@
 # Org stats and quotas
 
-## `carto org stats`
+> **Routing.** Org config and the stats view route through MCP `admin_carto` (`admin_carto_customizations` for customizations) over OAuth. Both are hidden on token sessions — use `carto org stats` there. Per-user/per-map quota **attribution** is a DuckDB query over exported activity data and stays CLI (`carto activity query`).
+
+## `carto org stats` / `admin_carto`
 
 ```bash
 carto org stats [--json]
@@ -85,8 +87,4 @@ carto activity query \
          LIMIT 20"
 ```
 
-That's how you turn "we hit our quota" into "Alice's daily ETL is consuming 60% of it".
-
-`apiUsage` also carries `map_id` and `workflow_id` columns, so the same table answers
-"which map (or workflow) is driving consumption?" — group by `map_id` / `workflow_id`
-instead of `user_id`. See [Quota consumption by map](../../carto-query-datawarehouse/references/activity-queries.md) for the pattern.
+That's how you turn "we hit our quota" into "Alice's daily ETL is consuming 60% of it". `apiUsage` also carries `map_id` / `workflow_id`, so grouping by those instead answers "which map or workflow is driving consumption?" — see [activity-queries.md](../../carto-query-datawarehouse/references/activity-queries.md).

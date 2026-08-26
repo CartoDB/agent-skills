@@ -8,6 +8,8 @@ Schedules execute *inside* the destination warehouse, in that warehouse's schedu
 
 ## Re-adding after copy
 
+`workflows copy` is CLI-only, but the re-add itself can go through MCP `schedule_workflow method=add` against the destination workflow, or the CLI:
+
 ```bash
 carto workflows schedule add <new-wf-id> \
   --expression "every day 08:00" \
@@ -40,15 +42,4 @@ If the source and destination are the *same engine* (e.g. dev BigQuery → prod 
 
 ## Verifying the schedule fired
 
-After re-adding, the next run will emit `WorkflowRun` and (on success) `WorkflowExecutionComplete` events into the destination's activity log. Confirm with:
-
-```bash
-carto activity query --profile prod \
-  --start-date <yesterday> --end-date <today> \
-  --sql "SELECT type, ts FROM activity
-         WHERE type IN ('WorkflowRun', 'WorkflowExecutionComplete')
-           AND json_extract_string(data, '\$.workflowId') = '<new-wf-id>'
-         ORDER BY ts DESC LIMIT 10"
-```
-
-See [`../../carto-query-datawarehouse/references/activity-queries.md`](../../carto-query-datawarehouse/references/activity-queries.md) for activity-data patterns.
+After re-adding, the next run emits `WorkflowRun` and (on success) `WorkflowExecutionComplete` events into the destination's activity log. Verify with the `carto activity query` pattern in [`scheduling.md`](scheduling.md#verifying-a-schedule-fired) (add `--profile prod`); it's CLI-only. See [`../../carto-query-datawarehouse/references/activity-queries.md`](../../carto-query-datawarehouse/references/activity-queries.md) for activity-data patterns.

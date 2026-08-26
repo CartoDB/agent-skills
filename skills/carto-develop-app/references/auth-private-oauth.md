@@ -6,7 +6,7 @@ Based on the [Build a Private Application](https://docs.carto.com/carto-for-deve
 
 ## Register the SPA OAuth client autonomously
 
-The agent runs this and parses the JSON — no user interview required.
+The agent runs this and parses the JSON — no user interview required. (Over an OAuth MCP session with no shell, `manage_oauth_clients` registers the same SPA client; everything else here is app code.)
 
 ```bash
 carto credentials create spa --json \

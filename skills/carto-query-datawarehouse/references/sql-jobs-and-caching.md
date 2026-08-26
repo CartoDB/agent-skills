@@ -1,80 +1,62 @@
-# `sql query` vs `sql job` — execution model
+# Query execution model — sync vs async
 
-## `sql query` — interactive read
+CARTO runs SQL two ways. Pick by whether the statement returns rows and how long it runs.
+
+| Path | MCP tool | CLI | Behaviour |
+|---|---|---|---|
+| **Sync read** | `execute_query` | `carto sql query` | `SELECT`s that return rows. 1-minute server-side timeout. |
+| **Async job** | `execute_async_query` (`submit`/`status`/`cancel`) | `carto sql job` | DDL/DML and long queries. No timeout; poll to completion; returns no rows. |
+
+Both MCP tools are available even on token-authenticated sessions. Use the CLI when the MCP server isn't attached or the SQL is scripted/CI.
+
+## Sync read — `execute_query` / `carto sql query`
 
 ```bash
-carto sql query <connection> [sql]
+carto sql query <connection> "SELECT COUNT(*) FROM ds.t"
 carto sql query <connection> --file query.sql
-echo "SELECT COUNT(*) FROM ds.t" | carto sql query <connection>
+echo "SELECT 1" | carto sql query <connection>
 ```
 
-- POST by default; no caching; **1-minute timeout** (server-side).
-- Returns rows in tabular text or JSON (with `--json`).
-- Best for `SELECT`s that finish in seconds.
+- No caching by default; **1-minute timeout**. Best for `SELECT`s that finish in seconds.
+- `--json` for machine-readable rows.
 
-### `--cache` flag
+### `--cache` (CLI) / cached read
 
 ```bash
 carto sql query <connection> "SELECT * FROM ds.t" --cache
 ```
 
-- Switches to **GET** with a cacheable URL.
-- Cached for 1 year on CARTO's edge.
-- **1-minute timeout still applies** on cache miss.
-- Subject to URL-length limits (~8KB query); large queries fall back to error.
-- Use only when the SQL is deterministic and small.
+Switches to a cacheable GET (1-year edge cache). The 1-minute timeout still applies on a cache miss, and the URL-length limit (~8KB query) means large queries fall back to an error. Use only for deterministic, small SQL.
 
-## `sql job` — DDL/DML and long-running queries
+## Async job — `execute_async_query` / `carto sql job`
 
 ```bash
 carto sql job <connection> "CREATE TABLE ds.out AS SELECT ..."
 carto sql job <connection> --file long_query.sql
 ```
 
-- Submits the SQL as a job, polls until completion, prints the final job status.
-- **No timeout.** Polls indefinitely.
-- **Returns no rows.** For `CREATE TABLE AS SELECT`, the rows go to the new table; query that table afterwards with `sql query`.
-- Use for: `CREATE TABLE`, `UPDATE`, `DELETE`, `INSERT`, any query that legitimately takes >1 min.
+- Submits the SQL as a job, polls until completion, prints final job status. **No timeout.**
+- **Returns no rows.** For `CREATE TABLE AS SELECT`, the rows land in the new table — query it afterward with a sync read.
+- Use for: `CREATE TABLE`, `UPDATE`, `DELETE`, `INSERT`, or any `SELECT` that legitimately takes >1 min.
 
-## When to choose which
+## Which to choose
 
-| Situation | Tool |
+| Situation | Path |
 |---|---|
-| `SELECT` returning <1000 rows in <30 s | `sql query` |
-| `SELECT` deterministic, called repeatedly | `sql query --cache` |
-| `SELECT` over a 100M-row spatial join, takes ~5 min | `sql job` (write to staging table, then `sql query` from it) |
-| `CREATE TABLE AS SELECT` | `sql job` |
-| `UPDATE`/`DELETE`/`INSERT` | `sql job` |
-| Schema discovery | `connections describe` (see `carto-explore-datawarehouse`), not raw SQL |
+| `SELECT` returning <1000 rows in <30 s | sync (`execute_query`) |
+| `SELECT` deterministic, called repeatedly | sync + `--cache` (CLI) |
+| `SELECT` over a 100M-row join, ~5 min | async → write staging table, then sync-read it |
+| `CREATE TABLE AS SELECT` / `UPDATE` / `DELETE` / `INSERT` | async (`execute_async_query`) |
+| Schema discovery | `explore_data` (`describe`) — see `carto-explore-datawarehouse`, not raw SQL |
 
-## Stdin / file / inline patterns
+## CLI input forms
 
-All three accept SQL the same way:
-
-```bash
-# Inline argument (watch shell quoting)
-carto sql query carto_dw "SELECT 1"
-
-# --file (cleaner for multi-line / long SQL)
-carto sql query carto_dw --file analysis.sql
-
-# Piped on stdin
-cat analysis.sql | carto sql query carto_dw
-```
-
-The `--file` flag is the most reliable — no shell quoting, easy to keep alongside the rest of the agent's working files.
-
-## JSON output
+All three of inline / `--file` / stdin work the same way; `--file` is the most reliable (no shell quoting):
 
 ```bash
-carto sql query carto_dw "SELECT id, ST_AsText(geom) AS wkt FROM ds.points LIMIT 3" --json
+carto sql query carto_dw "SELECT 1"           # inline
+carto sql query carto_dw --file analysis.sql  # file
+cat analysis.sql | carto sql query carto_dw   # stdin
 ```
 
-```json
-[
-  {"id": "abc", "wkt": "POINT(-73.98 40.75)"},
-  ...
-]
-```
-
-For large result sets prefer `sql job` to a destination table, then `sql query` with explicit `LIMIT`/`OFFSET` rather than streaming a giant JSON blob through the CLI.
+For large result sets, run an async job to a destination table, then read it back with explicit `LIMIT`/`OFFSET` rather than streaming a giant JSON blob through the CLI.

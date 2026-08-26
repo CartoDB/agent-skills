@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that solve two related spatial optimization problems: dividing areas into balanced territories (e.g. sales regions, service zones) and finding optimal facility locations that maximize coverage or minimize cost.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands. Both components require the **Territory Planning Extension Package** installed on the connection.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation. It covers both access paths — the MCP server's workflow tools (`create_workflow`, `validate_workflow`, `run_workflow`) when attached, the `carto workflows` CLI otherwise. Routing signals: `carto-basics/references/access-paths.md`. Both components require the **Territory Planning Extension Package** installed on the connection.
 
 ---
 
@@ -63,7 +63,7 @@ Use `native.territorybalancing` with:
 
 Use `native.saveastable` to persist results. The spatial index column is directly visualizable in CARTO Builder, colored by territory ID.
 
-**Success**: Validated workflow uploadable via `carto workflows create`.
+**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -113,16 +113,7 @@ Use `native.locallocallocation_maximizecoverage`:
 
 #### Minimize Total Cost
 
-Use `native.locallocallocation_minimizetotalcost`:
-
-| Input | Description | Example |
-|-------|-------------|---------|
-| `demand` | Table with demand values | |
-| `demand_index_column` | Spatial index column in demand table | `h3` |
-| `demand_column` | Numeric demand variable | `population` |
-| `candidates` | Table with candidate locations | |
-| `candidates_index_column` | Spatial index column in candidates table | `h3` |
-| `nfacilities` | Number of facilities to open | `5` |
+Use `native.locallocallocation_minimizetotalcost`. Same inputs as Maximize Coverage but **without** `coverageradius` — the objective is total weighted travel distance, not coverage within a radius.
 
 **Success**: Output identifies which facilities to open, minimizing total weighted travel distance between demand and assigned facilities.
 
@@ -130,7 +121,7 @@ Use `native.locallocallocation_minimizetotalcost`:
 
 Use `native.saveastable` to persist results.
 
-**Success**: Validated workflow uploadable via `carto workflows create`.
+**Success**: Validated workflow uploadable via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 

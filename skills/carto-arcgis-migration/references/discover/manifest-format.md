@@ -125,7 +125,7 @@ Every H3 entry has these keys (lines starting with `- <key>: <value>`):
 | `Source aliases` | datasets that have multiple service-type frontages (Feature Service + Map Service + WFS pointing at the same underlying data) | Multi-line bullet list of alternate sources collapsed into this entry. One bullet per alias: service type, URL, item ID. See "Dataset deduplication" below. |
 | `Depends on` | when item references others | Comma-separated list of other entries' titles in this manifest. The discover skill resolves dependencies through `Source aliases` — a Web Map referencing a Map Service URL whose data lives under a Feature Service entry depends on the Feature Service entry's title, not the Map Service. |
 | `Renderer hints` | maps | Counts that help the user gauge translation completeness. |
-| `App profile` | apps (Dashboard, Web Experience, Web Mapping Application) | One-line summary of detected widgets vs. Builder availability. See [`app-routing-rubric.md`](../references/app-routing-rubric.md). |
+| `App profile` | apps (Dashboard, Web Experience, Web Mapping Application) | One-line summary of detected widgets vs. Builder availability. See [`app-routing-rubric.md`](app-routing-rubric.md). |
 | `Max visible widgets` | apps | Integer; max widgets visible simultaneously on any single page/layout (excludes map controls). |
 | `Routing decision` | apps | `builder` or `custom-app`. Determines `Recommended path` for the app. |
 | `Source Web Map` | apps with `Routing decision: builder` | Item ID of the Web Map embedded in the app — the one `migrate-maps` will turn into a Builder map. |

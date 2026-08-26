@@ -6,9 +6,12 @@ license: MIT
 
 # Geocoding Addresses in CARTO Workflows
 
-Converts street addresses or place names into geographic coordinates (point geometries). This is an essential first step when working with tabular data that has an address column but no spatial column.
+Converts street addresses or place names into geographic coordinates (point geometries) — the essential first step when tabular data has an address column but no spatial column. Two access paths, by scale:
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+- **Single / ad-hoc (MCP-first)**: for a handful of addresses (or reverse-geocoding coordinates back to addresses), the CARTO MCP `geocode` tool answers directly — operations `geocode`, `reverse`, and `capabilities`. No workflow needed. It runs on any MCP host, including sandboxed chat hosts where the CLI can't. Prefer it for interactive requests.
+- **Table-scale / repeatable**: to geocode a whole table or build a reusable pipeline, use the Workflow pattern below. Load `carto-create-workflow` for the development process, JSON structure, and validation — it covers both paths (MCP `create_workflow` / `validate_workflow` / `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
+
+Over an API-token MCP session the ad-hoc/authoring tools are hidden (read/discovery only) — fall back to the CLI or reconnect over OAuth.
 
 ---
 
@@ -59,9 +62,7 @@ For the **unmatch** output:
 
 ### Step 4: Save Results
 
-Use `native.saveastable` to persist the geocoded output. The `geom` column contains WGS84 (EPSG:4326) point geometries, ready for visualization in CARTO Builder or further spatial analysis.
-
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+Use `native.saveastable` to persist the geocoded output — the `geom` column holds WGS84 (EPSG:4326) points, ready for CARTO Builder or further analysis. Then validate and upload the workflow (MCP `create_workflow` / `validate_workflow`, or `carto workflows create`).
 
 ---
 
@@ -78,13 +79,11 @@ Check available quota by querying the Analytics Toolbox `LDS_QUOTA_INFO()` funct
 
 ## Gotchas
 
-- **Geocoding consumes LDS quota.** Each row geocoded counts against the account's Location Data Services quota. Check quota availability before bulk operations, especially on large tables.
-- **Two output handles: `match` and `unmatch`.** Don't connect to the wrong one -- `match` has geometries, `unmatch` has NULLs. If you connect the `unmatch` handle to a spatial operation, it will fail.
+- **Two output handles: `match` and `unmatch`.** Don't connect to the wrong one -- `match` has geometries, `unmatch` has NULLs. Connecting the `unmatch` handle to a spatial operation will fail.
 - **Country filter is strongly recommended.** Without it, ambiguous addresses may resolve to the wrong country (e.g. "Springfield" exists in 30+ US states and in other countries). The country parameter improves both accuracy and speed.
 - **Address formatting matters.** Well-formatted addresses produce better results: `"123 Main St, Springfield, IL 60001"` works better than `"123 main street springfield"`. Include city, state/region, and postal code when available.
 - **Provider casing & SQL dialect.** Examples in this skill use lowercase column names (BigQuery / Databricks / Postgres / Redshift convention); on Snowflake unquoted identifiers surface UPPERCASE (e.g. `CARTO_GEOCODE_METADATA`, `GEOM`). When writing dialect-specific SQL or referencing the AT path, see `carto-create-workflow/references/providers/<provider>.md`.
 - **For large tables, consider batching.** Geocoding hundreds of thousands of rows in a single run can exhaust quota or time out. Split into batches if needed.
-- **Output geometry is always WGS84 points.** The `geom` column contains EPSG:4326 point geometries regardless of the input address format or country.
 - **Failed geocodes deserve review.** The `unmatch` output is not just noise -- it often reveals data quality issues (missing postal codes, abbreviated city names, non-standard formatting) that can be fixed and re-geocoded.
 
 ---

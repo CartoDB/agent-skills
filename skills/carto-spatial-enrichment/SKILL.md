@@ -6,7 +6,7 @@ license: MIT
 
 # Spatial Enrichment in CARTO Workflows
 
-**Prerequisites**: Load `carto-create-workflow` for the development process.
+**Prerequisites**: Load `carto-create-workflow` for the development process — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`). There is no direct enrichment MCP tool — enrichment always runs as a Workflow, so route through those workflow tools.
 
 This skill covers the universal pattern for enriching spatial data with demographics, risk scores, or any variable from a spatial features dataset.
 
@@ -78,7 +78,7 @@ Use `native.saveastable` to persist the enriched output.
 
 If the goal is per-entity enrichment (e.g. population per store), add a second JOIN + GROUP BY to aggregate grid-level results back to the source entity level.
 
-**Success**: The workflow loads source data, defines areas, indexes to a grid (if needed), enriches with the target variables using the correct aggregation, and saves the result. Column names in downstream references match the enrichment method used.
+**Success**: A validated workflow that loads source data, defines areas, enriches with the correct aggregation, and saves — with downstream column references matching the enrichment method used. Upload via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -88,9 +88,9 @@ If the goal is per-entity enrichment (e.g. population per store), add a second J
 - **Resolution alignment is critical.** The polyfill resolution MUST match the enrichment dataset's native resolution (e.g. H3 resolution 8 with resolution 8 spatial features). A mismatch produces zero JOIN matches with NO error.
 - **Manual JOIN drops unmatched cells.** `native.join` defaults to INNER JOIN, silently dropping cells with no enrichment data. Use LEFT JOIN if completeness matters.
 - **Deduplicate after polyfill.** Use `SELECT DISTINCT` or GROUP BY on the index column to remove duplicate cells. If you need to preserve source identity (e.g. which store each cell came from), set `includecols: true` in the polyfill node.
-- **Column naming differs by method.** ENRICH procedures produce `{variable}_{aggregation}` columns. Manual JOIN produces `{column}_joined` columns. Plan downstream SQL references accordingly.
+- **Column naming differs by method** (see Step 4): ENRICH procedures produce `{variable}_{aggregation}`; manual JOIN produces `{column}_joined`.
 - **Buffer distance is in meters.** Isoline range units depend on type: seconds for time-based, meters for distance-based.
-- **Re-aggregation needed for entity-level results.** After grid enrichment, data is at the cell level. To get per-store or per-location totals, add a second JOIN + GROUP BY step to roll cell-level values back to the source entity.
+- **Re-aggregation needed for entity-level results.** Grid enrichment leaves data at the cell level; add a second JOIN + GROUP BY to roll it back to per-store / per-location totals (see Step 5).
 
 ---
 

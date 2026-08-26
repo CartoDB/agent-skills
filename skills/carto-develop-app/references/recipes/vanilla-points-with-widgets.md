@@ -106,14 +106,11 @@ async function refresh() {
   const viewport = deck.getViewports()[0];
   const spatialFilter = createViewportSpatialFilter(viewport.getBounds());
 
+  const ticks = [0, 10_000, 50_000, 100_000, 500_000];
   const [total, byCat, hist] = await Promise.all([
     widgetSource.getFormula({ column: 'revenue', operation: 'sum', spatialFilter }),
     widgetSource.getCategories({ column: 'category', operation: 'count', spatialFilter }),
-    widgetSource.getHistogram({
-      column: 'revenue',
-      ticks: [0, 10_000, 50_000, 100_000, 500_000],
-      spatialFilter,
-    }),
+    widgetSource.getHistogram({ column: 'revenue', ticks, spatialFilter }),
   ]);
 
   document.getElementById('kpi-total')!.textContent = total.value.toLocaleString();
@@ -125,11 +122,13 @@ async function refresh() {
     series: [{ type: 'bar', data: byCat.map((c) => c.value) }],
   });
 
+  // getHistogram returns number[] of length ticks.length + 1 (under/overflow at ends) — see widgets.md.
+  const histLabels = [`< ${ticks[0]}`, ...ticks.slice(0, -1).map((t, i) => `${t}–${ticks[i + 1]}`), `≥ ${ticks.at(-1)}`];
   histChart.setOption({
     grid: { left: 40, right: 16, top: 16, bottom: 24 },
-    xAxis: { type: 'category', data: hist.map((b, i) => `${b.tick}+`) },
+    xAxis: { type: 'category', data: histLabels },
     yAxis: { type: 'value' },
-    series: [{ type: 'bar', data: hist.map((b) => b.value) }],
+    series: [{ type: 'bar', data: hist }],
   });
 }
 

@@ -185,19 +185,6 @@ Key elements the backend ships:
 - `getToolsRecordForVercelAI()` (or equivalent for the chosen SDK) — exposes the three deck.gl tools.
 - A streaming endpoint (`/chat` here is a non-streaming demo; real apps stream tokens via SSE).
 
-## Streaming
+## Streaming, auth, gotchas
 
-For prod, swap the `fetch` for SSE / WebSocket. The reference backends include both shapes — it's a 20-line frontend change once you decide.
-
-## Auth
-
-The chat panel doesn't authenticate to CARTO directly — `mapState.layers` describes the layers; the agent emits specs that point at named CARTO sources you set up earlier. CARTO auth is whatever flow the rest of the app uses.
-
-The **LLM key** lives on the backend only — never in `.env` consumed by Vite.
-
-## Gotchas
-
-- **Tool calls without `validateToolParams` will crash deck.gl** when the LLM hallucinates.
-- **Stale `mapState`** → the agent suggests layers based on what *was* on the map, not what's there now. Always call `getMapState()` at fire time, not at render time.
-- **Reserved IDs** (`__anything`) are used by the library for system layers. Don't collide.
-- **Bundle size** — `@deck.gl/json` registers every deck.gl class. For prod, register only the layers you use, not the entire `* as carto`.
+Covered in [`agentic-variant.md`](../agentic-variant.md): swap `fetch` for SSE/WebSocket in prod; the LLM key is backend-only (never in Vite's `.env`); always `validateToolParams` before applying a call; call `getMapState()` at fire time not render time; don't collide with `__`-prefixed reserved layer IDs; and for prod, register only the deck.gl classes you use in `JSONConverter`, not `* as carto`.

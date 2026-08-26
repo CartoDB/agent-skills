@@ -73,7 +73,7 @@ For polygons: use `fillColor` from `symbol.color`, `strokeColor` + `strokeWidth`
 |---|---|---|
 | `esriSMS` (style `esriSMSCircle`) | Simple circle marker | Translates faithfully per the example above |
 | `esriSMS` (style `esriSMSSquare` / `Diamond` / `Cross` / `X` / `Triangle`) | Non-circle simple marker | Collapse to circle — kepler tileset has no built-in non-circle marker. Preserve color + size; record `Notes: marker-shape-collapsed: <style>` |
-| `esriPMS` (picture marker — URL or base64 image) | Custom icon | Follow [`marker-upload.md`](marker-upload.md): acquire + dedup-by-hash + multipart `POST /assets` (`type=MapMarker`) + reference the returned asset `id` in `visConfig.customMarkersId` (or `customMarkersField` + `customMarkersRange.markerMap[]` for categorical — verify against live schema). Size from `symbol.width` / `height` |
+| `esriPMS` (picture marker — URL or base64 image) | Custom icon | Follow [`marker-upload.md`](marker-upload.md): acquire + dedup-by-hash + multipart `POST /assets` (`type=mapMarker`) + reference the returned asset `id` in `visConfig.customMarkersId` (or `customMarkersField` + `customMarkersRange.markerMap[]` for categorical — verify against live schema). Size from `symbol.width` / `height` |
 | `esriSLS` | Simple line | Translates faithfully — `strokeColor` + `strokeWidth` |
 | `esriSFS` (solid polygon fill) | Solid polygon fill | Translates faithfully — `fillColor` (+ `strokeColor` if outline present) |
 | `esriPFS` (picture fill polygon) | Pattern/picture polygon fill | Collapse to solid `fillColor` — Builder has no pattern fills. Use the picture's dominant color if extractable, else a sensible default. Record `Notes: picture-fill-collapsed: <source>` |
@@ -288,66 +288,15 @@ def normalize_layer_defaults(layer):
     return layer
 ```
 
-## Custom-marker icon sizing — `radius` is the knob, NOT `customMarkerSize`
+## Custom markers — sizing, multi-color, aspect ratio
 
-When `visConfig.customMarkers: true`, **Builder reads `visConfig.radius`** as the icon's rendered pixel size (the schema documents `radius` as `[0, 200]` when `customMarkers: true`, vs `[0, 100]` for plain circles). `customMarkerSize` was the legacy knob on older kepler builds and is now mostly cosmetic — it does not control the rendered size in current Builder.
+Full flow (acquire → dedup → `POST /assets` → reference → fallback) is in [`marker-upload.md`](marker-upload.md). The three rules the renderer translator must apply when `visConfig.customMarkers: true`:
 
-**Symptom of getting this wrong**: you set `customMarkerSize: 24` and Builder still renders the icon at ~12 px (it picks `radius`, which we left at its default 6 or whatever the circle fallback was using). Verified on the TfL PTAL LSOA migration — pre-fix icons rendered at ~12 px despite `customMarkerSize: 24`; post-fix with `radius: 24`, icons render at the target size.
+- **`radius` is the rendered icon-size knob, NOT `customMarkerSize`** (schema: `radius` is `[0, 200]` when `customMarkers: true` vs `[0, 100]` for circles). `customMarkerSize` is a legacy mirror current Builder ignores — set both, `radius` as source of truth. Symptom of getting it wrong: `customMarkerSize: 24` renders at ~12 px (the leftover `radius` default).
+- **Multi-color PNGs need BOTH** an uploaded asset id in `customMarkersId` AND `visConfig.filled: false` — kepler's TileLayer applies its `getFillColor` tint only when `filled` is truthy; `filled: true` collapses the icon to one shade. Either alone stays monochromatic. Brand color goes in `strokeColor` (the sidebar chip uses it when fill is off).
+- **Pad non-square PNGs to square** at acquisition time (transparent fill, `max(w,h)`) — the icon layer has a single size knob, so deck.gl squashes a rectangular source. Compute the content-hash AFTER padding. Apply in both `esriPMS` (`imageData`) and `CIMPictureMarker` (`url` data URI) paths; fall back to raw bytes + a `Notes:` if PIL is missing.
 
-Pattern:
-
-```python
-if vc.get("customMarkers"):
-    target_size = 24                       # px on screen
-    vc["radius"] = target_size             # Builder reads this
-    vc["customMarkerSize"] = target_size   # mirror for older Builder paths
-```
-
-**Multi-color source PNGs require BOTH: asset upload + `filled: false`.** Two independent changes have to land on the same layer:
-
-1. Upload the icon via `POST {workspaceApiUrl}/assets` (multipart `type=mapMarker`, `file=<binary>`) and store the returned asset id in `visConfig.customMarkersId`. The server hydrates `customMarkersUrl` (a 7-day presigned GET) on every map read.
-2. Set `visConfig.filled = false`. Kepler's TileLayer skips its `getFillColor` accessor (the color-replace path) when `filled` is falsy. With `filled: true`, the icon collapses into a single shade regardless of how it was sourced.
-
-Either alone leaves the icon monochromatic. See [`marker-upload.md`](marker-upload.md) "Multi-color icons" for the worked composer pattern (endpoint lookup, byte-header sniffing, JPEG→PNG conversion, content-hash dedup) and the round-5/6/7 progression that established the requirement.
-
-```python
-if vc.get("customMarkers"):
-    vc["filled"] = False
-    if vc.get("customMarkersUrl", "").startswith("data:"):
-        raw = base64.b64decode(vc["customMarkersUrl"].split(",", 1)[1])
-        asset = upload_marker_asset(raw, layer_label)
-        if asset:
-            vc["customMarkersId"] = asset["id"]
-```
-
-Brand color stays in `visConfig.strokeColor` (Builder uses it for the sidebar chip when fill is off) — and as the layer's fallback color if the asset URL ever 404s.
-
-## Aspect ratio for non-square icons — pad the PNG to square at acquisition time
-
-Kepler's tileset layer schema exposes a single `customMarkerSize` / `radius` value — there is **no per-axis width/height control**. deck.gl IconLayer scales the source PNG to fit a square box of that size, which distorts the icon when the source is rectangular (e.g. a 2560×1611 National Rail PNG renders as a stretched 24×24 square).
-
-**Fix at acquisition time**: pad the source PNG to a square (`max(w, h)` on both axes) with transparent fill before encoding the data URI. The original content keeps its aspect ratio inside a square canvas — Builder renders the padded square at `radius` px and the icon visually preserves its proportions.
-
-```python
-import base64, io
-from PIL import Image
-
-def pad_png_to_square(raw_bytes):
-    img = Image.open(io.BytesIO(raw_bytes)).convert("RGBA")
-    w, h = img.size
-    if w == h:
-        return raw_bytes
-    side = max(w, h)
-    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
-    canvas.paste(img, ((side - w) // 2, (side - h) // 2))
-    out = io.BytesIO()
-    canvas.save(out, format="PNG", optimize=True)
-    return out.getvalue()
-```
-
-Apply this inside both `esriPMS` (via `imageData`) and `CIMPictureMarker` (via `url` data URI) acquisition paths. If PIL is unavailable, fall back to the raw PNG and record a `Notes:` entry; non-square icons will still render but with distortion. The content-hash dedup cache key should be computed AFTER padding so two layers that share the same source PNG share a single padded version.
-
-Verified on TfL PTAL LSOA — pre-fix National Rail (1.59 ratio) rendered squashed; post-fix it renders at the source's correct aspect.
+All three verified on the TfL PTAL LSOA migration (icons at ~12 px until `radius: 24`; multi-color roundel established in rounds 5–7; National Rail 1.59-ratio squashed until padded).
 
 ## Labels with halo — translate `labelingInfo` to kepler `textLabel[]`
 
@@ -375,15 +324,11 @@ Per-field mapping (single-attribute label expressions only; complex Arcade falls
 - `alignment: "center"` → label CENTERED on the data point (overlay)
 - `alignment: "bottom"` → label appears BELOW the data point
 
-**Leave `offset: [0, 0]`** for above/below placements — `alignment` already positions the label flush to the icon, and even a few extra pixels of offset visibly detach the label from the icon. Verified on TfL PTAL LSOA round 4 — pre-fix labels rendered on top of station icons despite `offset: [0, -18]`; with `alignment: "top"` and no offset they sit immediately above the icon, as in the source.
+**Leave `offset: [0, 0]`** — `alignment` already positions the label flush to the icon at any font size; even a few px of offset visibly detach it. Verified on TfL PTAL LSOA round 4 (labels sat on top of station icons despite `offset: [0, -18]`; `alignment: "top"` + no offset fixed it). **Sanity-check in the Builder render** (not the light-engine screenshot — text doesn't render there): if labels are below their icons when the source says `AboveCenter`, the `alignment` is inverted — the semantic is easy to get backwards, and the wrong value looks indistinguishable from the offset-ignored bug.
 
-**Sanity-check after the first label translation** by inspecting the Builder render: if labels are visually below their icons when the source says `AboveCenter`, the `alignment` value is inverted — flip it and re-test. The semantic is small enough that getting it backwards rendered a label-on-icon look indistinguishable from the alignment-ignored bug, so verifying in Builder (not just light-engine screenshot — text doesn't render there) is required.
+Extract the field via `re.match(r'^\$feature\["?(\w+)"?\]$', expr) or re.match(r"^\[(\w+)\]$", expr)`, lower-case it (DW imports lowercase column names), then build the entry. Skip non-bare-field expressions with `Notes: label-skipped: <expr>` (they'd need Arcade-to-SQL per [`arcade-translation.md`](arcade-translation.md)).
 
-Use `re.match(r'^\$feature\["?(\w+)"?\]$', expr) or re.match(r"^\[(\w+)\]$", expr)` to extract the field name from the two ArcGIS expression syntaxes, then lower-case it (BigQuery / DW imports lowercase all column names). Skip and record `Notes: label-skipped: <expr>` for any expression that isn't a bare field reference — these would need Arcade-to-SQL translation per `arcade-translation.md`.
-
-**Source font size doesn't always render well at city zoom.** ArcGIS map publishers tune font sizes for print-quality rendering; deck.gl renders them smaller. For migration, accept a per-layer `font_size_override` parameter so the caller can bump labels that don't read at the target zoom (TfL stations at 9 px → 12 px is a common bump). Document the bump in `Notes:`.
-
-Keep `offset` at `[0, 0]` — `alignment: "top"` / `"bottom"` already places the label adjacent to the icon at any font size. Adding an offset pushes the label visibly away from the icon.
+**Source font size doesn't always render well at city zoom** — ArcGIS publishers tune fonts for print; deck.gl renders them smaller. Accept a per-layer `font_size_override` and bump labels that don't read at the target zoom (TfL stations 9 → 12 is common); document the bump in `Notes:`.
 
 ## Visibility by zoom — translate ArcGIS `minScale`/`maxScale` to kepler
 

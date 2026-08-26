@@ -1,10 +1,18 @@
-# Exporting data
+# Exporting and transferring data
 
-CARTO is **import-heavy by design** — once data is in the warehouse, the warehouse owns it, and exports are usually warehouse-native (BigQuery `EXPORT DATA`, Snowflake `COPY INTO`, Postgres `\copy`, etc.). The CLI exposes one export surface: `carto activity export` for usage data.
+Three distinct jobs, three paths:
 
-## `carto activity export` — CARTO activity data only
+| Goal | MCP (OAuth) | CLI / SQL fallback |
+|---|---|---|
+| Pull a query/table out of the warehouse to a file | `export_data` (`submit`/`status`) | warehouse-native unload via SQL |
+| Copy a table between two connections | `transfer_data` (`submit`/`status`, `source_connection` → `destination_connection`) | `carto import` from a staged unload |
+| Dump CARTO activity / API-usage data to disk | — (no MCP equivalent) | `carto activity export` |
 
-Bulk-export the activity / API-usage / user-list data CARTO maintains about your org.
+`export_data` / `transfer_data` are hidden on token-authenticated MCP sessions — use the CLI / warehouse-native path there. Warehouse-native unloads stay valuable even with MCP attached: they run **inside** the warehouse (10–100× faster for large data) using the *user's* warehouse credentials, and preserve every engine's partitioning/compression fidelity.
+
+## `carto activity export` — CARTO activity data only (CLI-only)
+
+Bulk-export the activity / API-usage / user-list data CARTO maintains about your org. No MCP tool covers this.
 
 ```bash
 carto activity export [options]
@@ -12,8 +20,7 @@ carto activity export [options]
 
 | Flag | Meaning |
 |---|---|
-| `--start-date <YYYY-MM-DD>` | Required. |
-| `--end-date <YYYY-MM-DD>` | Required. |
+| `--start-date <YYYY-MM-DD>` / `--end-date <YYYY-MM-DD>` | Required range. |
 | `--format csv\|parquet` | Default: `csv`. |
 | `--category activity\|apiUsage\|userList\|groupList` | Default: all four. |
 | `--output-dir <path>` | Default: `./activity-data`. |
@@ -21,18 +28,15 @@ carto activity export [options]
 Plan gate: **Enterprise Large+ only.** Files land on disk; the CLI waits and downloads.
 
 ```bash
-carto activity export \
-  --start-date 2026-04-01 \
-  --end-date 2026-04-28 \
-  --format parquet \
-  --output-dir ./apr-2026
+carto activity export --start-date 2026-04-01 --end-date 2026-04-28 \
+  --format parquet --output-dir ./apr-2026
 ```
 
-For *querying* (rather than dumping) the same data, use `carto activity query` — it runs DuckDB SQL locally on the cached download. See [`carto-query-datawarehouse/references/activity-queries.md`](../../carto-query-datawarehouse/references/activity-queries.md).
+To *query* rather than dump the same data, use `carto activity query` (DuckDB SQL over the cached download) — see [`carto-query-datawarehouse/references/activity-queries.md`](../../carto-query-datawarehouse/references/activity-queries.md).
 
-## Exporting warehouse data — use the warehouse
+## Warehouse-native unloads
 
-For warehouse data (the tables CARTO reads/writes), CARTO does **not** ship a generic `carto export` command. Use the warehouse's native facility:
+For arbitrary warehouse tables, `export_data` submits the unload for you; the SQL below is the equivalent you'd run via `execute_async_query` or `carto sql job` when you need full control over the engine's options.
 
 ### BigQuery
 
@@ -45,8 +49,6 @@ EXPORT DATA OPTIONS (
 SELECT * FROM `my_project.demo.events`
 WHERE event_date >= '2026-04-01';
 ```
-
-Run via `carto sql job <connection> --file export.sql`.
 
 ### Snowflake
 
@@ -82,10 +84,4 @@ FROM (SELECT * FROM main.analytics.events)
 FILEFORMAT = PARQUET;
 ```
 
-## Why no generic CLI export?
-
-- Warehouse-native unloads run **inside the warehouse**, never round-tripping through CARTO. They're 10–100× faster for large data.
-- Permissions live in the warehouse — using the native unload uses the *user's* warehouse credentials directly, not CARTO's connection credential.
-- Format / partitioning / compression options vary wildly per engine; a generic CLI wrapper would either lose fidelity or duplicate every engine's full unload spec.
-
-If a user expects `carto export <table>` to work, redirect them to the SQL approach above.
+Run any of these with `execute_async_query` (`method: submit`) over MCP, or `carto sql job <connection> --file export.sql` on the CLI. If a user expects a generic `carto export <table>`, route them to `export_data` or the SQL above.

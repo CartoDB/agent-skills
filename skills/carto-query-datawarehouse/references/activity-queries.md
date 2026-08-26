@@ -1,10 +1,10 @@
-# Querying CARTO activity data
+# Querying CARTO activity data (CLI-only)
 
-`carto activity query` runs **DuckDB SQL locally** over CARTO-exported activity data. It's separate from warehouse SQL — the data is downloaded once into `/tmp/carto-activity-cache/` and then queryable in-process.
+`carto activity query` runs **DuckDB SQL locally** over CARTO-exported activity data — no MCP equivalent. Data is downloaded once into `/tmp/carto-activity-cache/` and then queried in-process, separate from warehouse SQL.
 
 ## Prerequisites
 
-- **Plan**: Activity data export requires Enterprise Large+. Other plans get an access-denied error.
+- **Plan**: activity-data export requires Enterprise Large+. Other plans get access-denied.
 - **DuckDB**: `npm install duckdb` (native module — first install can take 5–10 min and needs a C++ toolchain).
 
 ## Basic usage
@@ -16,33 +16,25 @@ carto activity query \
   --sql "SELECT type, COUNT(*) AS n FROM activity GROUP BY type ORDER BY n DESC LIMIT 10"
 ```
 
-- First run downloads data; subsequent runs over the same date range reuse the cache.
-- Pass `--no-cache` to force a fresh download.
-- `--json` for machine output.
+First run downloads data; later runs over the same range reuse the cache. `--no-cache` forces a fresh download; `--json` for machine output.
 
-## Tables available
+## Tables (names are case-sensitive)
 
 | Table | Contents |
 |---|---|
-| `activity` | Event log: `type`, `ts`, `data` (JSON) |
+| `activity` | Event log: `type`, `ts`, `data` (JSON string) |
 | `apiUsage` | Daily API usage: `ts`, `user_id`, `metric`, `amount`, `map_id`, `workflow_id`, `quota_usage_weight` |
-| `userList` | Current users: `user_id`, `email`, `created_at`, `role`, `group_ids` |
-| `groupList` | Current groups: `group_id`, `group_alias` |
-
-Table names are **case-sensitive** in DuckDB.
+| `userList` | Users: `user_id`, `email`, `created_at`, `role`, `group_ids` |
+| `groupList` | Groups: `group_id`, `group_alias` |
 
 ## Common patterns
 
-### Who modified a specific map?
+### Who modified a specific map
 
 ```sql duckdb
-SELECT
-  u.email,
-  a.type,
-  a.ts
+SELECT u.email, a.type, a.ts
 FROM activity a
-LEFT JOIN userList u
-  ON json_extract_string(a.data, '$.userId') = u.user_id
+LEFT JOIN userList u ON json_extract_string(a.data, '$.userId') = u.user_id
 WHERE json_extract_string(a.data, '$.mapId') = 'MAP_ID_HERE'
   AND a.type IN ('MapUpdated', 'MapSnapshotCreated')
   AND a.ts >= CURRENT_DATE - INTERVAL '7 days'
@@ -52,14 +44,10 @@ ORDER BY a.ts DESC
 ### Most active users (last 7 days)
 
 ```sql duckdb
-SELECT
-  u.email,
-  u.role,
-  COUNT(*) AS total_events,
-  COUNT(DISTINCT DATE(a.ts)) AS active_days
+SELECT u.email, u.role, COUNT(*) AS total_events,
+       COUNT(DISTINCT DATE(a.ts)) AS active_days
 FROM activity a
-LEFT JOIN userList u
-  ON json_extract_string(a.data, '$.userId') = u.user_id
+LEFT JOIN userList u ON json_extract_string(a.data, '$.userId') = u.user_id
 WHERE a.ts >= CURRENT_DATE - INTERVAL '7 days'
   AND json_extract_string(a.data, '$.userId') IS NOT NULL
 GROUP BY u.email, u.role
@@ -67,26 +55,12 @@ ORDER BY total_events DESC
 LIMIT 20
 ```
 
-### Hourly activity pattern
-
-```sql duckdb
-SELECT
-  EXTRACT(HOUR FROM ts) AS hour_of_day,
-  COUNT(*) AS events,
-  COUNT(DISTINCT json_extract_string(data, '$.userId')) AS active_users
-FROM activity
-WHERE ts >= CURRENT_DATE - INTERVAL '7 days'
-GROUP BY EXTRACT(HOUR FROM ts)
-ORDER BY hour_of_day
-```
-
 ### Quota consumption by user
 
 ```sql duckdb
-SELECT
-  u.email,
-  SUM(api.amount * api.quota_usage_weight) AS quota_consumed,
-  SUM(api.amount) AS total_requests
+SELECT u.email,
+       SUM(api.amount * api.quota_usage_weight) AS quota_consumed,
+       SUM(api.amount) AS total_requests
 FROM apiUsage api
 LEFT JOIN userList u ON api.user_id = u.user_id
 WHERE api.ts >= CURRENT_DATE - INTERVAL '7 days'
@@ -97,15 +71,13 @@ LIMIT 20
 
 ### Quota consumption by map (or workflow)
 
-`apiUsage` carries `map_id` and `workflow_id` columns, so consumption can be attributed
-directly to the map or workflow that drove it — no need to join through `activity` events.
+`apiUsage` carries `map_id` and `workflow_id`, so consumption attributes directly to the resource that drove it — no join through `activity` needed. Swap `map_id` for `workflow_id` to rank workflows.
 
 ```sql duckdb
-SELECT
-  map_id,
-  SUM(amount * quota_usage_weight) AS quota_consumed,
-  SUM(amount)                      AS total_requests,
-  COUNT(DISTINCT user_id)          AS distinct_users
+SELECT map_id,
+       SUM(amount * quota_usage_weight) AS quota_consumed,
+       SUM(amount)             AS total_requests,
+       COUNT(DISTINCT user_id) AS distinct_users
 FROM apiUsage
 WHERE map_id IS NOT NULL
   AND ts >= CURRENT_DATE - INTERVAL '30 days'
@@ -114,44 +86,25 @@ ORDER BY quota_consumed DESC
 LIMIT 5
 ```
 
-Swap `map_id` for `workflow_id` to rank workflows instead. Notes:
+- Rows with **both** `map_id` and `workflow_id` `NULL` are non-map/non-workflow surfaces (raw SQL API, imports, AI proxy) — not attributable to one resource.
+- Public maps accrue quota from anonymous viewers, so those rows have `NULL` `user_id`.
+- Break a map down by `metric` to see the driver (Maps API tiling vs. heavier Widgets API vs. AI-agent tokens): add `WHERE map_id = '<id>' GROUP BY metric`.
+- Resolve a `map_id` to name/owner with `read_maps` (MCP, `get`) or `carto maps get <map_id>` — both respect map-level ACLs.
 
-- Rows where **both** `map_id` and `workflow_id` are `NULL` are non-map/non-workflow
-  surfaces (raw SQL API, imports, AI proxy) — not attributable to any single resource.
-- Public maps accrue quota from anonymous viewers, so those rows have a `NULL` `user_id`.
-- Break a single map down by `metric` to see what's driving it (Maps API tiling vs. the
-  more heavily-weighted Widgets API vs. AI-agent token spend):
-  `... WHERE map_id = '<id>' GROUP BY metric ORDER BY SUM(amount * quota_usage_weight) DESC`.
-- Resolve a `map_id` to its name/owner with `carto maps get <map_id>` (respects map-level
-  ACLs — a map private to another user returns a PERMISSION error).
-
-## Working with JSON
-
-The `data` column on `activity` is a JSON string. DuckDB extracts:
+## JSON in the `data` column
 
 ```sql duckdb
-SELECT
-  json_extract_string(data, '$.userId')             AS user_id,
-  json_extract_string(data, '$.mapId')              AS map_id,
-  json_extract_string(data, '$.connection.provider') AS connection_provider
+SELECT json_extract_string(data, '$.userId') AS user_id,
+       json_extract_string(data, '$.mapId')  AS map_id
 FROM activity
 WHERE type LIKE 'Map%'
 LIMIT 5
 ```
 
-`json_extract_string(data, '$.field') IS NOT NULL` is the safe way to filter for events that have a given attribute.
+`json_extract_string(data, '$.field') IS NOT NULL` is the safe filter for events carrying a given attribute.
 
-## Best practices
+## Best practices & syntax
 
-- **Always filter by date**. The data is large; `SELECT * FROM activity` will scan everything in cache.
-- **Filter by `type` early**. Event types are highly selective.
-- **Join with `userList`** to surface emails instead of opaque user IDs.
-- **Reuse cache** for exploratory work over the same date range; pass `--no-cache` only when you need today's data.
-- **Limit exploratory output**: `LIMIT 100` on top-level queries.
-
-## DuckDB syntax notes
-
-- `INTERVAL '7 days'` (single quotes), not `interval 7 days`.
-- `DATE_TRUNC('month', ts)`, not `date_trunc('month', ts::date)`.
-- Cast string→date with `::DATE`.
-- Window functions and CTEs are supported (DuckDB is highly Postgres-compatible).
+- **Always filter by date and `type`** — the data is large and event types are highly selective.
+- **Join `userList`** to surface emails instead of opaque IDs; `LIMIT 100` on exploratory queries.
+- DuckDB is Postgres-compatible (CTEs, window functions). Note: `INTERVAL '7 days'` (single quotes), `DATE_TRUNC('month', ts)`, cast string→date with `::DATE`.

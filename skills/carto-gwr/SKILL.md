@@ -8,7 +8,7 @@ license: MIT
 
 Builds CARTO Workflows that model spatially varying relationships between a dependent variable and one or more independent variables using GWR. Unlike global regression (one set of coefficients for the entire study area), GWR produces **local coefficients per spatial unit**, revealing how relationships change across space. Example: "bedrooms add $50k to price in downtown but only $20k in suburbs."
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
 ---
 
@@ -88,7 +88,7 @@ Use `native.gwr` with:
 
 Use `native.saveastable` to persist results. The spatial index column is directly visualizable in CARTO Builder -- style the map by coefficient columns to create coefficient maps showing spatial variation.
 
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+**Success**: Validated workflow that can be uploaded via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -102,18 +102,15 @@ Use `native.saveastable` to persist results. The spatial index column is directl
 | `r_squared` | Local model fit (0-1) -- higher = better local explanation |
 | `residual` | Difference between observed and predicted value |
 
-The engine declares these lowercase. See the Provider casing note in Gotchas for Snowflake.
-
 ---
 
 ## Gotchas
 
 - **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `INDEX`, `PRICE`, `R_SQUARED`, `INTERCEPT`, etc. in expressions. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
-- The GWR component requires the Analytics Toolbox. Always run `carto workflows verify-remote --connection <conn>` to ensure the AT path is resolved. `carto workflows validate` is offline and cannot resolve AT location.
+- The GWR component requires the Analytics Toolbox. Offline validation (`validate_workflow` over MCP, or `carto workflows validate`) can't resolve the AT location — confirm it with the CLI-only `carto workflows verify-remote --connection <conn>` before running.
 - The dependent variable must be continuous and numeric. Categorical targets need a different approach (e.g. classification).
 - Cells with null values in ANY variable (dependent or independent) will be excluded from the model. Pre-filter or impute nulls before running GWR.
 - Multicollinearity between independent variables degrades results. If two predictors are highly correlated (e.g. `bedrooms` and `total_rooms`), drop one or combine them. Check correlation before including multiple similar variables.
-- K-ring size matters significantly: too small = noisy, unstable coefficients; too large = over-smoothed results that approach a global regression. Start with `3` and adjust.
 - `r_squared` per cell indicates local model fit. Very low values across many cells suggest important predictors are missing from the model.
 - The `features_columns` input is an array of column names (e.g. `["bedrooms", "bathrooms"]`), not a comma-separated string.
 - The output column is named `index`, not the original spatial index column name. If joining back to original data, rename it with `native.renamecolumn`.

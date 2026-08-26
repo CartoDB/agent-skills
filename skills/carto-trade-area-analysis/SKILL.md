@@ -8,7 +8,9 @@ license: MIT
 
 Builds CARTO Workflows that define catchment areas around candidate locations, enrich them with data, and score/rank locations for site selection, billboard placement, or coverage analysis.
 
-**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands.
+**Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation. It covers both access paths — the MCP server's workflow tools (`create_workflow`, `validate_workflow`, `run_workflow`) when attached, the `carto workflows` CLI otherwise. Routing signals: `carto-basics/references/access-paths.md`.
+
+**Ad-hoc catchments**: for a one-off isochrone around a handful of points, use the `calculate_isolines` MCP tool (available over OAuth, or on a token session whose Allowed APIs include **LDS**) — the workflow patterns below are for table-scale, repeatable analysis.
 
 ---
 
@@ -69,19 +71,15 @@ Use `native.groupby` to collapse grid-cell rows back to one row per location:
 
 ### Step 7: Score and Rank
 
-Three-part scoring pattern:
+Three-part pattern (see `carto-composite-scoring` for the full method): **normalize** each variable to [0,1] with `native.normalize`; **composite score** via `native.selectexpression`, e.g. `normalized_population * 0.4 + normalized_income * 0.3 + normalized_traffic * 0.3`; **rank** with `native.orderby` (descending) + `native.limit` (top N).
 
-1. **Normalize** each variable to [0,1] using `native.normalize` (one call per variable, or chain multiple)
-2. **Composite score** via `native.selectexpression`: weighted addition of normalized variables, e.g. `normalized_population * 0.4 + normalized_income * 0.3 + normalized_traffic * 0.3`
-3. **Rank** using `native.orderby` (descending by composite score) + `native.limit` (top N)
-
-**Success**: Output is a ranked list of candidate locations with a composite score and the contributing normalized variables.
+**Success**: A ranked list of candidate locations with a composite score and the contributing normalized variables.
 
 ### Step 8: Save
 
 Use `native.saveastable` to persist the ranked results.
 
-**Success**: Validated workflow that can be uploaded via `carto workflows create`.
+**Success**: Validated workflow that can be uploaded via `create_workflow` (MCP) or `carto workflows create` (CLI).
 
 ---
 
@@ -108,7 +106,7 @@ These files are working examples in this skill directory:
 | `identify_best_billboards.json` | Billboard site scoring — buffer, enrich, normalize, weighted composite score, top-N |
 | `commercial_hotspots.json` | Commercial hotspot detection — H3 distance to competitors, weighted hotspot analysis |
 
-**Refreshing component versions.** These templates pin each node's `data.version` to whatever was current when the template was harvested. When a native component bumps versions (e.g. `native.isolines` v1 → v2 added new transport modes plus `customoptions` and `traveltime_*` inputs), the older template still parses but will flag `verify-remote` warnings and miss new inputs. To refresh: run `carto workflows components get <component> --connection <conn> --json`, then update the node's `data.version` and `inputs` array in lockstep against the live schema. Always cross-reference `Selection` input values against `carto-create-workflow/SKILL.md` — `components get` may surface display labels under the `options` key, but wire values are typically the lowercase / snake_case forms.
+**Refreshing component versions.** Templates pin each node's `data.version` to what was current when harvested. When a native component bumps versions (e.g. `native.isolines` v1 → v2 added transport modes plus `customoptions` and `traveltime_*` inputs), the older template still parses but flags `verify-remote` warnings and misses new inputs. To refresh, read the live schema — `read_workflow_components` (MCP) or `carto workflows components get <component> --connection <conn> --json` (CLI) — then update the node's `data.version` and `inputs` in lockstep. Cross-reference `Selection` values against `carto-create-workflow/SKILL.md`: `options` may show display labels, but wire values are the lowercase / snake_case forms.
 
 ---
 

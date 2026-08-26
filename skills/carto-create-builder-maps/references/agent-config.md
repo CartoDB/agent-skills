@@ -2,13 +2,15 @@
 
 Enables the Agent on the map. **Opt-in** — only include this block when the user explicitly asks for an Agent on the map. Organization must have CARTO AI enabled.
 
+> The `carto maps agents status` / `models` / `mcp-tools` / `core-tools` catalogues are **CLI-only** — no MCP equivalent. On a chat-host MCP session without a shell, you can't run these; emit the `agent` block and let the create/update verify step surface any `agent.issues`, or ask the user to confirm AI is enabled.
+
 **Check organization AI enablement before emitting an agent block:**
 
 ```sh
 carto maps agents status      # → { enabled, defaultModel, provider config }
 ```
 
-If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this organization and skip. The CLI will also soft-strip an `agent` block and warn if it's present in a create/update on an AI-disabled organization, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
+If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this organization and skip. Create/update also soft-strips an `agent` block and warns if it's present on an AI-disabled organization, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
 
 **You don't have to pick the model.** Omit `agent.config.model` and the CLI auto-fills it with the organization's `defaultModel` from `/settings/carto-ai` (emits a `→ Using organization default model for agent: …` log). Only set `agent.config.model` explicitly when the user asks for a specific provider or model — then `maps agents models` is the catalogue to pick from. If the organization has neither AI enabled nor a `defaultModel`, the CLI surfaces the missing-model error at Tier-1 so you can act.
 

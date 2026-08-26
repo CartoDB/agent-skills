@@ -1,5 +1,7 @@
 # Post-copy validation
 
+> **CLI-only** — follows a `maps copy` (see [cross-profile-copy.md](cross-profile-copy.md)); every command here uses `--profile`, which has no MCP equivalent.
+
 Don't trust a map copy on the basis that the CLI returned a new ID. Validate the destination explicitly before handing the map URL to anyone.
 
 ## Confirm the map exists
@@ -66,25 +68,7 @@ carto auth status --profile prod
 
 ## End-to-end smoke
 
-```bash
-# 1. Map exists with expected title
-carto maps get <new-map-id> --profile prod --json | jq '.title'
-
-# 2. All datasets have a connection
-carto maps get <new-map-id> --profile prod --json \
-  | jq '[.datasets[] | select(.connectionName == null)] | length'
-# Expected: 0
-
-# 3. No agent issues
-carto maps get <new-map-id> --profile prod --json \
-  | jq '.map.agent.issues // [] | length'
-# Expected: 0 (unless the source had agents — then check & fix in Builder)
-
-# 4. Open in browser
-echo "https://$(carto auth status --profile prod --json | jq -r '.tenant')/builder/<new-map-id>"
-```
-
-If all four pass, the copy is good. Hand the URL over.
+Four checks, all `carto maps get <new-map-id> --profile prod --json | jq …` (commands above): (1) `.title` matches; (2) `[.datasets[] | select(.connectionName == null)] | length` is `0`; (3) `.map.agent.issues // [] | length` is `0` (unless the source had agents — then fix in Builder); (4) open `https://$(carto auth status --profile prod --json | jq -r '.tenant')/builder/<new-map-id>`. All pass ⇒ the copy is good; hand the URL over.
 
 ## When something's wrong
 

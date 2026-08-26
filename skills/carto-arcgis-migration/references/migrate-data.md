@@ -1,6 +1,6 @@
 # Phase B — Migrate data (Hosted Feature Layers + Hosted Tables → CARTO tables)
 
-Takes the Datasets section of `MIGRATION_MANIFEST.md` and lands each pending Hosted Feature Layer / Hosted Table as a table in the user's CARTO connection. **Default mode is batch** — process every pending entry in one invocation. Idempotent: `done` entries are skipped on re-run; `failed` entries are retried with `--overwrite`. Items whose extracted size would exceed the 1 GB CARTO Imports per-file limit are flagged in the final summary and surface for follow-up — they don't abort the batch.
+Takes the Datasets section of `MIGRATION_MANIFEST.md` and lands each pending Hosted Feature Layer / Hosted Table as a table in the user's CARTO connection. **Default mode is batch** — process every pending entry in one invocation. Idempotent: `done` entries are skipped on re-run; `failed` entries are retried with `--overwrite`. Items whose extracted size would exceed the 5 GB CARTO Imports per-file limit are flagged in the final summary and surface for follow-up — they don't abort the batch.
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ Initialize an empty `SESSION_LESSONS.md` in the working directory. The agent app
 1. **Row count**: `GET <Source>/query?where=1=1&returnCountOnly=true&f=json` → `count`. Empty layers (`count == 0`) → `State: skipped`, `Reason: empty-source`.
 2. **Sample-page size**: extract page 1 (`resultRecordCount=2000` or service max), measure on-disk bytes.
 3. **Estimate full size**: `est_bytes = (sample_bytes / sample_rows) × total_rows × 1.3` (1.3× safety factor).
-4. If `est_bytes > 1 GB`: `State: skipped`, `Reason: exceeds-1gb-staging-not-implemented`, write the manifest, continue to the next entry. Do not abort the batch.
+4. If `est_bytes > 5 GB` (the CARTO import file-size limit): `State: skipped`, `Reason: exceeds-5gb-staging-not-implemented`, write the manifest, continue to the next entry. Do not abort the batch.
 
 ### B.3 — Extract to GeoParquet
 
@@ -62,7 +62,7 @@ Print a structured summary to chat:
 
 - **Migrated** (count + per-entry table FQNs).
 - **Skipped — empty** (entries with no rows).
-- **Skipped — > 1 GB** (entries whose extracted size would exceed the per-file limit; staging fallback comes in a later feature).
+- **Skipped — > 5 GB** (entries whose extracted size would exceed the per-file limit; staging fallback comes in a later feature).
 - **Failed** (entries with `State: failed` after this run; show `Failure:` reason).
 
 Then check `SESSION_LESSONS.md` in the working directory:
@@ -101,4 +101,4 @@ If `Datasets` is fully resolved (no `pending` left), suggest invoking [`migrate-
 - Source returns M-aware or Z-aware geometries? Strip M/Z (CARTO is 2D by default) and record `Notes: M/Z geometry stripped` on the entry.
 - Probe shows `count: 0`? `State: skipped`, `Reason: empty-source`.
 - Source rejects `outSR=4326`? Try `outSR=4269` and reproject; record `Notes:` on the entry.
-- Estimated size between 0.8 and 1.0 GB? Extract anyway but warn the user — the estimate has a 1.3× safety factor but actual files can still surprise. If post-extraction file size exceeds 1 GB, flip to `State: skipped`, `Reason: exceeds-1gb-staging-not-implemented`, delete the local file.
+- Estimated size between 4.5 and 5.0 GB? Extract anyway but warn the user — the estimate has a 1.3× safety factor but actual files can still surprise. If post-extraction file size exceeds 5 GB, flip to `State: skipped`, `Reason: exceeds-5gb-staging-not-implemented`, delete the local file.

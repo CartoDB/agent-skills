@@ -26,7 +26,7 @@ SAMPLE_ROWS=$(jq '.features | length' /tmp/probe.geojson)
 
 Estimate full size: `est_bytes = (SAMPLE_BYTES / SAMPLE_ROWS) × total_rows × 1.3`.
 
-If `est_bytes > 1 GB`, mark the entry `skipped` with `Reason: exceeds-1gb-staging-not-implemented` and continue to the next entry.
+If `est_bytes > 5 GB` (the CARTO import file-size limit), mark the entry `skipped` with `Reason: exceeds-5gb-staging-not-implemented` and continue to the next entry.
 
 ## Recipe 1: `arcgis` Python + `geopandas`
 
@@ -146,8 +146,8 @@ inv = json.loads(open("MIGRATION_INVENTORY.json").read())
 size_bytes = next(
     r["size"] for r in inv["search"]["results"] if r["id"] == ITEM_ID
 )
-if size_bytes > 1_000_000_000:
-    # Mark skipped: exceeds-1gb-staging-not-implemented
+if size_bytes > 5_000_000_000:  # 5 GB — the CARTO import file-size limit
+    # Mark skipped: exceeds-5gb-staging-not-implemented
     ...
 ```
 
@@ -227,11 +227,7 @@ gdf.to_parquet(OUT / f"{item_id}.parquet", index=False)
 
 For file-format **tables** (a `GeoJson` with no geometry would be unusual; `CSV` is the typical no-geometry file type) the same flow holds, minus the geometry handling — `pd.read_csv` instead of `gpd.read_file`, and `df.to_parquet` instead of `gdf.to_parquet`.
 
-### Why no `/query` paging
-
-These items are blobs in AGOL's content store — the JSON / zipped shapefile / KML lives at `/sharing/rest/content/items/<id>/data` and is served verbatim. There is no spatial index, no SQL filter, no `?where=…&resultOffset=…` URL surface. The download is one HTTP GET; everything else (paging, filtering) happens locally on the read.
-
-If the user wants only a subset of a large file-format item (e.g. a 5 GB GeoPackage, only one of its layers) the right response in v1 is `State: skipped`, `Reason: exceeds-1gb-staging-not-implemented` — staging-fallback handling will arrive in a later feature.
+**Why no `/query` paging**: these items are blobs in AGOL's content store (served verbatim at `/sharing/rest/content/items/<id>/data`) — no spatial index, no SQL filter, no `resultOffset` surface. The download is one HTTP GET; paging/filtering happen locally on read. For a subset of an over-limit file-format item (e.g. one layer of an 8 GB GeoPackage), v1's answer is `State: skipped`, `Reason: exceeds-5gb-staging-not-implemented`.
 
 ## Hosted Tables (no geometry)
 
@@ -278,44 +274,16 @@ df.to_parquet("out/<item-id>.parquet", index=False)
 | `esriFieldTypeRaster` | unsupported — drop with `Notes: raster field dropped` |
 | `esriFieldTypeBlob` / `esriFieldTypeXML` | `string` (base64-encoded if blob) |
 
-ArcGIS dates are integer milliseconds since the epoch. Convert in Python:
+ArcGIS dates are integer milliseconds since the epoch: `pd.to_datetime(df["col"], unit="ms", utc=True)`.
 
-```python
-import pandas as pd
-df["created_date"] = pd.to_datetime(df["created_date"], unit="ms", utc=True)
-```
+## SRS, M/Z, pagination, rate limits
 
-## SRS handling
+These are all documented with detection code in [`lessons.md`](lessons.md) — the short version:
 
-Always request `outSR=4326` (WGS84). If the source refuses (rare; some ancient services), request the source's native SRS and reproject locally:
-
-```python
-gdf = gdf.to_crs("EPSG:4326")
-```
-
-Record `Notes: reprojected from EPSG:<source-srs> to EPSG:4326` on the manifest entry.
-
-## M/Z geometry stripping
-
-ArcGIS Feature Services often serve geometries with M (measure) or Z (elevation) values. CARTO is 2D-by-default and `geopandas` 2D operations don't preserve M/Z. Strip them at conversion:
-
-```python
-from shapely import force_2d
-
-gdf["geometry"] = gdf["geometry"].apply(force_2d)
-```
-
-Record `Notes: M/Z geometry stripped` on the entry when this runs (detect via `gdf.geometry.has_z.any()` or `.has_m.any()` if available).
-
-## Pagination details
-
-- Always pass `orderByFields=<objectIdField>` (or another stable field). Without it, page boundaries can shift between calls and cause skipped or duplicated rows.
-- `resultRecordCount=2000` is the conventional default — most services cap at 2000. Probe with the service's `maxRecordCount` if you need a tighter loop.
-- Loop until `exceededTransferLimit=false`. Don't trust `len(features) < num` — services sometimes return fewer than `num` even when more pages exist.
-
-## Rate limits
-
-ArcGIS doesn't publish a hard rate limit; convention is < 600 req/min per user. The probe + paging at 2000 records/page is well within bounds for any reasonable layer (50K rows = 25 pages = 25 requests, finishes in < 30 seconds). For very large layers (1M+ rows), insert a `sleep 0.5` between pages if the source returns 429/503.
+- **SRS**: always request `outSR=4326`. If the source ignores it (check `spatialReference.wkid` in the response, don't trust the parameter), reproject with `gdf.to_crs("EPSG:4326")` and record `Notes: reprojected from EPSG:<x> to EPSG:4326`.
+- **M/Z stripping**: `gdf["geometry"] = gdf["geometry"].apply(force_2d)` when `gdf.geometry.has_z.any()`; record `Notes: M/Z geometry stripped`.
+- **Pagination**: always pass `orderByFields=<objectIdField>` (page boundaries shift without a stable sort); default `resultRecordCount=2000`; loop until `exceededTransferLimit=false` (don't trust `len(features) < num`).
+- **Rate limits**: convention is < 600 req/min per user — paging at 2000/page is well within bounds (50K rows ≈ 25 requests). For 1M+ rows, `sleep 0.5` between pages if the source returns 429/503.
 
 ## Output directory
 

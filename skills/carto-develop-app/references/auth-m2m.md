@@ -9,7 +9,7 @@ carto credentials create m2m --json --title "ETL bot"
 #  → { "clientId": "...", "clientSecret": "..." }
 ```
 
-Store both in a secret manager (or write to `.env` for local dev — gitignored).
+Store both in a secret manager (or write to `.env` for local dev — gitignored). (Over an OAuth MCP session, `manage_oauth_clients` issues the same M2M client; the client secret is a real secret — never surface it in a chat host transcript.)
 
 ## Use from the CLI
 

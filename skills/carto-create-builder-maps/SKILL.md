@@ -1,16 +1,33 @@
 ---
 name: carto-create-builder-maps
-description: Author, edit, publish, and validate CARTO Builder maps via the `carto maps` CLI. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Covers the full `carto maps` subcommand surface — `list`, `get`, `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `datasets update`.
+description: Author, edit, publish, and validate CARTO Builder maps. Use when the user wants to create a map from a natural-language request, edit an existing map (datasets, layers, styling, privacy, popups, widgets, SQL parameters), duplicate one, upload custom marker icons, or wire up an AI agent on a map. Routes to the CARTO MCP server's map tools (`create_map`, `update_map`, `validate_map`, `read_maps`, `view_map`) when attached, and to the `carto maps` CLI — `create`, `update`, `delete`, `publish`, `validate`, `schema`, `agents`, `markers`, `screenshot`, `copy`, `datasets update` — for scripted/bulk authoring, cross-org copy, screenshots, or when the server isn't attached.
 license: MIT
 ---
 
 # carto-create-builder-maps
 
-CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle via the CLI: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate via the `carto maps` commands. It also covers **cross-profile copy** (`dev → prod` promotion, customer-segregated org delivery via `carto maps copy` / `maps clone`) — see the *Promote / copy across orgs* references below.
+CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate the map estate. It also covers **cross-profile copy** (`dev → prod` promotion, customer-segregated org delivery via `carto maps copy` / `maps clone`) — see the *Promote / copy across orgs* references below.
+
+> **Access-path routing.** The phases, cartographic rules, and configuration guidance below are path-agnostic — the JSON you compose is identical either way. Only the transport differs:
+>
+> | Operation | MCP (prefer when attached, OAuth) | CLI |
+> |---|---|---|
+> | List / get / search maps | `read_maps` (list \| get) | `carto maps list` / `get` |
+> | Create / edit / publish | `create_map`, `update_map` (update \| update_dataset \| publish) | `carto maps create` / `update` / `publish` / `datasets update` |
+> | Offline validate | `validate_map` | `carto maps validate` |
+> | Delete | `delete` (kind=map) | `carto maps delete` |
+> | Preview inline (MCP-Apps hosts only) | `view_map` (mapId) — see [`carto-preview-builder-map`](../carto-preview-builder-map) | — (CLI can't render inline; use `screenshot` for a PNG) |
+> | Inspect a dataset | `explore_data` (describe) | `carto connections describe` |
+> | SQL probe | `execute_query` | `carto sql query` |
+> | Import a file first | `import_data` (submit \| status) | `carto imports create` |
+>
+> **CLI-only — no MCP equivalent:** `carto maps schema` (field/enum/palette catalogues), `carto maps agents *` (AI surfaces), `carto maps screenshot` (PNG render), `carto maps copy` / `clone` (cross-profile promotion), `carto maps markers` (custom-icon upload). Reach for the CLI for these, for scripted/bulk authoring, and whenever the server isn't attached.
+>
+> **Token vs OAuth.** Over an API token the MCP session exposes a read/discovery subset only (`validate_map`, `view_map`, `explore_data`, `execute_query` remain; `create_map` / `update_map` / `delete` are hidden) — author over the CLI, or reconnect over OAuth. On sandboxed chat hosts (Claude.ai, ChatGPT) the CLI can't run at all — MCP is the only live path there. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 For ad-hoc spatial SQL exploration, use [`carto-query-datawarehouse`](../carto-query-datawarehouse).
 
-Field shapes, enum values, palette catalogues, and AI-tool catalogues are served by the CLI — **never hardcode or assume them**. Run `carto maps schema [section]` for JSON Schema (generated from the same Zod definitions Tier-1 validation uses), `carto maps agents models` / `mcp-tools` / `core-tools` for AI surfaces, and `carto connections describe <conn> <table>` for dataset metadata. When this doc disagrees with the CLI, the CLI wins.
+Field shapes, enum values, palette catalogues, and AI-tool catalogues are served by `carto maps schema [section]` (JSON Schema, generated from the same Zod definitions Tier-1 validation uses), `carto maps agents models` / `mcp-tools` / `core-tools` (AI surfaces), and `explore_data describe` / `carto connections describe <conn> <table>` (dataset metadata) — **never hardcode or assume them**. When this doc disagrees with the CLI/schema, the schema wins.
 
 ## References
 
@@ -40,7 +57,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 
 ## Authoring process
 
-Follow these phases in order for every "create a map" request. Skipping a phase is the most common cause of *"the map looks broken in Builder"*.
+Follow these phases in order for every "create a map" request. Skipping a phase is the most common cause of *"the map looks broken in Builder"*. Commands are shown as `carto …` for concreteness; when the MCP server is attached, use the equivalent tool from the routing table above (`create_map` / `update_map` / `validate_map` / `read_maps`, `explore_data`, `execute_query`, `import_data`) — the JSON payload is the same.
 
 ### Phase 1 — Gather context (intake gate)
 
@@ -49,10 +66,10 @@ This phase is a **gate, not a suggestion**. But the order matters: **the data is
 #### Sequence
 
 1. **Goal — one line.** *"What's the map about, and what's the takeaway?"* Don't proceed without an answer; *"just make a map of X"* is fine if X is specific.
-2. **Data hint — one line.** *"Where's the data — a table you already have, a demo dataset, or a file to import?"* Resolve to a concrete table FQN before moving on. Demo data: search `carto-demo-data.demo_tables` by topic. File: run `carto imports create` first.
+2. **Data hint — one line.** *"Where's the data — a table you already have, a demo dataset, or a file to import?"* Resolve to a concrete table FQN before moving on. Demo data: search `carto-demo-data.demo_tables` by topic. File: run `import_data` (MCP) / `carto imports create` (CLI) first.
 3. **SILENT data inspection.** Before asking anything else:
-   - `carto connections describe <conn> <table>` → schema, row count, geom type (point / line / polygon / h3 / quadbin / raster).
-   - `carto sql query` for: NULL ratios on candidate `colorField` columns, min/max/p50/p95/p99 on numeric columns relevant to the goal, `COUNT(DISTINCT ...)` on candidate categorical columns to detect cardinality traps, date range on temporal columns.
+   - `explore_data describe` / `carto connections describe <conn> <table>` → schema, row count, geom type (point / line / polygon / h3 / quadbin / raster).
+   - `execute_query` / `carto sql query` for: NULL ratios on candidate `colorField` columns, min/max/p50/p95/p99 on numeric columns relevant to the goal, `COUNT(DISTINCT ...)` on candidate categorical columns to detect cardinality traps, date range on temporal columns.
    - **Cap inspection at one or two queries.** Don't audit every column. Inspect what's relevant to the user's goal.
 4. **Questions, NOW data-contingent.** Only ask what the data makes answerable. Examples of *good* data-grounded questions versus *bad* abstract ones:
 
@@ -71,8 +88,8 @@ This phase is a **gate, not a suggestion**. But the order matters: **the data is
 
 #### Technical preconditions (silent — don't surface unless they fail)
 
-- **Auth status.** Run `carto auth status`. If unauthenticated, ask the user to run `carto auth login` and stop.
-- **Organization AI status** (only if the user mentions an Agent on the map). `carto maps agents status` — if `enabled: false`, drop agent plans and tell the user.
+- **Access ready.** On MCP, confirm the map tools are in your tool list (if only `validate_map` / `view_map` show, the session is token-authed — author over the CLI or reconnect over OAuth). On the CLI, run `carto auth status`; if unauthenticated, use `carto auth login --no-launch-browser` and stop. See [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+- **Organization AI status** (only if the user mentions an Agent on the map). `carto maps agents status` (CLI-only) — if `enabled: false`, drop agent plans and tell the user.
 
 #### Time budget
 
@@ -104,27 +121,18 @@ Reference [`references/configuration-shape.md`](references/configuration-shape.m
 
 ### Phase 4 — Validate offline
 
-```sh
-carto maps validate map.json
-```
-
-Tier-1 catches shape, types, enum values, cross-references, agent fields, `aggregationExp` coherence, privacy coercion, and the dozen-or-so cross-field rules (canonical visualChannels path, custom-marker pairings, popup hover cap, etc.) — all with zero backend calls. Iterate until clean.
+`validate_map` (MCP) / `carto maps validate map.json` (CLI). Tier-1 catches shape, types, enum values, cross-references, agent fields, `aggregationExp` coherence, privacy coercion, and the dozen-or-so cross-field rules (canonical visualChannels path, custom-marker pairings, popup hover cap, etc.) — all with zero backend calls. Iterate until clean.
 
 ### Phase 5 — Create + verify
 
-```sh
-carto maps create < map.json
-```
-
-The CLI runs Tier-1 + a `SELECT … WHERE 1=0` source-accessibility probe per dataset BEFORE `POST /maps`, so broken sources never create orphan maps. The probe automatically excludes synthetic `_carto_*` columns and post-aggregation aliases parsed from `aggregationExp`, so legitimate h3 / quadbin / heatmapTile / clusterTile authoring won't trip it. After create, decide whether to run `carto maps screenshot <id>` for visual verification — see the *"Visual verification"* always-on rule below for the decision rubric.
+`create_map` (MCP) / `carto maps create < map.json` (CLI). Both run Tier-1 + a `SELECT … WHERE 1=0` source-accessibility probe per dataset BEFORE `POST /maps`, so broken sources never create orphan maps. The probe automatically excludes synthetic `_carto_*` columns and post-aggregation aliases parsed from `aggregationExp`, so legitimate h3 / quadbin / heatmapTile / clusterTile authoring won't trip it. After create, verify visually: on MCP-Apps hosts, `view_map <id>` previews inline; on a shell, `carto maps screenshot <id>` renders a PNG — see the *"Visual verification"* always-on rule for the decision rubric.
 
 ### Phase 6 — Publish (when ready for viewers)
 
-`maps create` writes a private draft. To make a map visible to the user's intended audience:
+Create writes a private draft. To make a map visible to the user's intended audience:
 
 - Set `privacy` (`shared` with optional `sharingScope: "organization"` or `"specific"` + `userIds` / `groupIds`, OR `public`).
-- Run `carto maps publish <id>` to freeze a snapshot for shared / public viewers.
-- For chained edit-and-publish: `carto maps update <id> --publish`.
+- Publish to freeze a snapshot for shared / public viewers: `update_map` (method=publish) / `carto maps publish <id>`, or chained edit-and-publish `carto maps update <id> --publish`.
 
 Tell the user *"it's live for viewers"* after a successful publish; otherwise make clear the edits are visible only to them.
 
@@ -140,9 +148,9 @@ When asking the Phase 1 intake questions (and on every follow-up turn), **stay i
 
 ### Do silently, don't ask
 
-- **Auth** — run `carto auth status` before the first API-touching command.
-- **Connection UUID + FQN syntax** — once the user names the table, use `carto connections list` and `carto connections describe` to resolve. Don't ask the user to hand-type `project.dataset.table`.
-- **Imports — when the user has a file, not a table** — if the user offers a path / URL to a geospatial file (CSV / GeoJSON / GeoPackage / GeoParquet / KML / KMZ / Shapefile-zip, ≤ 1GB), run `carto imports create --file <path>` (or `--url <url>`) `--connection <name> --destination <fqn>` to land it as a warehouse table FIRST, then build the map on the imported table. Defaults: pick a connection from `carto connections list` (prefer the user's primary CARTO Data Warehouse if present), pick a sensible `--destination` FQN that mirrors the file's basename. The command waits for completion by default; pass `--async` only when the user is shipping a multi-GB load they want to background. Don't ask the user to convert formats — the importer handles all 7.
+- **Access** — confirm MCP map tools are present (or `carto auth status` on the CLI) before the first API-touching command.
+- **Connection UUID + FQN syntax** — once the user names the table, resolve with `explore_data` (`list_connections` / `describe`) or `carto connections list` / `describe`. Don't ask the user to hand-type `project.dataset.table`.
+- **Imports — when the user has a file, not a table** — if the user offers a path / URL to a geospatial file (CSV / GeoJSON / GeoPackage / GeoParquet / KML / KMZ / Shapefile-zip, ≤ 1GB), land it as a warehouse table FIRST via `import_data` (MCP) / `carto imports create --file <path>` (or `--url <url>`) `--connection <name> --destination <fqn>` (CLI), then build the map on the imported table. Defaults: pick a connection (prefer the user's primary CARTO Data Warehouse if present), pick a sensible destination FQN that mirrors the file's basename. Waits for completion by default; background only a multi-GB load (`--async` / `import_data` status polling). Don't ask the user to convert formats — the importer handles all 7.
 - **Layer type** — infer from dataset shape:
   - line / polygon source → `tileset`.
   - point source, sparse / feature-level (find-this-store, click-to-zoom) → `tileset`.
@@ -154,7 +162,7 @@ When asking the Phase 1 intake questions (and on every follow-up turn), **stay i
   Only ask the user when the choice between *feature-level* (`tileset`) and *aggregation* (`h3` / `quadbin`) is genuinely ambiguous — e.g. *"individual store locations, or density across the city?"*.
 - **Viewport** — centre on the data's bounding box (the CLI computes this during create); don't ask for lat/lng/zoom.
 - **Legend & categorical domains** — the CLI fetches `/stats` and populates the legend automatically.
-- **`colorField` data-shape probe** — before binding a numeric column to `colorField` (or `sizeField` / `radiusField` / `heightField`), check NULL ratio with a one-line `carto sql query` probe (`SELECT COUNT(*), COUNT(col) FROM source`). If > 25% of rows are NULL the map renders dominantly grey at render time — same family as the categorical-cardinality trap. Two fixes (no need to ask the user): filter `WHERE col IS NOT NULL` in the source SQL, or pick a more-populated column. See `references/cartography.md` §4.5a for the worked example. Skip the probe on round-trips of existing maps (the user already chose the column) and on tiny datasets (< 1k rows — the trap doesn't materialise visibly).
+- **`colorField` data-shape probe** — before binding a numeric column to `colorField` (or `sizeField` / `radiusField` / `heightField`), check NULL ratio with a one-line `execute_query` / `carto sql query` probe (`SELECT COUNT(*), COUNT(col) FROM source`). If > 25% of rows are NULL the map renders dominantly grey at render time — same family as the categorical-cardinality trap. Two fixes (no need to ask the user): filter `WHERE col IS NOT NULL` in the source SQL, or pick a more-populated column. See `references/cartography.md` §4.5a for the worked example. Skip the probe on round-trips of existing maps (the user already chose the column) and on tiny datasets (< 1k rows — the trap doesn't materialise visibly).
 - **Popups — emit by default** when the dataset has feature-identifying columns (`name` / `id` / `address` / `owner` / `timestamp`). End users **cannot consult the source table** — the popup (or, secondarily, a `table` widget) is the ONLY way they can read per-feature attributes. A map without popups and without a table widget shows the user a colour and a position; everything else about the feature is invisible to them. Add hover with 2–4 identifier columns, click with the rest. Skip only on pure pattern maps (heatmap, density h3/quadbin where the read is *aggregate*, not per-feature).
 - **Widgets — propose by default for analytical maps**, count by use case (not a fixed number):
   - Pure cartography map: 0 widgets.
@@ -184,40 +192,28 @@ When you've assembled a map configuration and want an offline sanity check befor
 
 Every write returns as soon as the server accepts the change. Builder loads the map into its in-memory client state once and does not subscribe to server events, so an open `https://<org>/builder/<id>` tab keeps showing stale state until the tab reloads. For remote / external agents (Claude in claude.ai, ChatGPT, MCP clients, anything without local browser access): tell the user. *"Map updated. Reload the Builder tab (Cmd/Ctrl+R) to see changes."*
 
-### Visual verification — `carto maps screenshot`, decided by map shape (no need to ask)
+### Visual verification — decided by map shape (no need to ask)
 
-`carto maps screenshot <id>` renders the map to a PNG. Two engines:
+Verify what actually renders — Tier-1 and the source/render checks can't catch palette contrast, layer occlusion, or label collision. **Two routes:**
 
-- **`light`** (default): @deck.gl/carto `fetchMap` — fast (~3–8 s), no Chromium needed. No widgets / legends / popups (deck layers + basemap only).
-- **`full`**: workspace-www `/viewer` in Chromium — feature parity with Builder (~10–20 s); first run downloads ~150 MB Chromium via `npx playwright install chromium`.
+- **MCP-Apps hosts** (Claude.ai, Claude Desktop, ChatGPT): `view_map <id>` previews the map inline in the conversation — no shell needed. Preferred there.
+- **A shell** (coding harnesses): `carto maps screenshot <id>` renders a PNG; **embed it inline** so the user sees what landed. `light` engine (default, ~8 s, deck layers + basemap only) vs `full` (`--render-engine full`, ~20 s, adds widgets + legends). Full flag reference in [`references/troubleshooting.md`](references/troubleshooting.md).
 
-**Don't ask the user "want a screenshot?"** — they can't tell whether it's worth the latency. **Decide based on the map's shape**, run it, then **embed the resulting PNG inline in the conversation** so the user sees what landed without leaving chat. The latency cost is real (~5–20 s on top of the create), so use it deliberately, not reflexively.
+**Don't ask "want a screenshot?"** — they can't judge the latency. **Decide by map shape**, then run it.
 
-**Run a screenshot when:**
-- The agent just authored a non-trivial map (3+ layers, custom palettes, custom markers, complex widgets, 3D extrusion, custom basemap). Popups don't render on screenshots, so popup-only changes aren't a screenshot trigger.
-- The user reports the map looks blank / wrong / off — confirm what's actually rendering before iterating.
-- Before publishing publicly — sanity-check the public viewer's render.
-- The agent has no other way to see the result (remote / external agents without browser access — Claude in claude.ai, ChatGPT, MCP clients).
+**Verify when:** the agent authored a non-trivial map (3+ layers, custom palettes/markers, complex widgets, 3D, custom basemap); the user reports blank/wrong; before a public publish. **Skip when:** metadata-only edit; surgical tweak on an already-verified map; the user is iterating fast in front of an open Builder tab.
 
-**Skip the screenshot when:**
-- Simple metadata edit (title / description / privacy / tags).
-- Single-dataset rename, column tweak, or other surgical edit on a previously-screenshotted map.
-- The user is iterating fast in front of an open Builder tab and can just reload (`Cmd/Ctrl+R`).
-- The latency would slow a tight feedback loop and the agent already has high confidence in the output.
-
-**Engine pick:** default to `light` for speed; switch to `full` when the verification depends on widgets or legends (those don't render in `light` — they only show on the Builder/viewer surface that `full` captures). Popups (hover / click / info-panel / custom HTML templates) **don't render on screenshots at all** — neither engine captures them, so don't pick `full` to verify popup output. When in doubt with high stakes (public publish, complex multi-layer): pay the `full`-engine cost.
-
-See [`references/troubleshooting.md`](references/troubleshooting.md) for full screenshot flag reference (`--render-engine`, `--width`, `--height`, `--lat`/`--lng`/`--zoom`, `--hide-overlays`, etc.).
+**Engine pick (screenshot):** `light` for speed; `full` when verifying widgets or legends (they don't render in `light`). Popups (hover / click / info-panel / custom HTML) **don't render on either engine** — verify those in Builder, not a screenshot.
 
 ### `keplerMapConfig` is wholesale-replace, not partial-merge
 
-Most top-level fields on `maps update` accept partial patches: `title`, `description`, `tags`, `collaborative`, `privacy`, `agent`, `datasets`. **`keplerMapConfig` does not.** Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport. To change anything inside `keplerMapConfig`, use the read-modify-write cycle: `carto maps get <id> --json > /tmp/m.json`, edit, `carto maps update <id> /tmp/m.json`. The CLI rejects wipe-causing partial updates pre-flight; see [`updates.md`](references/updates.md) for the full merge matrix.
+Most top-level fields on an update accept partial patches: `title`, `description`, `tags`, `collaborative`, `privacy`, `agent`, `datasets`. **`keplerMapConfig` does not.** Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport. To change anything inside `keplerMapConfig`, use the read-modify-write cycle: read the full config (`read_maps get` / `carto maps get <id> --json`), edit, send it back (`update_map` / `carto maps update <id>`). Both paths reject wipe-causing partial updates pre-flight; see [`updates.md`](references/updates.md) for the full merge matrix.
 
 ### Don't fabricate a map id from a title
 
 If the user refers to a map by name / title rather than UUID:
 
-1. `carto maps list --mine --search "<hint>"` — narrows to the user's own maps matching the hint.
+1. `read_maps` (list, filtered by the hint) / `carto maps list --mine --search "<hint>"` — narrows to the user's own maps matching the hint.
 2. **Exactly one match** → use its `id` and confirm before writing.
 3. **Multiple matches** → list them with ids + titles, ask which.
 4. **Zero matches** → ask if they meant to create a new map.
@@ -232,29 +228,28 @@ If they say *"show me the JSON"* / *"I'll write it myself"* / *"what's the schem
 
 ## Cheat sheet
 
-**The work is almost always one of three shapes:**
+**The work is almost always one of three shapes** (MCP tool / CLI command):
 
 | I want to… | Do this |
 |---|---|
-| Create a map from a natural-language request (the common path) | Elicit the required inputs from the user (Phase 1), then emit a configuration with just those, `carto maps create < map.json` |
-| Edit an existing map — add a dataset, update a layer's style, change privacy, rename, swap basemap, etc. | `carto maps update <id> < partial.json` (partial PATCH; unmentioned fields are preserved — except `keplerMapConfig` which is wholesale-replaced) |
-| Duplicate an existing map | `carto maps get <id> --json > map.json`, edit, `carto maps create < map.json` |
+| Create a map from a natural-language request (the common path) | Elicit the required inputs (Phase 1), emit a configuration with just those → `create_map` / `carto maps create < map.json` |
+| Edit an existing map — add a dataset, update a layer's style, change privacy, rename, swap basemap | `update_map` / `carto maps update <id> < partial.json` (partial PATCH; unmentioned fields preserved — except `keplerMapConfig`, wholesale-replaced) |
+| Duplicate an existing map | Read the config (`read_maps get` / `carto maps get <id> --json`), edit, create it fresh |
 
-> Render + sources + agent checks run automatically on every `create` / `update` and surface as warnings — no separate "validate it will render" step needed.
+> Render + sources + agent checks run automatically on every create / update and surface as warnings — no separate "validate it will render" step needed.
 
-### Commands you reach for most
+### Commands you reach for most (CLI; MCP equivalents in the routing table at the top)
 
 ```
-carto maps list --mine                            # browse what's already there
-carto maps get <id> --json                        # read a configuration; pipe back to create/update
-carto maps validate [map.json]                    # Tier-1 sanity check, no API calls
-carto maps create [map.json]                      # new map from a configuration file
-carto maps update <id> [patch.json] [--publish]   # partial update, optional auto-publish
-carto maps publish <id>                           # freeze a snapshot for shared/public viewers
-carto maps schema [section]                       # JSON Schema reference
-carto maps agents status                          # is CARTO AI enabled on this organization?
-carto maps screenshot <id>                        # PNG render for visual verification
-carto --commands --json                           # full CLI command catalogue (machine-readable)
+carto maps list --mine                            # browse (MCP: read_maps list)
+carto maps get <id> --json                         # read a config (MCP: read_maps get)
+carto maps validate [map.json]                     # Tier-1 sanity check (MCP: validate_map)
+carto maps create [map.json]                       # new map (MCP: create_map)
+carto maps update <id> [patch.json] [--publish]    # partial update / publish (MCP: update_map)
+carto maps publish <id>                            # freeze a snapshot (MCP: update_map method=publish)
+carto maps schema [section]                        # JSON Schema reference (CLI-only)
+carto maps agents status                           # is CARTO AI enabled? (CLI-only)
+carto maps screenshot <id>                         # PNG render (CLI-only; MCP-Apps: view_map)
 ```
 
 ### Inline recipes
@@ -300,8 +295,8 @@ For longer recipes (full JSON bundles), see [`references/examples.md`](reference
 
 ## When in doubt
 
-- **Field unknown / suspect?** `carto maps schema [section]` returns the authoritative JSON Schema.
+- **Field unknown / suspect?** `carto maps schema [section]` returns the authoritative JSON Schema (CLI-only).
 - **Map renders blank / wrong?** [`references/troubleshooting.md`](references/troubleshooting.md) symptom→fix table.
-- **Visual sanity check?** `carto maps screenshot <id>` — PNG render without leaving the terminal.
-- **AI agent surfaces?** `carto maps agents status` / `models` / `mcp-tools` / `core-tools`.
+- **Visual sanity check?** `view_map <id>` inline on MCP-Apps hosts, or `carto maps screenshot <id>` (PNG) on a shell.
+- **AI agent surfaces?** `carto maps agents status` / `models` / `mcp-tools` / `core-tools` (CLI-only).
 - **Stuck after a write?** Tell the user to reload the Builder tab — Builder doesn't subscribe to server events.

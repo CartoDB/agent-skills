@@ -2,6 +2,8 @@
 
 Operational issues hit when running `carto activity export` and `carto activity query`. The SQL-side issues live in [`../../carto-query-datawarehouse/references/activity-queries.md`](../../carto-query-datawarehouse/references/activity-queries.md) — this page covers infrastructure, plan gates, and environmental failures.
 
+> MCP `export_activity_data` pulls the same activity data over OAuth, but the DuckDB **analysis** (`carto activity query`) is CLI-only — there's no MCP query surface over exported activity. So this troubleshooting is CLI-specific.
+
 ## DuckDB install issues
 
 `activity query` requires the DuckDB NPM package. Symptom on first use:
@@ -25,12 +27,7 @@ DuckDB is a **native module**. Compilation can take 5–10 minutes the first tim
 
 Node 16+ required. `node --version` to confirm.
 
-If `npm install duckdb` fails:
-
-1. **Check toolchain** — try compiling any other native module to confirm the toolchain itself works.
-2. **Try with verbose**: `npm install duckdb --verbose` — identifies which compilation step is failing.
-3. **Pin Node** — some Node versions briefly broke duckdb's bindings. `nvm install 20 && nvm use 20`.
-4. **Pre-built binary** — recent duckdb releases ship pre-built binaries for common platforms. Failures are usually unusual platforms (musl Linux, ARM Windows).
+If `npm install duckdb` fails: run with `--verbose` to find the failing step; pin a known-good Node (`nvm install 20 && nvm use 20`); recent releases ship pre-built binaries, so failures are usually unusual platforms (musl Linux, ARM Windows).
 
 ## Plan gate (Enterprise Large+)
 

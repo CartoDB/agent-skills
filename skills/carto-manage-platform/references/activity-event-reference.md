@@ -1,9 +1,6 @@
 # Activity event-type reference
 
-CARTO emits 150+ event types into the `activity` table. This reference lists the most operationally important ones grouped by domain.
-
-For the full reference (kept current by CARTO docs):
-https://docs.carto.com/carto-user-manual/settings/activity-data/activity-data-reference
+CARTO emits 150+ event types into the `activity` table. This lists the most operationally important ones by domain; full catalog: https://docs.carto.com/carto-user-manual/settings/activity-data/activity-data-reference
 
 ## Schema (recap)
 

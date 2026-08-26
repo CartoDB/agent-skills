@@ -10,6 +10,8 @@ Generate a working CARTO + [deck.gl](https://deck.gl) app from a prompt. Four de
 
 Apps follow the [CartoDB/deck.gl-examples](https://github.com/CartoDB/deck.gl-examples) blueprint. Layers from `@deck.gl/carto`; data sources, widgets, filters, `fetchMap`, `query()` from `@carto/api-client` (sources left `@deck.gl/carto` in v0.4.0 — don't import them from there).
 
+> **Access path.** This is a **CLI-path skill**: scaffolding and running an app needs a real shell and dev environment (npm, Vite), and no MCP tool generates an app — so this can't run on sandboxed chat hosts (Claude.ai, ChatGPT). Only the credential/discovery steps have MCP equivalents: over an **OAuth** MCP session, mint tokens with `manage_api_access_tokens`, OAuth/M2M clients with `manage_oauth_clients`, and discover map/workflow IDs with `read_maps` / `read_workflows`. Everything else needs the shell. Path detection: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+
 ## When to use
 
 - "deck.gl app", "CARTO app", "map app", "spatial dashboard" — use this skill.
