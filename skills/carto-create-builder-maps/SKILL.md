@@ -37,7 +37,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 - [`references/examples.md`](references/examples.md) — working templates validated against a live organization: minimal map, H3 aggregation, SQL parameters, widgets gallery. Load when you need a JSON template to start from.
 
 **Per-component — consult on demand while authoring**
-- [`references/layers.md`](references/layers.md) — per-layer-type authoring: `tileset` (point / line / polygon / 3D), `h3`, `quadbin`, `heatmapTile`, `clusterTile`, `raster`. Plus colour ranges (palettes / scales / `/stats`) and basemap-aware contrast.
+- [`references/layers.md`](references/layers.md) — per-layer-type authoring: `tileset` (point / line / polygon / 3D), `h3`, `quadbin`, `heatmapTile`, `clusterTile`, `raster`. Plus colour ranges (palettes / scales / `/stats`), stroke styles (`lineStyle` solid / dashed / dotted), polygon fill patterns (`fillPatternEnabled` + `fillPattern`) and basemap-aware contrast.
 - [`references/widgets.md`](references/widgets.md) — analytical surface: `formula`, `category`, `pie`, `histogram`, `range`, `timeseries`, `table`. Ordering, collapsibility defaults, cross-filtering across datasets.
 - [`references/popups.md`](references/popups.md) — `popupSettings` covers two interaction surfaces: tooltip popups (hover / click) AND info panels (docked side panel, click-only). 5-field hover cap, custom HTML templates with inline CSS, what the renderer sanitises out.
 - [`references/sql-parameters.md`](references/sql-parameters.md) — `Category`, `DateRange`, `Numeric`, `NumericRange`. `{{paramName}}` placeholder authoring + provider-native dialect translation.

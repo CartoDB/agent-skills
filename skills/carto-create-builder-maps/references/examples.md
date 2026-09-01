@@ -10,6 +10,7 @@
 - [§D — Widgets gallery — one of each kind](#d-widgets-gallery--one-of-each-kind)
 - [§E — Split-map mode (side-by-side comparison)](#e-split-map-mode-side-by-side-comparison)
 - [§F — Layer groups (collapsible folders)](#f-layer-groups-collapsible-folders)
+- [§G — Stroke styles and fill patterns](#g-stroke-styles-and-fill-patterns)
 
 ---
 
@@ -421,7 +422,7 @@ Three layers, two folded into a **"Reference"** group and one left ungrouped at 
               "dataId": "$ref:districts", "label": "Districts",
               "color": [180, 180, 180], "isVisible": true, "hidden": false, "columns": {},
               "textLabel": [{"size":12,"color":[44,48,50],"field":{"name":"name","type":"string"},"anchor":"middle","offset":[0,0],"alignment":"center","outlineColor":[255,255,255]}],
-              "visConfig": {"filled": false, "stroked": true, "opacity": 0.7, "thickness": 1}
+              "visConfig": {"filled": false, "stroked": true, "opacity": 0.7, "thickness": 1, "lineStyle": "dashed", "dashArray": [4, 4]}
             },
             "visualChannels": {"colorField":null,"colorScale":"quantize","sizeField":null,"sizeScale":"linear","radiusField":null,"radiusScale":"linear"}
           },
@@ -456,8 +457,109 @@ Three layers, two folded into a **"Reference"** group and one left ungrouped at 
 
 **What this demonstrates:**
 - `layerGrouping` is a **flat, ordered array** at the config root — *not* nested in `visState`, and *not* a field on any layer. Panel order is top-to-bottom: the ungrouped "Stores" layer first, then the folded "Reference" group.
+- The district boundaries use `"lineStyle": "dashed"` + `"dashArray": [4, 4]` — a dashed stroke pushes the reference outlines behind the subject layer (see `cartography.md` §1.2 for when to dash).
 - Layers join the group by appearing in its **`children`** — there's no `groupId` on `L_districts` / `L_roads`.
 - Each `layerId` matches a `visState.layers[].id` (the layer `id`, not the `$ref` dataId). A dangling id would be flagged by the validator and pruned by Builder.
 - `isCollapsed: true` ships the group folded in the panel; `isVisible: true` keeps both reference layers rendering (group visibility ANDs with each layer's own `isVisible`).
 - The "Stores" layer is omitted from any group on purpose — listing it as a top-level `{type:"layer"}` entry just fixes its panel order. Dropping it from the array entirely would still work: Builder appends ungrouped layers on load.
 - **Labels work on vector tileset layers of any geometry.** The polygon "Districts" and line "Major roads" layers both carry an active `textLabel` (`field` set to `name`); the renderer auto-places them at the polygon centroid and line midpoint — no centroid column needed. The **line** layer also sets `visConfig.textLabelUniqueIdField: "name"` so a road spanning multiple tiles gets **one** label instead of one per tile — this control is line-only. Leave `field: null` to keep a layer's labels off. Labels aren't available on h3/quadbin/heatmap or raster layers. See `references/cartography.md` §6.3.
+
+---
+
+## G. Stroke styles and fill patterns
+
+Two layers from the same map: a line layer whose dash encodes status, and a polygon layer whose texture encodes category. Both are `tileset` layers; the styling lives in `visConfig`, and the by-column bindings in `visualChannels`.
+
+### Stroke style — status on a line network
+
+A fixed dash. `dashed` takes `[dash, gap]`; `dotted` takes `[0, gap]` and the renderer rounds the caps into dots. Units are relative to stroke weight, so the rhythm holds when the line gets thicker.
+
+```jsonc
+{
+  "id": "L_planned", "type": "tileset",
+  "config": {
+    "dataId": "$ref:routes", "label": "Planned extensions", "isVisible": true,
+    "color": [232, 163, 61],
+    "visConfig": {
+      "filled": false, "stroked": true, "opacity": 0.95, "thickness": 3,
+      "strokeColor": [232, 163, 61],
+      "lineStyle": "dashed",
+      "dashArray": [4, 3]
+    }
+  },
+  "visualChannels": {}
+}
+```
+
+- Pair it with a solid layer of the same network to get the contrast working: **solid for what exists, dashed for what is proposed**. A dash on its own says nothing.
+- `"lineStyle": "solid"` is the default; omit both fields rather than setting it explicitly.
+
+### Fill pattern, fixed — one texture for the whole layer
+
+The common case: hatch a layer to mark it as a zone rather than a measurement. No visual channel involved, so `fillPatternEnabled` plus the pattern fields are the whole of it.
+
+```jsonc
+{
+  "id": "L_zone", "type": "tileset",
+  "config": {
+    "dataId": "$ref:zone", "label": "Congestion charge zone", "isVisible": true,
+    "color": [255, 87, 20],
+    "visConfig": {
+      "filled": true, "stroked": true, "opacity": 0.9, "thickness": 2.5,
+      "strokeColor": [255, 138, 76],
+      "fillPatternEnabled": true,
+      "fillPattern": "cross-hatch",
+      "fillPatternDensity": "medium",
+      "fillPatternSize": 0.8,
+      "lineStyle": "dashed", "dashArray": [3, 2]
+    }
+  },
+  "visualChannels": {}
+}
+```
+
+- **`filled: true` is required.** With `filled: false` the pattern has no surface to paint and the layer renders as an outline only.
+- The pattern takes the layer's fill colour (`color`), and the gaps are transparent, so the layers below show through.
+- Hatch plus a dashed edge is the standard "a rule applies to this ground" pairing.
+
+### Fill pattern by column — a zoning / status layer
+
+Patterns bound to a category column. Note all three parts: the range in `visConfig`, and **both** the field and the scale in `visualChannels` — omit the field and every polygon silently renders the single `fillPattern` instead.
+
+```jsonc
+{
+  "id": "L_zoning", "type": "tileset",
+  "config": {
+    "dataId": "$ref:zoning", "label": "Zoning by status",
+    "color": [193, 65, 75], "isVisible": true,
+    "visibilityByZoom": { "min": 9, "max": 14 },     // patterns coarsen as you zoom in
+    "visConfig": {
+      "filled": true, "stroked": true, "opacity": 0.55, "thickness": 0.8,
+      "strokeColor": [108, 124, 140],
+      "colorRange": { "name": "Status", "type": "qualitative", "category": "Custom",
+        "colors": ["#C3D2E0", "#C1414B", "#E8A33D"] },
+      "fillPatternEnabled": true,
+      "fillPatternDensity": "medium",
+      "fillPatternSize": 0.85,
+      "fillPatternRange": {
+        "patternMap": [
+          { "value": "Adopted",     "pattern": "solid" },        // flat fill colour
+          { "value": "Restricted",  "pattern": "cross-hatch" },  // convention: a rule applies here
+          { "value": "Under review","pattern": "diag-right" }
+        ],
+        "othersPattern": "none"                                   // paints nothing
+      }
+    }
+  },
+  "visualChannels": {
+    "colorField": { "name": "status", "type": "string" },
+    "colorScale": "ordinal",
+    "colorDomain": ["Adopted", "Restricted", "Under review"],
+    "fillPatternField": { "name": "status", "type": "string" },
+    "fillPatternScale": "ordinal"
+  }
+}
+```
+
+- `colorDomain` is pinned because the CLI hydrates it from `/stats` **by frequency**, not by the order of your `colors` array — leave it out and the palette lands on the wrong categories.
+- Colour and pattern read the same column here, so Builder merges them into one legend entry rather than listing `status` twice.

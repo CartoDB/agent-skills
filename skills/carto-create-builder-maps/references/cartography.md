@@ -113,16 +113,21 @@ Given the layer type is fixed, here's what you can style. **Each geometry has in
 
 - `thickness` or `sizeField` + `sizeRange`
 - `strokeColor` / `colorField` — the line color *is* the stroke
+- `lineStyle` (`solid` | `dashed` | `dotted`) + `dashArray` `[dash, gap]` — stroke dash pattern, relative to stroke width (see `layers.md`)
 - `opacity` — 0.7–1.0; lines need more opacity than polygons
 
 **Default:** `stroked: true, filled: false, thickness: 2`.
 
 **Width encodes magnitude.** Use `sizeField` + `sizeRange` for numeric line measures. Color encodes category or magnitude.
 
+**Dash encodes status, not magnitude.** `dashed` / `dotted` read as provisional, planned, or secondary — use them for draft/proposed routes, boundaries under revision, or to push a reference network behind the main subject. Don't dash the primary data layer of a single-layer map, and don't dash dense networks — at low zoom the dashes fuse into noise. Default stays `solid`.
+
 ### 1.3 `tileset` — polygons
 
 - `filled: true` + `colorField` → choropleth
 - `stroked: true` + `strokeColor` + `strokeColorField` + `thickness` → borders (keep thin: 0.5–1 px)
+- `lineStyle` + `dashArray` → dashed/dotted borders — status contrast only (provisional / disputed / draft boundaries); keep solid on dense choropleths
+- `fillPatternEnabled` + `fillPattern` → hatched / textured fills; tinted by the fill colour, gaps transparent
 - `enable3d: true` + `heightField` + `heightRange` + `elevationScale` → extrusion
 - `wireframe: true` — wireframe 3D (only with `enable3d: true`)
 - `opacity` — typical range `0.4–0.8`; lower when the basemap carries orientation context or you want the layer to recede in the design (see §1.4)
@@ -134,6 +139,10 @@ Given the layer type is fixed, here's what you can style. **Each geometry has in
 **Stroke on dense choropleths — derive from the fill.** When a choropleth has many small polygons (sub-national admin, postcodes, parcels, h3 / quadbin cells), the default contrasting stroke makes boundaries more prominent than the data. **Bind `strokeColorField` to the same column as `colorField`, on a darker variant of the fill palette with the same break points.** Multiply each fill RGB by ~0.7. Use `thickness: 0.6–0.8`, `strokeOpacity: 0.85–0.95`. See §7.13 for the failure mode.
 
 A contrasting stroke is correct when polygons are large and few (countries on a world map) — each is a distinct entity, not one cell in a distribution.
+
+**Pattern encodes category or exception, not magnitude.** A texture has no natural order, so never use one for a continuous variable — that is the colour ramp's job. Patterns earn their place in two situations: separating nominal categories so they stay distinguishable in greyscale, in print, and for colour-blind readers; and marking ground that carries a condition, which is the long-standing planning convention (hatching for restricted, protected, provisional, or missing-data areas). A hatched polygon reads as *"something applies here"*, which is why it pulls the eye — use that deliberately.
+
+**Patterns need room.** A texture only resolves if the polygon is large enough on screen to show a few repeats. Where the geometry is too small at the zoom the layer is read at, the pattern degrades into noise and the fill colour stops reading; a flat choropleth is the better call there. Judge it by rendered size, not by the kind of geometry.
 
 ### 1.4 `h3` — hex cell aggregation
 
@@ -592,6 +601,8 @@ No standalone `### Source` section — connection / table identifiers are author
 **Length — no hard cap.** As long as every section earns its space, fill the right rail. A reference layer might warrant zero lines; a flagship analytical or cartography map can comfortably run 20+.
 
 **No tables, but images are fine.** The renderer supports headings, paragraphs, lists, and embedded images — but not table syntax. For data callouts (top-N, before/after, comparisons) embed a small image instead of bullet-padding in lieu of a table.
+
+**Anti-pattern — a hand-written legend in the description.** The map already has one, it updates itself, and it carries the actual swatches. A `### Reading the map` list restating *red means X, dashed means Y* duplicates it, goes stale the moment styling changes, and burns the right rail on something the viewer can already see. Write why the encoding was chosen, not what each symbol maps to: *"hatching marks ground where a rule applies, which is why those areas pull the eye"* earns its space; *"red cross hatch = bus only"* does not.
 
 **Anti-pattern — boilerplate that doesn't add narrative.** *"This map shows three layers, displayed at different zoom levels"* tells the viewer nothing. Restating channel→field mappings is fine when you're adding context (palette rationale, units, exaggeration factor); it's noise when you're just naming the legend swatches.
 
