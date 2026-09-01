@@ -64,6 +64,31 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 
 `templateEdited: true` marks human-modified templates — preserve on edits so Builder doesn't offer to re-generate.
 
+### Building a click card — the four rules
+
+1. **Styling static, columns for text only.** Click fetches attributes server-side, so `{{column}}` values land after the card opens. Anything in a `style` attribute must be a literal.
+2. **Clear the close ✕ (top-right).** Pad the header right by ~32 px so the title does not slide under it.
+3. **Clear the resize grip (bottom-right).** Give the body ~20 px bottom padding and keep the last row off the right edge, or the grip sits on your final value.
+4. **Set a `min-width`.** Without one the card collapses to its longest word and the rows wrap raggedly; 200–240 px suits a header-plus-rows card.
+
+A card that follows all four:
+
+```html
+<div style="font-family:Inter,system-ui,sans-serif;min-width:240px">
+  <div style="background:#31414F;color:#fff;padding:10px 32px 10px 12px;border-radius:6px 6px 0 0">
+    <div style="font-size:15px;font-weight:600">{{community}}</div>
+    <div style="font-size:12px;opacity:.85">{{transit_access}}</div>
+  </div>
+  <div style="padding:10px 12px 20px 12px;background:#fff;border:1px solid #E3E8EE;border-top:0;border-radius:0 0 6px 6px">
+    <div style="display:flex;justify-content:space-between;gap:18px;padding:3px 14px 3px 0">
+      <span style="color:#5B6B7B">Bus routes</span><b>{{bus_routes}}</b>
+    </div>
+  </div>
+</div>
+```
+
+Rules 2–4 apply to hover cards too; rule 1 is click-only, since hover data is already client-side.
+
 ### What works
 
 - **Arbitrary nested HTML** — `<div>`, `<span>`, `<a>`, `<img>`, lists, headings.
