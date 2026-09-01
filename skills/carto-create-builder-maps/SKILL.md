@@ -184,6 +184,12 @@ Don't offer them proactively, don't list them in *"what else can I do?"* unless 
 | `collaborative` | User asks for other org members to edit, not just view. |
 | Custom palette / 3D / custom markers | User asks for specific styling, or the default looks wrong. |
 
+### Layer stack order is inverted — set `layerOrder` explicitly
+
+`visState.layers[0]` renders **on top**, the opposite of standard deck.gl. Author the most-foreground geometry first: points and lines above polygons, polygons above `h3` / `quadbin` / `heatmapTile` / `clusterTile` cells, cells above raster. The classic failure is a background polygon smothering the features underneath it, so the map reads as empty even though every dataset loaded fine.
+
+Emit `visState.layerOrder` (array of layer ids, index 0 on top) on every multi-layer map, so stacking is a stated intent rather than a side effect of array position. The CLI warns pre-flight when it spots wide-on-top-of-narrow stacking, but it only recognises certain geometry pairs — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
+
 ### Validate before you write
 
 When you've assembled a map configuration and want an offline sanity check before burning an API call, run `carto maps validate <map.json>`. Same Tier-1 checks as `create` with zero backend calls. Useful when iterating in a loop or handing the JSON to the user.
