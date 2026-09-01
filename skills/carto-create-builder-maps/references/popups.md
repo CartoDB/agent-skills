@@ -68,6 +68,8 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 
 - **Arbitrary nested HTML** — `<div>`, `<span>`, `<a>`, `<img>`, lists, headings.
 - **Inline CSS via `style="…"`** — solid `background`, `box-shadow`, `border-radius`, `flex`, custom fonts. Anything you can put in an inline style attribute. **Avoid `linear-gradient` / `radial-gradient` backgrounds** — they read as decoration over the data and clash with Builder's flat surfaces; pick a single solid colour (often a per-row column like `{{header_color}}`, see recipe below) instead.
+> **On `click` popups, keep `{{column}}` out of `style` attributes.** Click resolves feature attributes server-side, so the values arrive a moment after the popup opens. Text substitution degrades gracefully — the copy fills in. CSS does not: a header whose colour comes from `{{header_color}}` paints unstyled first and the card visibly reflows, and it can render with no accent colour at all. Drive **styling from static values** in click templates and let columns fill only text content; the per-row-colour recipes below are safe on `hover` (already client-side) but not on `click`. If a click card must be colour-coded by category, say the category in words instead of painting it.
+
 - **`{{column}}` substitution works ANYWHERE in the template, including inside attribute values** — this is dumb text replacement, not a typed expression engine. Useful patterns:
   - `style="width: {{rating}}%;"` — drives a CSS bar from a column value.
   - `src="https://chart.example/svg?data=[{{mon}},{{tue}},{{wed}}]"` — chart-image URL composed from columns.
@@ -148,6 +150,6 @@ Layer `popupSettings.layers["facilities"].click`:
 }
 ```
 
-Note the header band uses `padding: 12px 32px 12px 16px` — the extra 32 px of right padding keeps `{{name}}` from sliding under Builder's close ✕. The header itself is a solid `{{header_color}}` fill (no gradient), so the card reads as a single deliberate accent colour against the flat panel chrome.
+Note the header band uses `padding: 12px 32px 12px 16px` — the extra 32 px of right padding keeps `{{name}}` from sliding under Builder's close ✕. **Leave room at the bottom-right too**: the popup carries a resize grip in that corner, so give the card body extra bottom padding (≈20 px) and keep the last row clear of the right edge, or the grip lands on top of your final value. The header itself is a solid `{{header_color}}` fill (no gradient), so the card reads as a single deliberate accent colour against the flat panel chrome.
 
 Even with `templateMode: true`, every column referenced as `{{name}}` must still appear in `fields[]` — that's how the renderer knows to fetch them per feature.
