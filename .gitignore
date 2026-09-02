@@ -16,3 +16,6 @@ __pycache__/
 
 # Validation artifacts
 snippet-errors.json
+
+# Release packaging output (make package); published as GitHub Release assets, never committed
+dist/

@@ -4,7 +4,7 @@ A catalog of **agent skills** that teach AI coding tools to drive [CARTO](https:
 
 Each skill is a short playbook the agent loads on demand when a user's request matches its domain, so the agent produces idiomatic, working CARTO output the first time.
 
-Ready-made install manifests ship for **Claude Code**, **Codex**, **Gemini CLI**, and the **Skills CLI**; any other coding agent with a compatible plugin or rules mechanism can consume the same catalog. All load the same skills from a single source of truth: [`skills/catalog.json`](skills/catalog.json).
+Ready-made install manifests ship for **Claude Code**, **Codex**, **Gemini CLI**, and the **Skills CLI**; any other coding agent with a compatible plugin or rules mechanism can consume the same catalog. For harnesses that only accept a **web upload** (Claude.ai, Gemini Enterprise), each release ships one zip per skill; see [docs/install-matrix.md](docs/install-matrix.md#web-upload-claudeai-gemini-enterprise-claude-skills-api). All load the same skills from a single source of truth: [`skills/catalog.json`](skills/catalog.json).
 
 ## Documentation
 

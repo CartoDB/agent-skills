@@ -1,0 +1,56 @@
+name: release
+
+# Builds one zip per skill (plus an all-skills bundle) and attaches them to a
+# GitHub Release. These zips exist for harnesses that only accept skills via a
+# web upload form: Claude.ai, Gemini Enterprise, and the Claude Skills API.
+# Everything else (Claude Code plugin, Codex, Gemini CLI, npx skills) installs
+# straight from the repo and does not need them.
+#
+# Trigger by pushing a tag like v1.2.0, or run manually from the Actions tab.
+# The `releases/latest/download/<skill>.zip` URL always points at the newest
+# release, so docs never need to change when a new version ships.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release (e.g. v1.2.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: |
+          pip install pyyaml sqlglot
+          npm install -g typescript@5
+      - name: Validate
+        run: make validate
+      - name: Package skills
+        run: make package
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --generate-notes \
+            --notes "Per-skill zips for web upload (Claude.ai, Gemini Enterprise, Claude Skills API). Each zip has SKILL.md at its root. See docs/install-matrix.md for prerequisites per skill." \
+            dist/*.zip dist/SHA256SUMS dist/manifest.json
