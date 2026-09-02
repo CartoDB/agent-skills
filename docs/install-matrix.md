@@ -74,7 +74,7 @@ Every release publishes those zips as GitHub Release assets. The `latest` URL al
 https://github.com/CartoDB/agent-skills/releases/latest/download/<skill-name>.zip
 ```
 
-The zips are **not** committed to the repo; they are built by [`.github/workflows/release.yml`](../.github/workflows/release.yml) from `make package` ([`scripts/package_skills.py`](../scripts/package_skills.py)) when a `v*` tag is pushed. [`carto-skills-all.zip`](https://github.com/CartoDB/agent-skills/releases/latest/download/carto-skills-all.zip) holds every skill in its own folder for hosts that accept a multi-skill archive; `SHA256SUMS` and `manifest.json` ship alongside for verification.
+The zips are **not** committed to the repo. `master` is the release: every merge that changes a skill triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml), which runs `make package` ([`scripts/package_skills.py`](../scripts/package_skills.py)) and publishes a release tagged by date (`vYYYY.MM.DD`). No manual tagging or version bump is involved. [`carto-skills-all.zip`](https://github.com/CartoDB/agent-skills/releases/latest/download/carto-skills-all.zip) holds every skill in its own folder for hosts that accept a multi-skill archive; `SHA256SUMS` and `manifest.json` ship alongside for verification.
 
 **Prerequisites.** A use-case skill references utility and platform skills by name. Upload forms take one skill at a time and do not resolve those references, so upload the prerequisites listed below as well (the list is transitive; utility tier first, then platform, then the use-case skill). Zips are self-standing playbooks otherwise; nothing is inlined.
 

@@ -6,22 +6,28 @@ name: release
 # Everything else (Claude Code plugin, Codex, Gemini CLI, npx skills) installs
 # straight from the repo and does not need them.
 #
-# Trigger by pushing a tag like v1.2.0, or run manually from the Actions tab.
+# master is the release: every push to master that changes a skill cuts a new
+# release automatically, tagged vYYYY.MM.DD (vYYYY.MM.DD.N if the same day
+# already has one). No manual tagging or version bumping.
+#
 # The `releases/latest/download/<skill>.zip` URL always points at the newest
-# release, so docs never need to change when a new version ships.
+# release, so docs never need to change when a new one ships.
 
 on:
   push:
-    tags: ["v*"]
+    branches: [master]
+    paths:
+      - "skills/**"
+      - "scripts/package_skills.py"
+      - ".github/workflows/release.yml"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Existing tag to release (e.g. v1.2.0)"
-        required: true
-        type: string
 
 permissions:
   contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -29,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -44,12 +50,24 @@ jobs:
         run: make validate
       - name: Package skills
         run: make package
+      - name: Pick a date-based tag
+        id: tag
+        run: |
+          base="v$(date -u +%Y.%m.%d)"
+          tag="$base"
+          n=1
+          while git rev-parse -q --verify "refs/tags/$tag" >/dev/null; do
+            n=$((n + 1)); tag="$base.$n"
+          done
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "release tag: $tag"
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag || github.ref_name }}
+          TAG: ${{ steps.tag.outputs.tag }}
         run: |
           gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
             --title "$TAG" \
             --generate-notes \
             --notes "Per-skill zips for web upload (Claude.ai, Gemini Enterprise, Claude Skills API). Each zip has SKILL.md at its root. See docs/install-matrix.md for prerequisites per skill." \
