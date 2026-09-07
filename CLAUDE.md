@@ -6,6 +6,7 @@ Claude Code reads this file automatically when working in this repo.
 
 - The source of truth is `skills/catalog.json`. Add a skill there first, then create the directory.
 - After editing the catalog, run `make sync` to regenerate the Claude / Codex / Gemini manifests. Run `make validate` before pushing.
+- `make package` builds per-skill zips into `dist/` (gitignored) for web-upload hosts such as Claude.ai and Gemini Enterprise. Don't commit zips; the `release` workflow builds them and cuts a date-tagged GitHub Release automatically on every merge to `master` that touches `skills/`.
 - `SKILL.md` should be small (~5KB max). Move depth to `references/*.md` and link from SKILL.md.
 - Frontmatter must include `name`, `description`, `license`. The `name` must match the directory.
 

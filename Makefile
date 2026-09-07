@@ -1,4 +1,4 @@
-.PHONY: validate validate-skills validate-snippets sync help
+.PHONY: validate validate-skills validate-snippets sync package help
 
 help:
 	@echo "Available targets:"
@@ -6,6 +6,7 @@ help:
 	@echo "  validate-skills   Catalog/manifest/layer/reference checks"
 	@echo "  validate-snippets Code-block syntax checks across skills/"
 	@echo "  sync              Regenerate plugin manifests from catalog.json"
+	@echo "  package           Build per-skill zips for web upload into dist/"
 
 validate: validate-skills validate-snippets
 
@@ -17,3 +18,6 @@ validate-snippets:
 
 sync:
 	cd scripts && python3 sync_manifests.py
+
+package:
+	cd scripts && python3 package_skills.py --clean
