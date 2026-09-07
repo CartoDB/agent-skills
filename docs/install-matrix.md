@@ -35,7 +35,7 @@ All 23 skills are available identically across every harness. See [`skills/catal
 ### Claude Code
 
 ```bash
-/plugin marketplace add CartoDB/carto-agent-skills
+/plugin marketplace add CartoDB/agent-skills
 /plugin install carto-skills@carto-agent-skills
 ```
 
@@ -44,7 +44,7 @@ All 23 skills (4 utility + 8 platform + 11 use-case patterns) ship as one bundle
 ### Skills CLI
 
 ```bash
-npx skills add CartoDB/carto-agent-skills
+npx skills add CartoDB/agent-skills
 ```
 
 Reads [`skills/catalog.json`](../skills/catalog.json) and registers each skill independently.
