@@ -311,13 +311,13 @@ If a configuration read back via `get --json` shows `log`, `sqrt`, `linear`, `id
 
 | Data shape | What viewers should read | `colorScale` | Notes |
 |---|---|---|---|
-| **Bounded with semantic landmarks** (0–100 scores, 0–1 ratios, percentages, age bands) | Magnitude on a fixed-meaning scale | **`quantize`** + explicit `visualChannels.colorDomain` set to the scale's natural extent (e.g. `[0, 100]`) | Anchored bins, round-number legend, comparable across viewports. Without `colorDomain`, breaks shift as the user pans |
+| **Bounded with semantic landmarks** (0–100 scores, 0–1 ratios, percentages, age bands) | Magnitude on a fixed-meaning scale | **`quantize`**; when the legend must show round-number breaks (0, 25, 50, 75, 100), `custom` + `colorRange.colorMap` with those thresholds | Builder computes quantize breaks from the column's min/max, not from the viewport. `visualChannels.colorDomain` is **not read** on vector layers and the map-config contract rejects it — the only way to pin breaks is `custom` + `colorMap` (§4.3) |
 | **Skewed long-tail unbounded** where viewers care about *rank* | Rank | `quantile` | Equal-population bins. Don't pick for bounded scores — breaks become arbitrary |
 | **Heavy-tailed across 4+ orders of magnitude** (point density, throughput, financial outliers) | Magnitude on log scale | `custom` + `uiCustomScaleType: "logarithmic"` + log10-spaced `colorMap` | Linear breaks compress the tail; quantile flattens the bulk |
 | **Categorical-looking integers** (severity 1/2/3, tier id, status code) | Discrete categories | `CAST(<col> AS STRING)` + `ordinal` | The integers are labels, not magnitudes |
 
 **Default ladder when in doubt:**
-1. Bounded / has semantic extent → `quantize` + `colorDomain`.
+1. Bounded / has semantic extent → `quantize`; fixed round-number breaks → `custom` + `colorMap`.
 2. Heavy-tailed across orders of magnitude → `custom` + log10 `colorMap`.
 3. Skewed unbounded, viewers want rank → `quantile`.
 4. Categorical labels disguised as integers → cast to string + `ordinal`.
@@ -546,7 +546,7 @@ Auto-generated per layer unless suppressed. Type inferred from `colorScale`:
 |---|---|
 | `custom` (categorical `colorMap`) | The order of entries IS the legend order — author intentionally |
 | `custom` (numeric breaks) | Ascending key order — emit sorted |
-| `ordinal` | Set `visualChannels.colorDomain: [...]` explicitly. If absent, Builder derives from data (non-deterministic for CLI maps) |
+| `ordinal` | Set `colorRange.colorMap` as `[value, color]` pairs in the order you want (hydration does this by frequency when you don't). `visualChannels.colorDomain` is not read and the contract rejects it |
 | `quantize` / `quantile` | Always low→high; not author-controllable except via class count |
 
 ### 6.2 Popup (hover + click)
@@ -739,7 +739,7 @@ Walk this list before emit. If any answer is *"no"* or *"unsure"*, fix it or not
 - [ ] For point sources, aggregation defaults to `h3` over `heatmapTile` / `clusterTile` when quantitative reading matters (§1.0).
 - [ ] Primary channel is color unless there's a specific reason otherwise (§2.1).
 - [ ] Attribution matches the geometry — point fields on points, line on lines, polygon on polygons (§1.1–§1.3).
-- [ ] Scale type matches data shape AND meaning: `quantize` + `colorDomain` for bounded with semantic landmarks; `custom` + log10 for heavy-tailed; `quantile` only for skewed-unbounded where viewers want rank; cast-to-STRING + `ordinal` for categorical-looking integers; `custom` colorMap for stakeholder-agreed breaks (§3.2). **`quantile` is NOT the safe default.**
+- [ ] Scale type matches data shape AND meaning: `quantize` (or `custom` + `colorMap` for fixed breaks) for bounded with semantic landmarks; `custom` + log10 for heavy-tailed; `quantile` only for skewed-unbounded where viewers want rank; cast-to-STRING + `ordinal` for categorical-looking integers; `custom` colorMap for stakeholder-agreed breaks (§3.2). **`quantile` is NOT the safe default.**
 - [ ] **Palette family matches measure character.** Sequential for magnitude, diverging for signed, qualitative for categorical (§4). String columns → qualitative (§7.8). If uncertain on the specific palette: `Teal` (sequential), `Temps` / `Geyser` (diverging), `Bold` / `Safe` (qualitative) — see §4.2 defaults.
 - [ ] Palette is a fresh fit per map — not a reflex from the prior session (§7.10).
 - [ ] Palette is colorblind-safe if audience is public or unknown (§4.1).

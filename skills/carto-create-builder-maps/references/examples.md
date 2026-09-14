@@ -537,7 +537,8 @@ Patterns bound to a category column. Note all three parts: the range in `visConf
       "filled": true, "stroked": true, "opacity": 0.55, "thickness": 0.8,
       "strokeColor": [108, 124, 140],
       "colorRange": { "name": "Status", "type": "qualitative", "category": "Custom",
-        "colors": ["#C3D2E0", "#C1414B", "#E8A33D"] },
+        "colors": ["#C3D2E0", "#C1414B", "#E8A33D"],
+        "colorMap": [["Adopted", "#C3D2E0"], ["Restricted", "#C1414B"], ["Under review", "#E8A33D"]] },
       "fillPatternEnabled": true,
       "fillPatternDensity": "medium",
       "fillPatternSize": 0.85,
@@ -554,12 +555,11 @@ Patterns bound to a category column. Note all three parts: the range in `visConf
   "visualChannels": {
     "colorField": { "name": "status", "type": "string" },
     "colorScale": "ordinal",
-    "colorDomain": ["Adopted", "Restricted", "Under review"],
     "fillPatternField": { "name": "status", "type": "string" },
     "fillPatternScale": "ordinal"
   }
 }
 ```
 
-- `colorDomain` is pinned because the CLI hydrates it from `/stats` **by frequency**, not by the order of your `colors` array — leave it out and the palette lands on the wrong categories.
+- `colorRange.colorMap` is pinned because hydration otherwise fills it from `/stats` **by frequency**, not by the order of your `colors` array — leave it out and the palette lands on the wrong categories. Do not pin the order through `visualChannels.colorDomain`: Builder never reads it on vector layers and the map-config contract rejects it.
 - Colour and pattern read the same column here, so Builder merges them into one legend entry rather than listing `status` twice.

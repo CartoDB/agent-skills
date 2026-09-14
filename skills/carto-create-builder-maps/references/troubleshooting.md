@@ -12,7 +12,7 @@ Symptom→fix table for common authoring mistakes, antipatterns to avoid emittin
 | `DATASET_WONT_RENDER` warning | Source exists but columns or geoColumn are wrong | Compare your dataset's `geoColumn` to what `connections describe` reports |
 | `AGENT_ISSUE: UNAVAILABLE_MODEL` | Agent config's model id not enabled on this organization | List valid models (`org stats` or inspect an existing agent map) |
 | `datasets[*].id must not be set on create` (older CLI) | Was a hard rule before the revamp's `df869e1` fix | Upgrade to ≥0.5.0 — ids from `get --json` are now accepted and mapped to new ids |
-| Drag-reordering legend entries in Builder doesn't stick on next open | `sortScaleDomain` short-circuits when `attributeStats` are missing — CLI-created datasets don't ship per-category tilestats, so "sort by value" silently fails. "Sort by alphabetical" works. | Bake the order into the configuration: `colorRange.colorMap` array order for `custom` scale, `visualChannels.colorDomain` for `ordinal`. See `references/cartography.md` §6.1. |
+| Drag-reordering legend entries in Builder doesn't stick on next open | `sortScaleDomain` short-circuits when `attributeStats` are missing — CLI-created datasets don't ship per-category tilestats, so "sort by value" silently fails. "Sort by alphabetical" works. | Bake the order into the configuration: `colorRange.colorMap` array order, for both `custom` and `ordinal` scales (`visualChannels.colorDomain` is not read on vector layers and the contract rejects it). See `references/cartography.md` §6.1. |
 
 ---
 

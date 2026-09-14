@@ -472,7 +472,7 @@ Three coloring modes, selected via `visConfig.rasterStyleType`:
   "visualChannels": {
     "colorField": { "name": "elevation", "type": "real" },
     "colorScale": "quantize",                    // raster safe default — always available
-    "colorDomain": [0, 8849]
+    "colorDomain": [0, 8849]                     // raster is the ONE layer type that reads colorDomain; vector layers ignore it
   }
 }
 ```
@@ -621,15 +621,15 @@ Author a categorical layer with just `colorField` + `colorScale: "ordinal"` + a 
 }
 ```
 
-On `maps create` / `maps update`, the CLI calls `/v3/stats/{connection}/{column}` (same endpoint Builder's UI hits) and injects `visualChannels.colorDomain` + `colorRange.colorMap` with the top-N categories ordered by frequency, paired with your palette colors. The map opens with a populated legend on first paint — no user interaction needed.
+On `maps create` / `maps update` (and on the MCP `create_map` / `update_map`, which share the pipeline), hydration calls `/v3/stats/{connection}/{column}` (same endpoint Builder's UI hits) and injects `colorRange.colorMap` with the top-N categories ordered by frequency, paired with your palette colors. It does not write `visualChannels.colorDomain`: Builder never reads it on vector layers and the map-config contract rejects it. The map opens with a populated legend on first paint — no user interaction needed.
 
 Rules:
 
 - Only `type: "query"` and `type: "table"` datasets get hydrated. Tilesets have stats baked in.
 - The number of categories fetched is **capped at the palette length** — a 6-colour palette gets 6 categories; the rest collapse into Builder's "Others" bucket which renders **grey**. See `references/cartography.md` §4.5 for the full constraint set (palette-length cap + 20-entry legend cap + escape hatches).
-- If you pre-seed `colorDomain` or `colorMap` yourself, the CLI respects it and skips hydration for that layer.
+- If you pre-seed `colorRange.colorMap` yourself, hydration respects it and skips that layer. A pre-seeded `visualChannels.colorDomain` does not skip hydration and is rejected by the contract — use `colorMap` for ordering.
 - Hydration runs always on create/update; only `--dry-run` on update skips it (no writes happen).
-- Stats-fetch failures (timeout, 500) are logged as actions but don't fail the write — the layer saves without the domain and you see a blank legend until Builder fetches stats on interaction.
+- Stats-fetch failures (timeout, 500) are logged as actions but don't fail the write — the layer saves without the colorMap and you see a blank legend until Builder fetches stats on interaction.
 
 ### Scale types — channel binding
 
