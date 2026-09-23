@@ -28,7 +28,7 @@ Record band names/types, `nodata`, `scale`/`offset`, `tiling` (block size, zooms
 
 ### Step 2: Check the inputs can be combined
 
-Inputs must be **RaQuet v0.5.0** and share **block size** and **native zoom** (`tiling.max_zoom`). Extents may differ — the output covers only the overlap. If they differ in resolution, stop and tell the user: the rasters must be re-imported at a common resolution (automatic resampling is not supported). Rasters with a `time` dimension and JPEG/WebP-compressed rasters are not supported.
+Inputs must be **RaQuet v0.5.x** (metadata `file_format: "raquet"`, `version: "0.5.x"`; older RaQuet files and legacy CARTO rasters are rejected) and share **block size** and **native zoom** (`tiling.max_zoom`). Extents may differ — the output covers only the overlap. If they differ in resolution, stop and tell the user: the rasters must be re-imported at a common resolution (automatic resampling is not supported). Rasters with a `time` dimension and JPEG/WebP-compressed rasters are not supported.
 
 **Success**: Same `block_width` and `max_zoom` for all inputs, overlapping `bounds`.
 

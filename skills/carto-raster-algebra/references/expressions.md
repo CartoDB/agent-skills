@@ -12,7 +12,7 @@
 | `< <= > >= == !=` | Comparisons → 1 or 0. |
 | `and or not` (`&& \|\| !`) | Logic → 1 or 0. |
 | `if(cond, a, b)` | Conditional. |
-| `abs sqrt exp log log10 log2 pow min max floor ceil round clamp(x,lo,hi) sin cos tan atan atan2` | Functions. |
+| `abs sqrt exp log log10 log2 pow min max floor ceil round clamp(x,lo,hi) sin cos tan atan atan2` | Functions. `log` is the natural logarithm; `round` rounds halves up (`round(-2.5)` is `-2`). |
 | `pi`, `e` | Constants. |
 | `name = expr; name = expr` | Several output bands. |
 
@@ -47,4 +47,5 @@ Anything else (unknown identifiers, SQL, strings) is rejected with the position 
 
 - Indices and ratios: `float32`.
 - Masks and classes: `uint8` (default nodata 255). For 0/255 masks set `output_nodata` (e.g. `254`), since 255 would be read as nodata.
-- Integer outputs are rounded; values outside the type range become nodata.
+- Integer outputs are rounded (halves up); values outside the type range become nodata.
+- `compression` / `compression_level` apply to the output tiles only; input compression is read from each raster's metadata.
