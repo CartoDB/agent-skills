@@ -6,7 +6,7 @@ license: MIT
 
 # Raster Algebra
 
-Computes a **new raster** by evaluating an expression pixel by pixel over one or more RaQuet raster tables. Available as the Analytics Toolbox procedure `RASTER_ALGEBRA` (BigQuery, Snowflake) and as the **Raster Algebra** Workflows component. The output is a RaQuet v0.5.0 raster table, directly mappable in Builder.
+Computes a **new raster** by evaluating an expression pixel by pixel over one or more RaQuet raster tables. Available as the Analytics Toolbox procedure `RASTER_ALGEBRA` (BigQuery, Snowflake) and as the **Raster Algebra** Workflows component. The output is a RaQuet v0.5.0 raster table.
 
 **Prerequisites**: `carto-explore-datawarehouse` to find the rasters and read their metadata; `carto-query-datawarehouse` to run the procedure (it's DDL — use the async / job path); `carto-create-workflow` when building it as a workflow.
 
@@ -70,13 +70,13 @@ In **Workflows**, use the `carto.rasteralgebra` component (group *Raster Operati
 | `expression` | The expression (multiline; `;` separates outputs). |
 | `output_type`, `overviews`, `apply_scale_offset` | As in Step 4 (advanced). |
 
-The output is a raster table; persist it with `native.saveastable` to map it in Builder.
+The output is a raster table; persist it with `native.saveastable`.
 
 **Success**: The output table has one row with `block = 0` whose metadata lists the output bands with `STATISTICS_*` values — quote those to summarize the result.
 
-### Step 6: Summarize or visualize
+### Step 6: Summarize
 
-Per-tile statistics columns (`<band>_count`, `_min`, `_max`, `_sum`, `_mean`, `_stddev`) allow cheap summaries without decoding pixels, e.g. area gained = `SUM(gained_sum)` pixels at native zoom times the pixel area. Map the output in Builder as a raster layer (see `carto-create-builder-maps`).
+Per-tile statistics columns (`<band>_count`, `_min`, `_max`, `_sum`, `_mean`, `_stddev`) allow cheap summaries without decoding pixels, e.g. area gained = `SUM(gained_sum)` pixels at native zoom times the pixel area.
 
 ---
 
