@@ -46,5 +46,5 @@ Anything else (unknown identifiers, SQL, strings) is rejected with the position 
 ## Choosing the output type
 
 - Indices and ratios: `float32`.
-- Masks and classes: `uint8` (default nodata 255) — or set `output_nodata`.
+- Masks and classes: `uint8` (default nodata 255). For 0/255 masks set `output_nodata` (e.g. `254`), since 255 would be read as nodata.
 - Integer outputs are rounded; values outside the type range become nodata.

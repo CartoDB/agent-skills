@@ -28,7 +28,7 @@ Record band names/types, `nodata`, `scale`/`offset`, `tiling` (block size, zooms
 
 ### Step 2: Check the inputs can be combined
 
-Inputs must share **block size** and **native zoom** (`tiling.max_zoom`). Extents may differ — the output covers only the overlap. If they differ in resolution, stop and tell the user: the rasters must be re-imported at a common resolution (automatic resampling is not supported). Rasters with a `time` dimension and JPEG/WebP-compressed rasters are not supported.
+Inputs must be **RaQuet v0.5.0** and share **block size** and **native zoom** (`tiling.max_zoom`). Extents may differ — the output covers only the overlap. If they differ in resolution, stop and tell the user: the rasters must be re-imported at a common resolution (automatic resampling is not supported). Rasters with a `time` dimension and JPEG/WebP-compressed rasters are not supported.
 
 **Success**: Same `block_width` and `max_zoom` for all inputs, overlapping `bounds`.
 
@@ -39,7 +39,7 @@ Inputs are `$a`, `$b`, … in the order passed. Reference bands as `$a.band_1`, 
 - Several outputs at once: `ndvi = (...); mask = (...)`.
 - Comparisons return 1/0; use `if(cond, a, b)` for conditional values.
 - **Nodata is strict**: an output pixel is nodata if *any* input pixel it references is nodata, or the result is not finite (division by zero, log of a negative). Don't try to "fill" nodata inside the expression — it won't be reached.
-- **Stored values vs physical values**: by default the expression sees stored (DN) values. If bands have `scale`/`offset` (e.g. reflectance stored as integers), pass `{"apply_scale_offset": true}`.
+- **Physical vs stored values**: by default bands with `scale`/`offset` are converted to physical values (`value * scale + offset`) before evaluation. Pass `{"apply_scale_offset": false}` to work on stored (DN) values.
 
 **Success**: Every input is referenced; every band name exists in the metadata.
 
