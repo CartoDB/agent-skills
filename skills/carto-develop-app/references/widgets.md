@@ -168,10 +168,12 @@ Use this once at startup to seed slider bounds.
 widgetSource.getTimeSeries({
   column: 'event_ts',
   operation: 'count',
-  stepSize: 'day',           // hour | day | week | month | quarter | year
+  stepSize: 'day',           // second | minute | hour | day | week | month | year
   spatialFilter,
 });
 ```
+
+There is no `quarter` step — bucket by `month` and group three at a time yourself.
 
 ### `getScatter`
 ```ts
