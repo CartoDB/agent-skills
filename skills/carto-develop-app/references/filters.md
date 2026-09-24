@@ -38,11 +38,11 @@ addFilter(filters, {
   owner: 'histogram',
 });
 
-// TIME — date / timestamp range
+// TIME — date / timestamp range, bounds as epoch milliseconds
 addFilter(filters, {
   column: 'created_at',
   type: FilterType.TIME,
-  values: [['2025-01-01', '2025-12-31']],
+  values: [[Date.parse('2025-01-01'), Date.parse('2025-12-31')]],
   owner: 'time-series',
 });
 
@@ -153,4 +153,4 @@ const onPickCategory = (cat: string) => {
 - **Tileset / raster sources apply filters client-side** — there's no SQL `WHERE` push-down. For huge tilesets, this can be slow; consider `vectorQuerySource` with the filter inlined into SQL when latency matters more than tile reuse.
 - **Spatial filter ≠ `filters`.** Two separate arguments; don't put `spatialFilter` inside `filters`.
 - **Filters mutate by default** — `addFilter`/`removeFilter` return the same object. For React, copy first (`{ ...filters }`) to break referential equality.
-- **Time filters need ISO 8601 strings**, not `Date` objects. `'2025-01-01'` or `'2025-01-01T00:00:00Z'`.
+- **Time filter bounds are numbers, not strings or `Date` objects** — epoch milliseconds, like `BETWEEN`. `Date.parse('2025-01-01')` or `date.getTime()`. The *column* may well be a date or timestamp; it's the two bounds that have to be numeric, because they're compared and offset arithmetically. An ISO string there fails silently rather than throwing.
