@@ -155,7 +155,7 @@ When asking the Phase 1 intake questions (and on every follow-up turn), **stay i
   - line / polygon source → `tileset`.
   - point source, sparse / feature-level (find-this-store, click-to-zoom) → `tileset`.
   - **point source, dense / large (the typical aggregation case) → aggregate to `h3` or `quadbin`** (h3 = hex aesthetic, quadbin = square + zoom-adaptive cell size). This is the right default for "where does X cluster?" / "density of Y" questions on a large point table — quantitative reading, comparable across viewports, no per-row render budget pressure.
-  - pre-indexed h3 / quadbin source → `h3` / `quadbin` directly (no aggregationExp needed).
+  - pre-indexed h3 / quadbin source → `h3` / `quadbin` directly. Still set `aggregationExp` on the dataset: only `dataset.type: "tileset"` is excused from it, and a pre-indexed `table` / `query` is not. See [`configuration-shape.md`](references/configuration-shape.md) *"Spatial indexes (H3, quadbin)"*.
   - band-stored raster → `raster`.
   - **`heatmapTile` and `clusterTile` are NOT silent defaults** — pick them only when the user explicitly asks for *"a heatmap"* / *"clustered points"*, OR when the narrative is specifically pattern-without-numbers (`heatmapTile`) or numbered-bubbles-with-zoom-to-individual (`clusterTile`). For everything else where the data is dense points, default to `h3` / `quadbin` aggregation — they preserve quantitative reading while heatmap blurs it and cluster turns it into bubble counts.
 
