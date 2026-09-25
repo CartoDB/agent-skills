@@ -3,7 +3,7 @@
 When the discover phase flags an app entry with `Routing decision: builder` (per the rubric in [`../discover/app-routing-rubric.md`](../discover/app-routing-rubric.md)), the maps phase **absorbs the app into a single Builder map** rather than scaffolding a custom Vite + React + deck.gl app. The absorbed map gets:
 
 - The embedded Web Map's layers, renderers, popups (translated per the standard Web Map flow).
-- Builder map controls (legend, layer list, search, basemap switcher, measurement, bookmarks) toggled to mirror the app's UI.
+- Builder map controls (search, basemap switcher, measurement, locate) toggled to mirror the app's UI, as far as `mapSettings` has an equivalent — legend, layer list and bookmarks have none.
 - Builder analytical widgets (`formula`, `pie`, `histogram`, `range`, `timeseries`, `table`) for each app analytical widget that has a Builder equivalent.
 - The app's title and (optionally) source-type tag.
 
@@ -52,23 +52,24 @@ If `typeKeywords` is ambiguous or empty for a Web Mapping Application, fall back
 ArcGIS apps expose map controls via flags / widget entries. Builder has corresponding `mapSettings` toggles. Always fetch the live shape:
 
 ```bash
-carto maps schema mapSettings --json
+carto maps schema mapsettings --json
 ```
 
 Then apply the mapping (control names left as found in source; Builder field names per the live schema):
 
-| ArcGIS control / widget | Builder `mapSettings` flag (typical name) |
+| ArcGIS control / widget | Builder `mapSettings` flag |
 |---|---|
-| Layer list (visible / `layerListShown: true`) | `layerSelectorEnabled: true` |
-| Legend (`legendShown: true`) | `showLegend: true` |
-| Basemap gallery / switcher (`basemapTogglerShown: true`) | `basemapToggle: true` |
-| Search bar (`searchEnabled: true`, `Search` widget on canvas) | `searchEnabled: true` |
-| Measurement / Measure widget | `measureEnabled: true` |
-| Bookmarks (`bookmarks` populated) | preserve `bookmarks` array on the map config; flag `bookmarksEnabled: true` if Builder has one |
-| Zoom / Home / Locate / Compass | Builder shows zoom + locate by default; usually no explicit setting |
-| Print | `printEnabled: true` (if Builder supports it; otherwise no-op + `Notes: app-control-skipped: print`) |
+| Layer list (visible / `layerListShown: true`) | no equivalent toggle — the legend panel is always available. `reorderLayers: true` is the closest thing (lets viewers reorder it). Record `Notes: app-control-skipped: layer list` |
+| Legend (`legendShown: true`) | no `mapSettings` flag — legend state lives in `keplerMapConfig.config.legendSettings` |
+| Basemap gallery / switcher (`basemapTogglerShown: true`) | `basemapsSelector: true` |
+| Search bar (`searchEnabled: true`, `Search` widget on canvas) | `addressSearchBar: true` |
+| Measurement / Measure widget | `showMeasureDistanceTool: true` (and `measurementUnit`: `"kilometers"` \| `"miles"`) |
+| Bookmarks (`bookmarks` populated) | no equivalent — record `Notes: app-control-skipped: bookmarks` |
+| Zoom / Home / Compass | Builder shows zoom by default; no explicit setting |
+| Locate | `showMyLocationButton: true` |
+| Print | `exportPDF: true` is the nearest equivalent (viewer-side PDF export) |
 
-If the live schema doesn't have a flag for one of these controls, record `Notes: app-control-skipped: <name>` and continue. Don't fabricate field names — `carto maps validate` rejects unknown keys.
+If the live schema doesn't have a flag for one of these controls, record `Notes: app-control-skipped: <name>` and continue. **Don't fabricate field names**: `mapSettings` is an open object, so an invented key passes validation, is stored, and toggles nothing — the control silently never appears. The live schema is the only way to tell a real flag from a plausible-looking one.
 
 ## Analytical widgets → Builder `widgets[]`
 
@@ -76,33 +77,35 @@ The rubric guarantees that every analytical widget on a simple app has a Builder
 
 ```bash
 carto maps schema widgets --json
-carto maps schema widgets.formula --json
-carto maps schema widgets.pie --json
-# ...etc.
 ```
+
+`widgets` is one section covering every type; there is no `widgets.formula` / `widgets.pie` section to fetch. The response is large, so descend into the type you need rather than reading it whole.
 
 Per-widget mapping:
 
-| ArcGIS widget | Builder widget | Required fields | Required boilerplate |
-|---|---|---|---|
-| `pie-chart` (Dashboard) / pie chart (ExB / Instant App) | `pie` | `dataId`, `column` (the categorical field), `operation` (usually `count`) | `isValid: true` |
-| `serial-chart` single-series, temporal axis | `timeseries` | `dataId`, `column` (the date/time field), aggregation `column` + `operation` | `isValid: true` |
-| `serial-chart` single-series, categorical axis | `histogram` | `dataId`, `column` (the numeric field) | `isValid: true`, `buckets: 30` |
-| Histogram widget | `histogram` | `dataId`, `column` (numeric) | `isValid: true`, `buckets: 30` |
-| Range slider / numeric filter | `range` | `dataId`, `column` (numeric) | `isValid: true` |
-| Time-slider | `timeseries` (with default interval) | `dataId`, `column` (date) | `isValid: true` |
-| `indicator` (Dashboard KPI) | `formula` | `dataId`, `column` (or `null` for count), `operation` (`sum` / `avg` / `count` / etc.) | `isValid: true` |
-| `list` (Dashboard) | `table` | `dataId`, columns subset | `isValid: true`, `columns: [{"field": "<col>"}, ...]` (object form, not bare strings) |
-| `table` (Dashboard / ExB attribute table) | `table` | `dataId`, full visible columns | `isValid: true`, `columns: [{"field": "<col>"}, ...]` |
-| Filter (single-column attribute filter) | SQL parameter (`Category` / `NumericRange` / `DateRange`) on the layer's source query | `column`, type derived from the field | n/a (sqlParameters, not a widget) |
+**Every widget, whatever its type, requires `id`, `title`, `type` and `dataSource`** — the widget object is closed, so an unknown or missing key is rejected by name. The table below lists only what each type needs *on top of* those four.
 
-`dataId` references the kepler dataset id of the layer the widget is bound to. For simple apps, the widget is usually bound to the same data the map renders — use the embedded Web Map's primary layer's dataId.
+| ArcGIS widget | Builder widget | Per-type fields |
+|---|---|---|
+| `pie-chart` (Dashboard) / pie chart (ExB / Instant App) | `pie` | `column` (the categorical field), `operation` (usually `count`), and `operationColumn` — required for `avg`/`min`/`max`/`sum`, omitted for `count` and `custom` |
+| `serial-chart` single-series, temporal axis | `timeseries` | `column` (the date/time field), `operation`, and `operationColumn` on every series — required there even for `count` |
+| `serial-chart` single-series, categorical axis | `histogram` | `column` (the numeric field), `buckets` |
+| Histogram widget | `histogram` | `column` (numeric), `buckets` |
+| Range slider / numeric filter | `range` | `column` (numeric) |
+| Time-slider | `timeseries` (with default interval) | `column` (date) |
+| `indicator` (Dashboard KPI) | `formula` | `operation` (`sum` / `avg` / `count` / `min` / `max`), `column` — **omitted** when `operation` is `count` |
+| `list` (Dashboard) | `table` | `columns: [{"field": "<col>"}, ...]` (object form, not bare strings) |
+| `table` (Dashboard / ExB attribute table) | `table` | `columns: [{"field": "<col>"}, ...]` |
+| Filter (single-column attribute filter) | SQL parameter (`Category` / `NumericRange` / `DateRange`) on the layer's source query | `column`, type derived from the field — n/a (sqlParameters, not a widget) |
 
-The **Required boilerplate** column captures Tier-1 cross-field rules that the live `widgets` schema doesn't surface as required but `carto maps validate` enforces:
+`dataSource` — **not `dataId`**, which belongs to a layer's `config` and is rejected on a widget — references the dataset the widget reads, as `"$ref:<name>"` for a dataset declared in the same bundle. For simple apps, the widget is usually bound to the same data the map renders, so reuse the embedded Web Map's primary layer's dataset ref.
 
-- **`isValid: true` on every widget.** Without it, Builder hides the widget — the panel renders as *"select a field"* and viewers can't reconfigure it.
-- **`buckets: <int>` on histograms** (default `30`). The component's render loop is `for (let i = 1; i < widget.buckets; i++)` — undefined → empty render.
-- **`table.columns` is an array of `{"field": "<col>"}` objects, not bare strings.** The schema describes `columns: array` (no item shape); bare strings round-trip through the API but the table renderer throws on mount.
+Two more shape rules worth knowing before you compose:
+
+- **`operation` takes the short spelling**: `avg`, not `average`. The long form is the layer/`spatialIndexAggregation` vocabulary and is rejected here.
+- **`table.columns` is an array of `{"field": "<col>"}` objects, not bare strings.** Bare strings are rejected with a message naming the object form; they would otherwise round-trip through the API and throw when the table renders.
+
+`isValid` and `buckets` do not need to be written by hand: both are filled when omitted (`isValid` to `true`, histogram `buckets` to `30`). An explicit `isValid` other than `true` is refused — Builder renders such a widget as an inert placeholder and drops it on the next save.
 
 Always re-fetch the live shape with `carto maps schema widgets --json` and run `carto maps validate` after composition — the schema is the source of truth; the table above is a starting-point shortcut.
 
@@ -110,13 +113,13 @@ If a widget specifies a column the migrated DW table doesn't have (e.g. the sour
 
 ## Title and tags
 
-- `keplerMapConfig.title` = the **app's** title from the manifest entry (NOT the embedded Web Map's title — the user knows the artifact by the app name).
+- `title` (bundle top level, a sibling of `datasets` and `keplerMapConfig`) = the **app's** title from the manifest entry (NOT the embedded Web Map's title — the user knows the artifact by the app name).
 - `tags` = `["From ArcGIS", "From ArcGIS <Type>"]` where `<Type>` is `Dashboard` / `Web Experience` / `Web Mapping App`. The first tag is required for idempotency precheck; the second is informational.
 - The app's `description` (when present, plain-text not Arcade) becomes the Builder map's `description` field.
 
 ## Bookmarks
 
-If the source app or Web Map has `bookmarks[]`, preserve them on the Builder map. Bookmarks are saved-extents — same shape across both products. Per-bookmark fields: `name`, `extent` (xmin/ymin/xmax/ymax + spatialReference). Translate `extent` to kepler's bookmark format if needed; `carto maps schema bookmarks --json` is authoritative.
+There is no bookmarks feature on a Builder map, and no `bookmarks` section in the schema. A source app's `bookmarks[]` cannot be preserved: pick the most representative extent as the map's `mapState` viewport if the source has no other hint, and record `Notes: app-control-skipped: bookmarks (<N> saved extents)` so the user knows what was dropped.
 
 ## Edge cases
 
