@@ -32,6 +32,7 @@ Live introspection (use before reaching for any reference file). On MCP, `read_w
 | `carto workflows --help` | Full command reference, including schedule-expression dialects per engine |
 
 References (only for what live introspection doesn't serve):
+- [`references/canvas-notes.md`](references/canvas-notes.md) — documenting the canvas with `type: "note"` nodes, including section containers that enclose the nodes they describe. Live introspection serves no schema for notes, and the visible card is `data.width`/`data.height` (node-level width/height are `data + 160`/`+ 128`) — getting that inverted renders every card too small.
 - [`references/providers/`](references/providers/) — per-warehouse details (BigQuery, Snowflake, Databricks): identifier quoting, column casing, AT path.
 - [`references/scheduling.md`](references/scheduling.md) — `add` vs `update` semantics, bundle-level schedule warning, activity-log verification.
 - [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — publishing a workflow as an MCP tool or callable API endpoint (MCP: `update_workflow method=publish`): bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
