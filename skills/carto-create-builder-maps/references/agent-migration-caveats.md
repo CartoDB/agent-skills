@@ -21,7 +21,7 @@ Expected output for a clean copy: `[]`. Anything in the array points at a manual
 
 ## `UNAVAILABLE_MODEL`
 
-The agent's model is stored as `"<account-id>::<provider>::<model-name>"`, e.g. `"ac_cb7b9151::anthropic::claude-sonnet-4-5"`. After copy, the account-ID prefix still references the **source** org. The destination org doesn't recognize that account ID and reports the model as unavailable.
+A bring-your-own-key model is stored in the three-part form `"<account-id>::<provider>::<model-name>"`, e.g. `"ac_cb7b9151::anthropic::claude-sonnet-4-5"` (CARTO-hosted models use the two-part `"carto::<model>"` form instead, which carries no account id). After copy, the account-ID prefix still references the **source** org. The destination org doesn't recognize that account ID and reports the model as unavailable.
 
 ```json
 { "issue": "UNAVAILABLE_MODEL" }

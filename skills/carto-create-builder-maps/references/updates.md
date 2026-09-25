@@ -11,13 +11,21 @@ CRUD operations for an existing map (read → modify → write), the partial-vs-
 The most reliable way to produce a working map — the source configuration is already Builder-shaped, so the partial-layer pitfall doesn't apply.
 
 ```sh
-# Any map with a working configuration works — just swap title and clear server-assigned fields.
+# Any map with a working configuration works — swap the title, clear the server-assigned
+# top-level fields, and strip the server-computed decorations off every dataset.
 carto maps get <source-map-id> --json \
-  | jq '.title = "My copy" | del(.id, .privacy)' \
+  | jq '.title = "My copy"
+        | del(.id, .privacy)
+        | .datasets |= map(del(.mapId, .connectionName, .connectionViewerCredentials,
+                               .connectionViewerCredentialsAttached, .providerId,
+                               .sourceWorkflowId, .sourceWorkflowNodeId,
+                               .createdAt, .updatedAt))' \
   > new-map.json
 
 carto maps create < new-map.json
 ```
+
+> **Strip the server-computed dataset fields before re-posting a bundle you read.** `mapId`, `connectionName`, `connectionViewerCredentials`, `connectionViewerCredentialsAttached`, `providerId`, `sourceWorkflowId`, `sourceWorkflowNodeId`, `createdAt` and `updatedAt` are decorations the server adds on read; no write route accepts any of them back, and both create and update reject unknown params outright — one left in is a 400. Pre-flight validation will NOT catch it: the dataset node is deliberately permissive so that round-tripped bundles, which legitimately carry these, still parse. The same strip applies to every `get → edit → update` recipe below.
 
 ### Update the title without touching anything else
 
@@ -120,6 +128,8 @@ carto maps get <id> --json > /tmp/m.json
 carto maps update <id> /tmp/m.json
 ```
 
+**Reordering layers on an existing map means reordering `config.layerGrouping`**, not just `visState.layers` — Builder writes that tree on every save and it owns the render order (first entry on top). A new layer that isn't added to the tree renders at the bottom. See `references/layers.md` → *"Layer groups"*.
+
 The CLI will refuse a partial `keplerMapConfig` update that would wipe existing content. The rejection names the wipes explicitly:
 
 ```
@@ -135,6 +145,8 @@ The CLI will refuse a partial `keplerMapConfig` update that would wipe existing 
 ```
 
 **`--allow-kepler-replace`** is the escape hatch for the rare case where an agent legitimately wants to wipe and rewrite. Not a convenience flag — the wipe is the intent.
+
+**The guard does not cover every field.** It counts layers, widgets and sqlParameters, and flags a missing `config`, `visState`, `mapState` or `mapStyle`. Everything else under `config` — `popupSettings`, `legendSettings`, `layerGrouping`, `widgetsPanelLayout`, `uiState` — is replaced with whatever the input carries, and its loss is reported by nothing. Dropping `widgetsPanelLayout` from an update silently returns a two-column or floating widgets panel to the default (1 column, docked). Read-modify-write is what protects them.
 
 **Why the CLI doesn't auto-merge:** merging kepler configs is non-trivial (arrays with positional meaning, refs, nested objects, layer-order implications). A CLI-side merge would produce its own class of bugs. The read-modify-write pattern is explicit, debuggable, and matches how Builder's own save path works.
 

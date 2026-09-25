@@ -6,7 +6,7 @@ For cartographic decisions (which layer to pick by data character, which palette
 
 ### Z-order — stack smallest geometry first
 
-Layer stack order matters as much as palette. `visState.layers[0]` renders **on top**; subsequent indices stack below (this is the opposite of standard deck.gl — see `references/cartography.md` §1.8). Author smallest / most-foreground geometry first — points and lines above polygons, polygons above rasters. Same rule for cell-fill renderers: `h3` / `quadbin` / `heatmapTile` / `clusterTile` cells stack at the polygon rank, so points above cells, cells above raster. **Anti-pattern: the borough-polygon-on-top-of-collision-points trap** — the background fill smothers the foreground feature and the map looks empty even though the data is there. When in doubt set `visState.layerOrder` explicitly so the configuration is self-documenting; the CLI also surfaces a *"⚠ Layer order will hide foreground features"* warning pre-flight when it detects wide-on-top-of-narrow stacking without an explicit `layerOrder`.
+Layer stack order matters as much as palette. `visState.layers[0]` renders **on top**; subsequent indices stack below (this is the opposite of standard deck.gl — see `references/cartography.md` §1.8). Author smallest / most-foreground geometry first — points and lines above polygons, polygons above rasters. Same rule for cell-fill renderers: `h3` / `quadbin` / `heatmapTile` / `clusterTile` cells stack at the polygon rank, so points above cells, cells above raster. **Anti-pattern: the borough-polygon-on-top-of-collision-points trap** — the background fill smothers the foreground feature and the map looks empty even though the data is there. **Once the map has a `layerGrouping` tree, the tree owns the stack** — see *"Layer groups"* below; every map saved from Builder carries one. Don't emit `visState.layerOrder`: Builder reads it as indices into `layers` and only when no tree exists, and setting it silences the CLI's *"⚠ Layer order will hide foreground features"* pre-flight warning (which also only checks `visState.layers`, not the tree).
 
 ### Layer × dataset compatibility
 
@@ -53,7 +53,7 @@ Not every layer type pairs with every dataset shape. Mismatches either silently 
 }
 ```
 
-> **Important:** Kepler's reducer runs `Object.keys()` on several nested sub-objects during init (textLabel, visualChannels, colorUI). If you omit them, the first open flashes a red *"Cannot convert undefined or null to object"* toast. The minimal shape above avoids this.
+> **Important: `visualChannels` is required on every layer** — write `{}` when the layer drives nothing from data. `@carto/api-client` runs `Object.keys(layer.visualChannels)` and reads `layer.config.dataId` with no guard, so a layer missing either is dropped and never painted outside Builder. `config.textLabel` is optional except on `clusterTile`, where it is required (see that section).
 
 ### `type: "tileset"` — the workhorse (points, polygons, pre-tiled layers)
 
@@ -66,12 +66,15 @@ Used for 90% of `tileset` / `table` / `query` datasets. Same `type: "tileset"` w
 - **`stroked` defaults to `false`** for Point / MultiPoint geometries. For *line* tilesets `stroked: true` is effectively required (no stroke → nothing renders — lines have no fill body). *Polygon* tilesets render fine with `filled: true` alone; stroke is optional and only needed when you want a visible outline.
 - **`customMarkers: true`** swaps the circle for an SVG icon. Pair with `customMarkersUrl` (default icon) and optionally `customMarkersField` + `customMarkersRange.markerMap` (per-category icon mapping — see cookbook below). When on, `radius` range expands to `[0, 200]` and strokes are ignored.
 - **`rotationField`** rotates each point/icon by the column's numeric value in degrees. No aggregation (identity scale only); useful for heading/bearing data or custom SVG markers that indicate direction.
+- **Radius has three mutually exclusive modes** — fixed (`visConfig.radius` alone), by-column (`visualChannels.radiusField` + `visConfig.radiusRange`), and scale-with-zoom (`visConfig.radiusScaleWithZoom: true`). The third expresses `radius` in deck.gl `common` units anchored at `radiusReferenceZoom`, so points stay visually proportional as the user zooms; clamp the rendered size with `sizeMinPixels` (default 2) / `sizeMaxPixels` (default 100). It **requires** `radius` (the base pixel size at that zoom) and is **incompatible with `radiusField`** — a bundle setting both is ambiguous and is rejected.
 - **`_carto_point_density`** is a synthetic column the Maps API injects into **point-tileset schemas only** (point / MultiPoint geometry + `layer.type: "tileset"`). Holds the point count per tile cell — handy as a `colorField` or `sizeField` for density-style rendering without aggregation-SQL gymnastics. **Does NOT exist on aggregated layers (h3 / quadbin / heatmapTile / clusterTile) or on line / polygon tilesets** — those layers use `aggregationExp` aliases (`count`, `casualties_sum`, etc.) for the same role. Not listed in `dataset.columns`; only appears after the first stats fetch.
 - **3D extrusion is NOT supported on point tilesets.** `enable3d`, `heightField`, `heightRange`, `elevationScale`, `wireframe` are accepted by the schema but the renderer ignores them — points have no extrudable surface. 3D works only on **polygon tilesets, h3, and quadbin**. If the user wants 3D for point data, aggregate the points to h3 / quadbin first (see §1.0 in `references/cartography.md`) and extrude the cells instead.
 
 #### Per-channel aggregations (tile layers)
 
-Each aggregatable channel has its own `<channel>Aggregation` knob in `visConfig`: `colorAggregation`, `heightAggregation`, `strokeColorAggregation`, `radiusAggregation`, `sizeAggregation`. **Use the long-form aliases**: `count | sum | average | maximum | minimum | median | stdev | variance | mode | count unique | any_value`. Short forms (`avg` / `max` / `min`) cause silent runtime rejection on Builder surfaces — see the *"h3 / quadbin aggregation restrictions"* block below for the full rule. The CLI auto-normalises short→long on emit, but author long-form directly. Spatial-index layers (`h3`/`quadbin`/`heatmapTile`/`clusterTile`) additionally reject `median` and `count unique`.
+Each aggregatable channel has its own `<channel>Aggregation` knob in `visConfig`: `colorAggregation`, `heightAggregation`, `strokeColorAggregation`, `radiusAggregation`, `sizeAggregation`. **Use the long-form aliases**: `count | sum | average | maximum | minimum | stdev | variance | mode | any_value | custom`. Short forms (`avg` / `max` / `min`) are rejected — see the *"h3 / quadbin aggregation restrictions"* block below for the full rule. Nothing rewrites them for you; author long-form directly. `median` and `count unique` are rejected on **every** layer type, spatial-index or not: no warehouse provider has SQL for either, so building the tile query throws.
+
+`custom` is the escape hatch: it means *"use the SQL expression in the matching `<channel>AggregationExp`"*, so `colorAggregation: "custom"` needs `colorAggregationExp` beside it or the aggregation is dropped silently. Not available on `clusterTile` / `heatmapTile` layers, nor over `tileset` / `raster` datasets.
 
 #### Custom markers (point tilesets)
 
@@ -79,7 +82,7 @@ For icon-per-category rendering on point tilesets, you need **four things**, all
 
 1. **`visConfig.customMarkers: true`** — toggle the channel on.
 2. **`visConfig.customMarkersUrl`** — fallback icon URL for any feature whose value isn't in the markerMap. Without it, those features render iconless. Use an organization-served Maki URL (`<org>.app.carto.com/markers/maki/<icon>.svg`) or any other publicly-reachable SVG / PNG URL.
-3. **`visConfig.customMarkersRange.markerMap[]`** — array of `{ value, markerId | markerUrl }` per category. **Each entry sets EITHER `markerId` OR `markerUrl`, never both** — `markerId` references the Maki icon catalogue (`"restaurant"`, `"lodging"`, `"airport"`, etc.); `markerUrl` accepts any custom SVG / PNG URL. Tier-1 rejects entries that set both.
+3. **`visConfig.customMarkersRange.markerMap[]`** — array of `{ value, markerId | markerUrl }` per category. **Each entry sets EITHER `markerId` OR `markerUrl`, never both** — entries setting both are rejected. `markerUrl` is a URL, and it is what Builder writes for the Maki built-ins too (they are plain URLs under the Maki base path). `markerId` names an asset in the **organization marker library**, resolved to a URL server-side — use it only for a marker that library actually holds, because an id nothing can resolve makes Builder drop the marker and revert the layer to plain points on every load. Values not covered by `markerMap` fall to the siblings `othersMarker` (URL) / `othersMarkerId` (library asset id), not to a catch-all entry inside the map. The same id/url split applies one level up: `customMarkersId` is the asset-backed form of `customMarkersUrl`, and Builder drops the URL on save whenever the id is set.
 4. **`visualChannels.customMarkersField`** + **`customMarkersScale: "ordinal"`** — the binding that says "use this column to look up which icon goes on each feature". Without the field, the markerMap is dead config and every feature renders the fallback. Tier-1 rejects `customMarkers: true` + populated markerMap with no `customMarkersField`.
 
 **Sourcing icon URLs.** Custom-marker URLs must already be hosted somewhere viewers can reach (Builder's organization-served Maki catalogue at `<org>.app.carto.com/markers/maki/<icon>.svg`, or any other public CDN). Drop the URL into either `customMarkersUrl` (single-icon use) or `customMarkersRange.markerMap[].markerUrl` (per-category). Run `carto maps schema layer.tileset` for the full visConfig schema.
@@ -258,7 +261,7 @@ Author straight as `h3` / `quadbin` / `heatmapTile` / `clusterTile` with the rig
 }]
 ```
 
-Preserve it as-is on read + update. Don't author it on new maps — go straight to `h3` / `quadbin` / `heatmapTile` / `clusterTile` and emit a complete `aggregationExp` (the CLI computes it for you when the layer's visualChannels reference aggregatable columns; see *"`aggregationExp` — let the CLI compose it"* below).
+Preserve it as-is on read + update. On new maps go straight to `h3` / `quadbin` / `heatmapTile` / `clusterTile` and emit a complete `aggregationExp` yourself — see *"`aggregationExp` — write it yourself"* below.
 
 **Constraints — refuse to author this when:**
 
@@ -285,24 +288,29 @@ Caveat on dynamic h3 bins: for raw-point datasets, the tilejson reports `maxreso
 
 #### h3 / quadbin aggregation restrictions
 
-**Use the long-form aliases on every Builder surface** — `colorAggregation` / `strokeColorAggregation` / `sizeAggregation` / `heightAggregation` / `weightAggregation`, plus widget `operation` and `spatialIndexAggregation`, plus popup-field `spatialIndexAggregation`. Authoritative full enum: `count`, `sum`, `average`, `maximum`, `minimum`, `median`, `stdev`, `variance`, `mode`, `count unique`, `any_value`.
+**Use the long-form aliases on every Builder surface** — `colorAggregation` / `strokeColorAggregation` / `sizeAggregation` / `heightAggregation` / `weightAggregation`, plus popup-field `spatialIndexAggregation`. Authoritative full enum: `count`, `sum`, `average`, `maximum`, `minimum`, `stdev`, `variance`, `mode`, `any_value`, `custom`. (Widgets are a separate surface with its own short-form `operation` enum — don't carry this list over there.)
 
-> **The short forms (`avg`, `max`, `min`) are NOT production-safe on Builder surfaces.** They cause silent rejection in popup sync and 500s on layer click. Short forms ARE valid only inside `aggregationExp` SQL function calls (e.g. `sum(revenue) as revenue_sum`, `max(severity) as severity_max`) — that's SQL, not the Builder enum. The CLI auto-normalises short→long on emit (`avg → average`, `min → minimum`, `max → maximum`) so a round-tripped legacy bundle still validates, but **author long-form directly** for every new map.
+> **The short forms (`avg`, `max`, `min`) are rejected.** Nothing rewrites them on the way in, so a legacy bundle carrying them fails validation with a message naming the canonical equivalent. Short forms ARE valid only inside `aggregationExp` SQL function calls (e.g. `sum(revenue) as revenue_sum`, `max(severity) as severity_max`) — that's SQL, not the Builder enum. **Author long-form directly** for every map.
 
-**The available aggregations on spatial-index cells (`h3` / `quadbin` / `heatmapTile` / `clusterTile`) are column-type-gated** — Builder's "Color by …" / "Size by …" picker shows ONLY the subset valid for the chosen column's type, mirroring kepler.gl's `linearFieldAggrScaleFunctions` / `ordinalFieldAggrScaleFunctions`:
+> **`median` and `count unique` are never renderable.** `AGGREGATION_TYPES_TO_SQL` has no entry for either on any provider, so `getAggregationExp` throws and the tile query fails. The check is layer-type agnostic — a plain `tileset` is rejected the same as an `h3` cell layer. They stay legal *stored* values only because older maps carry them and Builder migrates them away on load.
 
-| Column type | Valid on spatial-index | Excluded |
+**The available aggregations are column-type-gated**, and the gate is validated — Builder's "Color by …" / "Size by …" picker shows ONLY the subset valid for the chosen column's type, mirroring kepler.gl's `linearFieldAggrScaleFunctions` / `ordinalFieldAggrScaleFunctions`:
+
+| Column type | Valid aggregations | Excluded |
 |---|---|---|
-| Numeric (`integer`, `real`) | `count`, `sum`, `average`, `maximum`, `minimum`, `stdev`, `variance` | `median` (rejected at tile-build); `mode` / `any_value` / `count unique` (ordinal-only) |
-| String / boolean / date | `mode`, `any_value` | `count unique` (rejected at tile-build); all numeric aggregations (numeric-only) |
+| Numeric (`integer`, `real`) | `count`, `sum`, `average`, `maximum`, `minimum`, `stdev`, `variance` | `mode` / `any_value` (categorical-only) |
+| `string` | `mode`, `any_value` | all numeric aggregations (numeric-only) |
+| Anything else (`boolean`, `date`, `timestamp`, `geojson`, `point`) | — | **not aggregable at all**; Builder won't bind such a column to an aggregated channel |
 
-If you author `colorField: { name: "category", type: "string" }` on an h3 layer, `colorAggregation: "average"` is invalid (numeric-only on a string column) — use `mode` or `any_value`. Conversely, `colorAggregation: "mode"` on a numeric column is invalid — use one of the seven numeric aggregations. Tier-1 permits the full enum because gating is column-type-dependent and the CLI doesn't always have the column type at validate time, but the runtime falls back silently if you mismatch them. **Match the aggregation to the column type.**
+If you author `colorField: { name: "category", type: "string" }` on an h3 layer, `colorAggregation: "average"` is invalid (numeric-only on a string column) — use `mode` or `any_value`. Conversely, `colorAggregation: "mode"` on a numeric column is invalid — use one of the seven numeric aggregations. The mismatch is caught before create, and it is worth catching: a spatial-index layer silently repairs it to the first supported option on load, while a `tileset` just emits invalid SQL. **Match the aggregation to the column type.**
 
-On non-spatial-index `tileset` polygon layers, `median` and `count unique` are also valid (the `UNSUPPORTED_AGGREGATIONS` list only excludes them on `SpatialIndexLayer`).
+`clusterTile` narrows the numeric set further — `count`, `sum`, `average`, `maximum`, `minimum` only, no `stdev` / `variance`. Its configurator has no control for those two, so a stored value can neither be seen nor changed in the panel.
 
-#### `aggregationExp` — let the CLI compose it
+#### `aggregationExp` — write it yourself
 
-The tile server only produces columns named in `dataset.aggregationExp` — a mismatch with the layer's `visualChannels` renders blank tiles. **The CLI computes `aggregationExp` for you** on `maps create` / `maps update` when (a) the dataset has a spatial-index `geoColumn`, (b) `aggregationExp` is unset on the dataset, (c) at least one layer references it, and (d) the connection provider is BigQuery / Snowflake / Postgres / Redshift / Databricks SQL Warehouse. It walks the layer's 6 aggregatable visual channels, pairs each `<channel>Field` with its `<channel>Aggregation`, and emits `fn(column) as column_<agg>` per the provider's dialect. Provider quirks: Redshift skips `mode` (Builder hides it there too); Oracle is unsupported (Builder rejects H3/quadbin on Oracle outright). Write `aggregationExp` yourself when you need popup-field or secondary-colour aggregation.
+The tile server only produces columns named in `dataset.aggregationExp` — a mismatch with the layer's `visualChannels` renders blank tiles. **`aggregationExp` is required on the dataset behind every `h3` / `quadbin` / `heatmapTile` / `clusterTile` layer**, and validation rejects the bundle without it. Two legal answers: an expression (`"1 AS __aggregationValue, sum(casualties) as casualties_sum"`), or an explicit `null` to render raw cell values at the client's default expression. `null` decides the *expression*, not whether the tile aggregates — the tiler still bins rows into cells, so a field bound to a channel still needs its own `<channel>Aggregation`. Only `dataset.type: "tileset"` is exempt: a pre-indexed tileset bakes the expression in.
+
+Compose it by walking the layer's aggregatable visual channels, pairing each `<channel>Field` with its `<channel>Aggregation`, and emitting `fn(column) as column_<agg>` in the provider's dialect. Redshift has no `mode` (Builder hides it there too).
 
 #### h3 / quadbin inherit the full tileset visConfig
 
@@ -379,7 +387,7 @@ Same `visConfig` shape as h3. Key difference from h3 worth calling out: **quadbi
 
 ### `type: "heatmapTile"` — continuous density from any point/quadbin source
 
-Use when you want a smooth density heatmap without discrete cells. Dataset follows the same two-mode pattern as quadbin (pre-indexed `quadbin:<quadbin_col>` or dynamic `quadbin:<geom_col>`) + `aggregationExp`. HeatmapTile extends SpatialIndexLayer, so inherits every knob from `layer.quadbin` — the aggregation restriction (no `median`, no `count unique`) applies too.
+Use when you want a smooth density heatmap without discrete cells. Dataset follows the same two-mode pattern as quadbin (pre-indexed `quadbin:<quadbin_col>` or dynamic `quadbin:<geom_col>`) + `aggregationExp`. HeatmapTile extends SpatialIndexLayer, so inherits every knob from `layer.quadbin`, including the aggregation rules.
 
 ```jsonc
 {
@@ -393,7 +401,7 @@ Use when you want a smooth density heatmap without discrete cells. Dataset follo
       "colorRange": { "name": "Global Warming", "type": "sequential", "category": "Uber",
         "colors": ["#5A1846","#900C3F","#C70039","#E3611C","#F1920E","#FFC300"] },
       "colorAggregation": "sum",
-      "weightAggregation": "average"   // REQUIRED — heatmap's weight visual-channel needs an aggregation
+      "weightAggregation": "sum"       // REQUIRED whenever `weightField` is bound
     }
   },
   "visualChannels": {
@@ -404,7 +412,9 @@ Use when you want a smooth density heatmap without discrete cells. Dataset follo
 }
 ```
 
-> **Gotcha — tile-backed layers render blank without `visConfig.filled: true`.** Affects every TileLayer subclass: `tileset` (points / lines / polygons), `h3`, `quadbin`, `heatmapTile`, `clusterTile`. The tile server defaults `filled` to `false` when omitted, producing zero-pixel heatmaps and hollow-outline point layers; Builder writes `filled: true` for every tile layer it authors. `heatmapTile` additionally needs `visConfig.weightAggregation` (defaults to `"average"`) or the weight visual channel has nothing to aggregate. `raster` is exempt (the raster pipeline goes through `colorBands` / `rasterStyleType` and ignores the fill flag). **The CLI auto-fills both pre-validation** on `maps create` / `maps update` (log line: *"→ Filled tile-layer defaults…"*) — emit them explicitly only if you want the configuration to survive being passed through other tooling.
+> **Gotcha — tile-backed layers render blank without `visConfig.filled: true`.** Affects every TileLayer subclass: `tileset` (points / lines / polygons), `h3`, `quadbin`, `heatmapTile`, `clusterTile`. The tile server defaults `filled` to `false` when omitted, producing zero-pixel heatmaps and hollow-outline point layers; Builder writes `filled: true` for every tile layer it authors. `raster` is exempt (the raster pipeline goes through `colorBands` / `rasterStyleType` and ignores the fill flag). `filled` is auto-filled pre-validation on `maps create` / `maps update` (log line: *"→ Filled tile-layer defaults…"*) — emit it explicitly if you want the configuration to survive being passed through other tooling.
+>
+> **`visConfig.weightAggregation` is NOT auto-filled.** A `heatmapTile` that binds `weightField` and declares no `weightAggregation` is rejected. Builder writes the two together and forces `"sum"` the moment a weight column is picked, so `"sum"` is the value to author; nothing in Builder produces `"average"` there.
 
 > **Geometry-aware defaults for `tileset` layers.** In addition to the blanket `filled: true`, the CLI picks **point / line / polygon-specific visConfig defaults** by probing the dataset's tilejson:
 > - **point** → `filled: true, radius: 4`
@@ -413,7 +423,7 @@ Use when you want a smooth density heatmap without discrete cells. Dataset follo
 >
 > Pass `dataset.geomType: "point" | "line" | "polygon"` in the configuration to skip the tilejson probe (case-insensitive; accepts GeoJSON names like `MultiPolygon`). Any field you set explicitly overrides the default.
 
-**Weight channel** is the heatmap-specific addition: `weightField` + `weightScale: "identity"` + `visConfig.weightAggregation`. If you leave `weightField` null the heatmap weighs every point as 1 (pure density). Setting it to a numeric column multiplies the contribution — good for "weighted hotspots" (e.g., accidents weighted by casualties).
+**Weight channel** is the heatmap-specific addition: `weightField` + `weightScale: "identity"` + `visConfig.weightAggregation` (author `"sum"`). If you leave `weightField` null the heatmap weighs every point as 1 (pure density) and no `weightAggregation` is needed. Setting it to a numeric column multiplies the contribution — good for "weighted hotspots" (e.g., accidents weighted by casualties).
 
 ### `type: "clusterTile"` — adaptive point clustering
 
@@ -425,6 +435,10 @@ Aggregates points into cluster markers whose radius scales with cluster size. Pa
   "config": {
     "dataId": "$ref:events",
     "label": "Incidents (clustered)",
+    "textLabel": [                       // required on clusterTile — see below
+      { "color": [44,48,50], "outlineColor": [255,255,255], "field": null,
+        "size": 12, "offset": [0,0], "anchor": "start", "alignment": "center" }
+    ],
     "visConfig": {
       "filled": true, "stroked": false, "opacity": 1,
       "radiusRange": [12, 64],
@@ -442,12 +456,14 @@ Aggregates points into cluster markers whose radius scales with cluster size. Pa
 }
 ```
 
+> **`config.textLabel` is required on `clusterTile`, and it is the one layer type where it is.** The parser reads `textLabel[0].color` and spreads `textLabel[0].outlineColor` unconditionally, so a clusterTile missing either loses the whole layer — silently, with the rest of the map rendering without it. `visConfig.isTextVisible: false` only hides the painted count; it does not remove the read. Absent, `[]`, `[{}]` and `[{color}]` all drop the layer; `[{color, outlineColor}]` renders.
+
 **Knobs:**
 - `radiusRange: [min, max]` (px) — the two endpoints of the cluster-size → marker-radius mapping. `[8, 80]` is the allowed range.
 - `thickness` — stroke width (px); only visible when `stroked: true`.
 - `isTextVisible` — show the count label inside each marker.
-- `clusterLevel` — advanced override for the quadbin aggregation level. Leave unset to let Builder auto-resolve from viewport zoom.
-- **Inherited from SpatialIndexLayer**: `strokeColorRange` + `strokeColorAggregation` + `sizeAggregation` + `heightAggregation` + the rest of `layer.quadbin`'s knobs. Same aggregation restriction: no `median`, no `count unique`.
+- `clusterLevel` — how many aggregation levels to cluster by **relative to the tile**, not an absolute quadbin resolution. The renderer subtracts the viewport-to-tile zoom difference and walks that many levels up from each cell, so each `+1` doubles the on-screen clustering radius.
+- **Inherited from SpatialIndexLayer**: `strokeColorRange` + `strokeColorAggregation` + `sizeAggregation` + `heightAggregation` + the rest of `layer.quadbin`'s knobs. Same aggregation restrictions, plus no `stdev` / `variance` on numeric columns here.
 
 ### `type: "raster"` — quadbin-backed raster imagery
 
@@ -465,14 +481,13 @@ Three coloring modes, selected via `visConfig.rasterStyleType`:
     "visConfig": {
       "opacity": 0.9,
       "rasterStyleType": "ColorRange",
-      "colorRange": { "name": "Earth", "type": "sequential", "category": "CARTO",
+      "colorRange": { "name": "Earth", "type": "diverging", "category": "CARTO",
         "colors": ["#a16928","#bd925a","#d6bd8d","#edeac2","#b5c8b8","#79a7ac","#2887a1"] }
     }
   },
   "visualChannels": {
     "colorField": { "name": "elevation", "type": "real" },
-    "colorScale": "quantize",                    // raster safe default — always available
-    "colorDomain": [0, 8849]
+    "colorScale": "quantize"                     // raster safe default — always available
   }
 }
 ```
@@ -495,11 +510,11 @@ Three coloring modes, selected via `visConfig.rasterStyleType`:
   },
   "visualChannels": {
     "colorField": { "name": "class", "type": "integer" },
-    "uniqueValuesColorScale": "ordinal",
-    "uniqueValuesColorDomain": [11, 21, 31, 41, 51, 71, 81]
+    "uniqueValuesColorScale": "ordinal"
   }
 }
 ```
+
 
 ```jsonc
 // Mode 3: Rgb — 3-band composite (aerial/satellite imagery)
@@ -520,13 +535,16 @@ Three coloring modes, selected via `visConfig.rasterStyleType`:
         { "band": "blue",  "type": "expression", "value": "(B04-B03)/(B04+B03)" }  // NDVI on blue channel, purely illustrative
       ]
     }
-  }
+  },
+  "visualChannels": {}                       // required on every layer, even when nothing is data-driven
 }
 ```
 
-> **Gotcha — `colorField` / `colorScale` / `colorDomain` / `uniqueValuesColorScale` / `uniqueValuesColorDomain` live on `layer.visualChannels` (sibling of `layer.config`), NOT inside `visConfig`.** Only `colorRange`, `uniqueValuesColorRange`, `rasterStyleType`, and `colorBands` live in `visConfig`. Mis-placing them silently fails — the layer renders uniform. Builder rewrites to `visualChannels` on every save, so `get --json` always returns them there.
+> **Gotcha — `colorField` / `colorScale` / `uniqueValuesColorScale` live on `layer.visualChannels` (sibling of `layer.config`), NOT inside `visConfig`.** Only `colorRange`, `uniqueValuesColorRange`, `rasterStyleType`, and `colorBands` live in `visConfig`. Mis-placing them silently fails — the layer renders uniform. Builder rewrites to `visualChannels` on every save, so `get --json` always returns them there.
 >
-> **Parallel fields for mode switching:** `ColorRange` mode reads `visualChannels.colorField` + `visConfig.colorRange` + `visualChannels.colorScale` + `visualChannels.colorDomain`. `UniqueValues` mode reads `visualChannels.colorField` + `visConfig.uniqueValuesColorRange` + `visualChannels.uniqueValuesColorScale` (always `"ordinal"`) + `visualChannels.uniqueValuesColorDomain`. Both sets coexist on the same layer so switching modes in Builder doesn't clobber the other's palette — emit only the set for your chosen mode, leave the other undefined.
+> **Parallel fields for mode switching:** `ColorRange` mode reads `visualChannels.colorField` + `visConfig.colorRange` + `visualChannels.colorScale`. `UniqueValues` mode reads `visualChannels.colorField` + `visConfig.uniqueValuesColorRange` + `visualChannels.uniqueValuesColorScale` (always `"ordinal"`). Both sets coexist on the same layer so switching modes in Builder doesn't clobber the other's palette — emit only the set for your chosen mode, leave the other undefined.
+>
+> **Do NOT emit `colorDomain` or `uniqueValuesColorDomain`** — they are rejected. See *"Channel domains are not authorable"* under §Color ranges below; to pin specific band values to specific colours use `colorRange.colorMap` / `uniqueValuesColorRange.colorMap` instead.
 
 > **Dataset dependency:** `raster` layers can't render until the backend returns `raster_metadata.bands` for the dataset. If you don't know the band names yet, open the map in Builder once to let it populate the metadata; the band list then lives at `dataset.metadata.raster_metadata.bands[].name`.
 
@@ -548,7 +566,7 @@ Authoritative list: `carto maps schema enums`. Current: `tileset`, `quadbin`, `h
 
 ## Layer groups — collapsible folders in the layer panel
 
-Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups are purely an organisation/visibility convenience in the layer panel — they don't change the data or the geometry. Authoritative shape: `carto maps schema layergrouping`.
+Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups don't change the data or the geometry, but **the tree sets the render order**: layers stack in the tree's flattened order, first entry on top, and that overrides `visState.layers` order. Authoritative shape: `carto maps schema layergrouping`.
 
 **Where it lives.** A single `layerGrouping` array at the **config root** — a sibling of `visState`, *not* inside it, and *not* a property on any layer:
 
@@ -572,11 +590,12 @@ Builder can organise the layer list into named, collapsible **groups** (e.g. "Ba
 
 **The model — read this before authoring:**
 
-- It's a **flat, ordered array** of entries. Each entry is either `{ "type": "layer", "layerId": … }` or `{ "type": "group", … }`. Order is panel order, top to bottom.
+- It's a **flat, ordered array** of entries. Each entry is either `{ "type": "layer", "layerId": … }` or `{ "type": "group", … }`. Order is panel order **and map stacking order**, top to bottom. A group stacks as a block: its `children` render together at the group's position.
 - A layer joins a group by being listed in that group's **`children`** — there is **no `groupId` field on the layer**. Don't add one; it does nothing.
 - **Groups don't nest.** `children` holds layer entries only, never sub-groups.
 - **`layerId` must match a `visState.layers[].id`** (the layer's top-level `id`, *not* its `dataId`/`$ref`). A dangling id is pruned by Builder on load — the validator flags it.
-- **You don't have to list every layer.** Any layer omitted from the tree renders **ungrouped at the top level** — Builder appends it on load. So the minimal change to add one group is: add a single group entry referencing the layers you want folded; leave the rest out.
+- **You don't have to list every layer.** Any layer omitted from the tree renders **ungrouped at the top level** — Builder appends it to the **end** of the tree on load, which is the **bottom of the stack**. Fine for a background layer; for anything that must sit above others, list it explicitly at the right position.
+- **Editing an existing map:** it almost certainly has a tree already (Builder writes one on every save). To restack, reorder the tree entries; to add a layer, insert its `{ "type": "layer" }` entry where it should render. Changing only `visState.layers` order has no visible effect.
 - **`id` per group must be unique**; a layer may appear **once** in the whole tree.
 
 **Group fields:**
@@ -596,21 +615,36 @@ Builder can organise the layer list into named, collapsible **groups** (e.g. "Ba
 
 ## Color ranges — palettes, scales, /stats
 
-Cartographic decisions (palette family by narrative, basemap pairing, contrast, anti-patterns) live in `references/cartography.md` §3-§7 — read that first when picking colours. This section covers the **CLI-specific** behaviour: how the configuration carries palettes, how the CLI hydrates categorical legends, and how `/stats` powers scale domains.
+Cartographic decisions (palette family by narrative, basemap pairing, contrast, anti-patterns) live in `references/cartography.md` §3-§7 — read that first when picking colours. This section covers the encoding: how the configuration carries palettes, which parts of a scale you may author, and how `/stats` powers scale domains.
 
 > **Before binding a `colorField` (or `sizeField` / `radiusField` / `heightField`), validate the data shape can carry the encoding.** Two shapes break the legend the same way (dominant grey "Others"), both fixed in the source SQL not the layer config: (a) numeric column with > 25% NULL rows — the populated rows get binned but most features render grey; (b) categorical column with more unique values than the palette has colours — overflow categories all collapse to grey. See `references/cartography.md` §4.5 (categorical) and §4.5a (numeric / NULL ratio) for the diagnostic SQL probes and the two fixes (filter / pick a different column / collapse to top-N + Other / hexColor mode).
 
-**`colorRange` shape** — `name` + `type` + `category` + `colors[]`. The triple **must be consistent** for the Builder legend to render — don't rename fields or invent categories. Run `carto maps schema palettes` for the 32-entry CARTOColors catalogue (each entry is a ready-to-paste `colorRange` block). Just the names: `carto maps schema enums --json | jq .paletteNames`. Non-CARTO palettes (Uber `Global Warming`, `ColorBrewer Reds-6`, etc.) still work — copy from a real map's configuration if you need them.
+**`colorRange` shape** — `name` + `type` + `category` + `colors[]`. The triple **must be consistent** for the Builder legend to render — don't rename fields or invent categories. Run `carto maps schema palettes` for the 33-entry CARTOColors catalogue (each entry is a ready-to-paste `colorRange` block, and its `type` / `category` map one-to-one onto `colorRange.type` / `colorRange.category` — the category is always `CARTO`). Just the names: `carto maps schema enums --json | jq .paletteNames`. Non-CARTO palettes (Uber `Global Warming`, `ColorBrewer Reds-6`, etc.) still work — copy from a real map's configuration if you need them, and keep their own `category` so the name isn't matched against the CARTOColors registry.
 
-### Categorical coloring (`colorScale: "ordinal"`) — CLI auto-hydrates
+### Channel domains are not authorable
 
-Author a categorical layer with just `colorField` + `colorScale: "ordinal"` + a palette:
+**`visualChannels.colorDomain`, `strokeColorDomain` and `uniqueValuesColorDomain` are rejected.** Kepler's save writes only field + scale per channel, so a domain written here does not survive the first save in Builder; vector layers also recompute it from the data on every load. There is no version of these that sticks — don't emit them, on any layer type.
+
+To pin specific values to specific colours, use the range's `colorMap` instead — `[domain value, hex]` pairs, with the matching scale:
+
+| What you want to pin | Where it goes | `colorScale` |
+|---|---|---|
+| Categories of a text column → colours | `visConfig.colorRange.colorMap` | `"ordinal"` (a text column takes nothing else) |
+| Numeric break-points → colours | `visConfig.colorRange.colorMap` | `"custom"` |
+| Stroke equivalents | `visConfig.strokeColorRange.colorMap` | same rule on `strokeColorScale` |
+| Raster `UniqueValues` classes | `visConfig.uniqueValuesColorRange.colorMap` | `uniqueValuesColorScale: "ordinal"` |
+
+A populated `colorMap` also needs its `colorField` — a `colorMap` with no field bound is dead config and the layer renders the flat fallback colour. That pairing is validated.
+
+### Categorical coloring (`colorScale: "ordinal"`)
+
+Author a categorical layer with `colorField` + `colorScale: "ordinal"` + a palette:
 
 ```jsonc
 "config": {
   "visConfig": {
     "colorRange": {
-      "name": "Bold", "type": "qualitative", "category": "CARTOColors",
+      "name": "Bold", "type": "qualitative", "category": "CARTO",
       "colors": ["#7F3C8D","#11A579","#3969AC","#F2B701","#E73F74","#80BA5A", /* … */]
     }
   },
@@ -621,15 +655,12 @@ Author a categorical layer with just `colorField` + `colorScale: "ordinal"` + a 
 }
 ```
 
-On `maps create` / `maps update`, the CLI calls `/v3/stats/{connection}/{column}` (same endpoint Builder's UI hits) and injects `visualChannels.colorDomain` + `colorRange.colorMap` with the top-N categories ordered by frequency, paired with your palette colors. The map opens with a populated legend on first paint — no user interaction needed.
+Builder derives the categories from the column's stats on load. To fix which category gets which colour — and therefore the legend order — add `colorRange.colorMap` as above rather than a domain.
 
 Rules:
 
-- Only `type: "query"` and `type: "table"` datasets get hydrated. Tilesets have stats baked in.
-- The number of categories fetched is **capped at the palette length** — a 6-colour palette gets 6 categories; the rest collapse into Builder's "Others" bucket which renders **grey**. See `references/cartography.md` §4.5 for the full constraint set (palette-length cap + 20-entry legend cap + escape hatches).
-- If you pre-seed `colorDomain` or `colorMap` yourself, the CLI respects it and skips hydration for that layer.
-- Hydration runs always on create/update; only `--dry-run` on update skips it (no writes happen).
-- Stats-fetch failures (timeout, 500) are logged as actions but don't fail the write — the layer saves without the domain and you see a blank legend until Builder fetches stats on interaction.
+- The number of categories that get a distinct hue is **capped at the palette length** — a 6-colour palette gets 6 categories; the rest collapse into Builder's "Others" bucket which renders **grey**. See `references/cartography.md` §4.5 for the full constraint set (palette-length cap + 20-entry legend cap + escape hatches).
+- `colorScale: "ordinal"` only honours categorical columns. On an `integer` / `real` / `timestamp` `colorField` it is rejected — Builder would silently render `quantize` and the legend would show numeric bins. `CAST(<col> AS STRING)` upstream, or switch to `quantize` with explicit `colorMap` breaks.
 
 ### Scale types — channel binding
 

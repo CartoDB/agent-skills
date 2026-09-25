@@ -155,7 +155,7 @@ When asking the Phase 1 intake questions (and on every follow-up turn), **stay i
   - line / polygon source → `tileset`.
   - point source, sparse / feature-level (find-this-store, click-to-zoom) → `tileset`.
   - **point source, dense / large (the typical aggregation case) → aggregate to `h3` or `quadbin`** (h3 = hex aesthetic, quadbin = square + zoom-adaptive cell size). This is the right default for "where does X cluster?" / "density of Y" questions on a large point table — quantitative reading, comparable across viewports, no per-row render budget pressure.
-  - pre-indexed h3 / quadbin source → `h3` / `quadbin` directly (no aggregationExp needed).
+  - pre-indexed h3 / quadbin source → `h3` / `quadbin` directly. Still set `aggregationExp` on the dataset: only `dataset.type: "tileset"` is excused from it, and a pre-indexed `table` / `query` is not. See [`configuration-shape.md`](references/configuration-shape.md) *"Spatial indexes (H3, quadbin)"*.
   - band-stored raster → `raster`.
   - **`heatmapTile` and `clusterTile` are NOT silent defaults** — pick them only when the user explicitly asks for *"a heatmap"* / *"clustered points"*, OR when the narrative is specifically pattern-without-numbers (`heatmapTile`) or numbered-bubbles-with-zoom-to-individual (`clusterTile`). For everything else where the data is dense points, default to `h3` / `quadbin` aggregation — they preserve quantitative reading while heatmap blurs it and cluster turns it into bubble counts.
 
@@ -184,11 +184,16 @@ Don't offer them proactively, don't list them in *"what else can I do?"* unless 
 | `collaborative` | User asks for other org members to edit, not just view. |
 | Custom palette / 3D / custom markers | User asks for specific styling, or the default looks wrong. |
 
-### Layer stack order is inverted — set `layerOrder` explicitly
+### Layer stack order is inverted — and `layerGrouping` owns it once present
 
 `visState.layers[0]` renders **on top**, the opposite of standard deck.gl. Author the most-foreground geometry first: points and lines above polygons, polygons above `h3` / `quadbin` / `heatmapTile` / `clusterTile` cells, cells above raster. The classic failure is a background polygon smothering the features underneath it, so the map reads as empty even though every dataset loaded fine.
 
-Emit `visState.layerOrder` (array of layer ids, index 0 on top) on every multi-layer map, so stacking is a stated intent rather than a side effect of array position. The CLI warns pre-flight when it spots wide-on-top-of-narrow stacking, but it only recognises certain geometry pairs — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
+What sets the stack depends on the map:
+
+- **`config.layerGrouping` present** (every map saved from Builder has one): the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
+- **No `layerGrouping`** (a fresh bundle): `visState.layers` order is the render order.
+
+Keep `visState.layers` in the same order as the tree so both read the same. **Don't emit `visState.layerOrder`.** Builder reads it as layer *indices* (not ids), only when there is no tree, and its presence switches off the CLI's pre-flight stacking warning. That warning only recognises certain geometry pairs and doesn't look at `layerGrouping` — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
 
 ### Validate before you write
 

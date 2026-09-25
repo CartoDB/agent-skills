@@ -1,6 +1,6 @@
 # CARTO map configuration examples — full bundles ready for `carto maps create`
 
-> Companion reference. Each example is a complete map configuration validated end-to-end against a live CARTO organization and ready to hand to `create_map` (MCP) or `carto maps create` (CLI). Replace `<connection-id>` with a real one from `explore_data list_connections` / `carto connections list`. For when to use what, see the parent `SKILL.md`; for cartographic decisions, see the sibling `cartography.md`.
+> Companion reference. Each example is a complete map configuration that passes offline validation (`validate_map` / `carto maps validate`) and is ready to hand to `create_map` (MCP) or `carto maps create` (CLI). Replace `<connection-id>` with a real one from `explore_data list_connections` / `carto connections list`. For when to use what, see the parent `SKILL.md`; for cartographic decisions, see the sibling `cartography.md`.
 
 ## Index
 
@@ -161,15 +161,14 @@ Three examples: a single DateRange parameter, a multi-parameter map (Category + 
         "name": "Date",
         "type": "DateRange",
         "start": {"value":"2020-01-01","sqlName":"date_from"},
-        "end":   {"value":"2020-12-31","sqlName":"date_to"},
-        "dataSources": [{"id":"$ref:col","name":"Collisions"}]
+        "end":   {"value":"2020-12-31","sqlName":"date_to"}
       }]
     }
   }
 }
 ```
 
-The `$ref:col` in `sqlParameters[].dataSources[].id` is resolved by the CLI to the real dataset UUID at create time, same as `dataId` in layers.
+Nothing on the parameter points at the dataset: the `{{date_from}}` / `{{date_to}}` placeholders in `dataset.source` are what bind the two together, matched by `sqlName`.
 
 **C.2 — Category + DateRange + timeseries widget:**
 
@@ -197,12 +196,10 @@ The `$ref:col` in `sqlParameters[].dataSources[].id` is resolved by the CLI to t
       "sqlParameters": [
         {"id": "p1", "name": "Agency", "type": "Category",
          "values": ["NYPD","HPD","DSNY","DOT","DEP"],
-         "item": {"value": ["NYPD"], "sqlName": "agency"},
-         "dataSources": [{"id": "$ref:nyc311", "name": "311 Calls"}]},
+         "item": {"value": ["NYPD"], "sqlName": "agency"}},
         {"id": "p2", "name": "Date", "type": "DateRange",
          "start": {"value":"2022-01-01","sqlName":"date_from"},
-         "end":   {"value":"2022-03-31","sqlName":"date_to"},
-         "dataSources": [{"id": "$ref:nyc311", "name": "311 Calls"}]}
+         "end":   {"value":"2022-03-31","sqlName":"date_to"}}
       ],
       "widgets": [
         {"id":"w1","type":"timeseries","title":"Calls over time","column":"created_date",
@@ -245,8 +242,7 @@ Rules the CLI enforces for `selectionMode: "single"`: `item.value` must contain 
          "values": ["West","Midwest","South","Northeast"],
          "item": {"value": ["West"], "sqlName": "region"},
          "selectionMode": "single",
-         "defaultValue": "West",
-         "dataSources": [{"id": "$ref:stores", "name": "Stores"}]}
+         "defaultValue": "West"}
       ]
     }
   }
@@ -289,24 +285,20 @@ All seven widget kinds in one map (formula × 2, histogram, category, pie, times
         "filters": []
       },
       "widgets": [
-        // Right-side panel widgets (rendered in the right rail, top-to-bottom in array order):
-        // headline metrics
         { "id":"w1","type":"formula","title":"Total incidents","column":"","operation":"count","formatter":"DECIMAL_SHORT_COMMA","dataSource":"$ref:col","global":false,"isValid":true },
         { "id":"w2","type":"formula","title":"Total injured","column":"number_of_persons_injured","operation":"sum","formatter":"DECIMAL_SHORT_COMMA","dataSource":"$ref:col","global":false,"isValid":true },
-        // categorical breakdowns
         { "id":"w4","type":"category","title":"Vehicle type","column":"vehicle_type_code_1","operation":"count","dataSource":"$ref:col","operationColumn":"vehicle_type_code_1","global":false,"isValid":true },
         { "id":"w5","type":"pie","title":"Contributing factor","column":"contributing_factor_vehicle_1","operation":"count","dataSource":"$ref:col","operationColumn":"contributing_factor_vehicle_1","global":false,"isValid":true },
-        // distribution / filter
         { "id":"w3","type":"histogram","title":"Injuries distribution","column":"number_of_persons_injured","operation":"count","buckets":20,"formatter":"DECIMAL_SHORT_COMMA","xAxisFormatter":"DECIMAL_SHORT_COMMA","dataSource":"$ref:col","global":false,"isValid":true },
         { "id":"w7","type":"range","title":"Injuries range","column":"number_of_persons_injured","operation":"count","dataSource":"$ref:col","global":true,"isValid":true },
-        // Bottom-of-map surface (rendered below the map view, NOT in the right panel — array position
-        // doesn't affect on-screen position for these kinds, but keep them last by convention):
         { "id":"w6","type":"timeseries","title":"Over time","column":"crash_datetime","operation":"count","stepSize":"month","chartType":"line","dataSource":"$ref:col","operationColumn":"crash_datetime","global":false,"isValid":true,"collapsible":true,"autoCollapse":true,"showControls":false }
       ]
     }
   }
 }
 ```
+
+**Widget order in that array:** `w1`/`w2` (headline metrics), then `w4`/`w5` (categorical breakdowns), then `w3`/`w7` (distribution and filter) — the right rail renders them top-to-bottom in array order. `w6` (`timeseries`) renders on the bottom-of-map surface instead, NOT in the right panel: array position doesn't affect on-screen position for that kind, but keep it last by convention.
 
 ## E. Split-map mode (side-by-side comparison)
 
@@ -340,10 +332,7 @@ A two-layer map in **split view** — left side shows 2020 collisions, right sid
   "keplerMapConfig": {
     "version": "v1",
     "config": {
-      "mapState": {
-        "latitude": 40.7128, "longitude": -74.006, "zoom": 11, "pitch": 0, "bearing": 0,
-        "isSplit": true
-      },
+      "mapState": {"latitude": 40.7128, "longitude": -74.006, "zoom": 11, "pitch": 0, "bearing": 0},
       "basemapConfig": {"styleId": "positron"},
       "mapStyle": {"styleType": "positron"},
       "visState": {
@@ -381,8 +370,8 @@ A two-layer map in **split view** — left side shows 2020 collisions, right sid
 ```
 
 **What this demonstrates:**
-- `splitMaps.length === 2` and `mapState.isSplit: true` agree (single source of truth = `splitMaps.length`; the boolean is its required mirror).
-- Every layer id (`L_2020`, `L_2024`) appears as a key in **both** side entries — Builder hides the layer entirely on a side if its id is absent.
+- `splitMaps.length === 2` is what turns the split on — it is the single source of truth, and no companion flag has to be written anywhere else.
+- Every layer id (`L_2020`, `L_2024`) appears as a key in **both** side entries. Kepler backfills an omitted layer on load, so listing them all is about stating the intent rather than avoiding a broken render.
 - The two layers use distinct hues (blue vs magenta) — split view is for comparison, so the two sides need readable separation, not a shared ramp.
 - Both datasets share the same source table; the per-side filter happens in SQL upstream, not via spatial filters or post-fetch row filters.
 
@@ -396,9 +385,36 @@ Three layers, two folded into a **"Reference"** group and one left ungrouped at 
 {
   "title": "Stores with reference context",
   "datasets": [
-    { "name": "stores",   "source": "carto-dw.demo.stores",        "type": "table" },
-    { "name": "districts","source": "carto-dw.demo.districts",     "type": "table" },
-    { "name": "roads",    "source": "carto-dw.demo.major_roads",   "type": "table" }
+    {
+      "$ref": "stores",
+      "type": "table",
+      "source": "carto-dw.demo.stores",
+      "connectionId": "<connection-id>",
+      "geoColumn": "geom",
+      "columns": ["geom"],
+      "format": "tilejson",
+      "label": "Stores"
+    },
+    {
+      "$ref": "districts",
+      "type": "table",
+      "source": "carto-dw.demo.districts",
+      "connectionId": "<connection-id>",
+      "geoColumn": "geom",
+      "columns": ["geom", "name"],
+      "format": "tilejson",
+      "label": "Districts"
+    },
+    {
+      "$ref": "roads",
+      "type": "table",
+      "source": "carto-dw.demo.major_roads",
+      "connectionId": "<connection-id>",
+      "geoColumn": "geom",
+      "columns": ["geom", "name"],
+      "format": "tilejson",
+      "label": "Major roads"
+    }
   ],
   "keplerMapConfig": {
     "version": "v1",
@@ -456,12 +472,12 @@ Three layers, two folded into a **"Reference"** group and one left ungrouped at 
 ```
 
 **What this demonstrates:**
-- `layerGrouping` is a **flat, ordered array** at the config root — *not* nested in `visState`, and *not* a field on any layer. Panel order is top-to-bottom: the ungrouped "Stores" layer first, then the folded "Reference" group.
+- `layerGrouping` is a **flat, ordered array** at the config root — *not* nested in `visState`, and *not* a field on any layer. Panel order is top-to-bottom: the ungrouped "Stores" layer first, then the folded "Reference" group. This is also the **map stacking order** (it overrides `visState.layers` order), so stores render above the reference layers; `visState.layers` is kept in the same order so both read the same.
 - The district boundaries use `"lineStyle": "dashed"` + `"dashArray": [4, 4]` — a dashed stroke pushes the reference outlines behind the subject layer (see `cartography.md` §1.2 for when to dash).
 - Layers join the group by appearing in its **`children`** — there's no `groupId` on `L_districts` / `L_roads`.
 - Each `layerId` matches a `visState.layers[].id` (the layer `id`, not the `$ref` dataId). A dangling id would be flagged by the validator and pruned by Builder.
 - `isCollapsed: true` ships the group folded in the panel; `isVisible: true` keeps both reference layers rendering (group visibility ANDs with each layer's own `isVisible`).
-- The "Stores" layer is omitted from any group on purpose — listing it as a top-level `{type:"layer"}` entry just fixes its panel order. Dropping it from the array entirely would still work: Builder appends ungrouped layers on load.
+- The "Stores" layer is omitted from any group on purpose — listing it as a top-level `{type:"layer"}` entry fixes its panel and stacking position. Dropping it from the array would still load, but Builder appends omitted layers to the **end** of the tree — the bottom of the stack — so the stores would render under the districts.
 - **Labels work on vector tileset layers of any geometry.** The polygon "Districts" and line "Major roads" layers both carry an active `textLabel` (`field` set to `name`); the renderer auto-places them at the polygon centroid and line midpoint — no centroid column needed. The **line** layer also sets `visConfig.textLabelUniqueIdField: "name"` so a road spanning multiple tiles gets **one** label instead of one per tile — this control is line-only. Leave `field: null` to keep a layer's labels off. Labels aren't available on h3/quadbin/heatmap or raster layers. See `references/cartography.md` §6.3.
 
 ---

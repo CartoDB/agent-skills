@@ -8,9 +8,10 @@ Always validate the emitted JSON against the live schema:
 
 ```bash
 carto maps schema layer.tileset --json
-carto maps schema visualChannels --json
-carto maps schema visConfig --json
+carto maps schema layer --json
 ```
+
+There is no `visualChannels` or `visConfig` section of its own: `layer.<subtype>` (`layer.tileset`, `layer.h3`, `layer.quadbin`, `layer.heatmaptile`, `layer.clustertile`, `layer.raster`) documents that subtype's `visConfig`, and `layer` documents the envelope, `config` and `visualChannels`.
 
 If this document disagrees with the live schema, the schema wins.
 
@@ -27,6 +28,13 @@ ArcGIS layer types map to kepler layer subtypes per the source data's geometry, 
 | `quadbin` (pre-aggregated) | `quadbin` |
 
 Don't trust the source layer's `esriGeometryType` alone — use the migrated DW table's geometry type so kepler renders correctly.
+
+**Spatial-index layers carry two extra requirements** a plain `tileset` doesn't:
+
+- The dataset's `geoColumn` must be **prefixed**: `"h3:<col>"` / `"quadbin:<col>"`. The bare column name is what makes Builder treat the dataset as regular geometry.
+- On an aggregating dataset, every bound visual channel needs its matching aggregation in `visConfig` — a `colorField` without `colorAggregation` means the column never enters the aggregation, so the tile carries no such attribute and the channel renders nothing. Same pairing for `strokeColorField`/`strokeColorAggregation`, `radiusField`/`radiusAggregation`, `sizeField`/`sizeAggregation`.
+
+`aggregationResLevel` is a `dataset` field, valid in `[1, 6]` for h3 and `[1, 9]` for quadbin.
 
 ## Renderer 1: `simple`
 
@@ -45,25 +53,35 @@ Source shape (basic `esriSMS` example):
 }
 ```
 
-Translation: single-color layer with the symbol's color/size as `visConfig` defaults. No visualChannels.
+Translation: single-color layer with the symbol's color/size as layer defaults. No visualChannels.
 
 ```json
 {
+  "id": "stores-layer",
   "type": "tileset",
   "config": {
+    "dataId": "$ref:stores",
+    "label": "Stores",
+    "isVisible": true,
+    "columns": {},
+    "color": [255, 0, 0],
     "visConfig": {
-      "fillColor": [255, 0, 0],
       "radius": 8,
       "strokeColor": [0, 0, 0],
-      "strokeWidth": 1,
+      "thickness": 1,
       "opacity": 1.0
-    },
-    "visualChannels": {}
-  }
+    }
+  },
+  "visualChannels": {}
 }
 ```
 
-For polygons: use `fillColor` from `symbol.color`, `strokeColor` + `strokeWidth` from `symbol.outline`. For lines: `strokeColor` + `strokeWidth` only. The exact field names depend on kepler subtype — fetch the live schema before composing.
+Two placements are easy to get wrong and both fail silently-ish:
+
+- **The fill color is `config.color`** (an RGB triplet), NOT `visConfig.fillColor`. There is no `fillColor` in any subtype's `visConfig`; `visConfig` is passthrough, so an invented key validates cleanly and the layer renders in Builder's default color.
+- **`visualChannels` is a sibling of `config` on the layer**, not a key inside it. A layer whose `visualChannels` is nested in `config` is rejected (`Layer is missing visualChannels`) — write `{}` when nothing is data-driven.
+
+For polygons: `config.color` from `symbol.color`, `strokeColor` + `thickness` from `symbol.outline`. For lines: `strokeColor` + `thickness` only. The exact field names depend on kepler subtype — fetch the live schema before composing.
 
 ### Per-symbol-type sub-branches
 
@@ -74,9 +92,9 @@ For polygons: use `fillColor` from `symbol.color`, `strokeColor` + `strokeWidth`
 | `esriSMS` (style `esriSMSCircle`) | Simple circle marker | Translates faithfully per the example above |
 | `esriSMS` (style `esriSMSSquare` / `Diamond` / `Cross` / `X` / `Triangle`) | Non-circle simple marker | Collapse to circle — kepler tileset has no built-in non-circle marker. Preserve color + size; record `Notes: marker-shape-collapsed: <style>` |
 | `esriPMS` (picture marker — URL or base64 image) | Custom icon | Follow [`marker-upload.md`](marker-upload.md): acquire + dedup-by-hash + multipart `POST /assets` (`type=mapMarker`) + reference the returned asset `id` in `visConfig.customMarkersId` (or `customMarkersField` + `customMarkersRange.markerMap[]` for categorical — verify against live schema). Size from `symbol.width` / `height` |
-| `esriSLS` | Simple line | Translates faithfully — `strokeColor` + `strokeWidth` |
-| `esriSFS` (solid polygon fill) | Solid polygon fill | Translates faithfully — `fillColor` (+ `strokeColor` if outline present) |
-| `esriPFS` (picture fill polygon) | Pattern/picture polygon fill | Collapse to solid `fillColor` — Builder has no pattern fills. Use the picture's dominant color if extractable, else a sensible default. Record `Notes: picture-fill-collapsed: <source>` |
+| `esriSLS` | Simple line | Translates faithfully — `strokeColor` + `thickness` |
+| `esriSFS` (solid polygon fill) | Solid polygon fill | Translates faithfully — `config.color` (+ `strokeColor` if outline present) |
+| `esriPFS` (picture fill polygon) | Pattern/picture polygon fill | Collapse to a solid `config.color` — Builder has no pattern fills. Use the picture's dominant color if extractable, else a sensible default. Record `Notes: picture-fill-collapsed: <source>` |
 | `esriTS` (text symbol) | Text label | Doesn't apply to renderer translation (text symbols belong to `labelingInfo`, not `drawingInfo`) — skip silently |
 | **`CIMSymbolReference`** (from ArcGIS Pro 2.0+) | Cartographic Information Model symbol (richer than legacy `esri*` shapes; multi-layered, typed colors, effects, variations) | Per [`cim-symbols.md`](cim-symbols.md): walk `symbol.symbolLayers[]`. `CIMPictureMarker` → same flow as `esriPMS` via `marker-upload.md` (most CIM URLs are `data:` URIs — decode the base64 directly). `CIMVectorMarker` / `CIMCharacterMarker` → colored circle using the extracted dominant fill color + size. `CIMSolidFill` / `CIMSolidStroke` (on line / polygon symbols) → translate faithfully. Pattern fills / gradients / effects / variations → collapse with descriptive Notes |
 
@@ -84,22 +102,27 @@ For `esriPMS`, the resulting kepler config looks like (live-schema-validated nam
 
 ```json
 {
+  "id": "stores-layer",
   "type": "tileset",
   "config": {
+    "dataId": "$ref:stores",
+    "label": "Stores",
+    "isVisible": true,
+    "columns": {},
     "visConfig": {
       "customMarkers": true,
       "customMarkersId": "<asset-id-returned-by-POST-/assets>",
       "radius": 12,
       "opacity": 1.0
-    },
-    "visualChannels": {}
-  }
+    }
+  },
+  "visualChannels": {}
 }
 ```
 
 Reference the asset `id`, not the presigned `url` — Builder's `KeplerMapConfigSerializer` resolves `customMarkersId` to a fresh presigned `customMarkersUrl` on every map read.
 
-`radius` is half of `max(symbol.width, symbol.height)` (1pt ≈ 1px for marker icons).
+`radius` is `max(symbol.width, symbol.height)` directly (1pt ≈ 1px for marker icons) — don't halve it. The slider stops at 200 once `customMarkers: true`, against 100 for a plain point, because here it sizes the rendered icon rather than a circle's radius. See [`marker-upload.md`](marker-upload.md) *"Size and offset"* for the floor to apply.
 
 ## Renderer 2: `uniqueValue`
 
@@ -130,13 +153,19 @@ Translation: categorical color binding via visualChannels. Each `uniqueValueInfo
       "name": "Custom from ArcGIS",
       "type": "custom",
       "category": "Custom",
-      "colors": ["#ff0000", "#00ff00"]
+      "colors": ["#ff0000", "#00ff00"],
+      "colorMap": [
+        ["A", "#ff0000"],
+        ["B", "#00ff00"]
+      ]
     }
   }
 }
 ```
 
-The categorical domain is implicit (ordinal scales pick up the value list from the source via `/stats`).
+`colorMap` is what pins each source value to its source color as `[value, color]` pairs; list every value, with no `null` sentinel. Without it the palette is applied positionally against whatever order the value list arrives in, and the per-category mapping the user chose in ArcGIS is lost.
+
+`ordinal` is correct only when the column is textual. When the source renderer is `uniqueValue` over a column the warehouse types as numeric, `ordinal` is rejected — see [`lessons.md`](lessons.md) "`uniqueValue` on a numeric column" for the `custom` + `colorMap` shape to use instead.
 
 **Cardinality cap**: if `uniqueValueInfos.length > 12`, fall back to the closest CARTO qualitative palette (`Bold` or `Pastel`) and record `Notes: renderer-fallback: high-cardinality categorical (N>12)`. Builder doesn't render meaningful legends past 12 categories.
 
@@ -185,29 +214,36 @@ Source shape:
 }
 ```
 
-Translation: quantize color binding. Break boundaries become `colorDomain`; symbol colors become a custom sequential ColorRange.
+Translation: custom-scale color binding. Break boundaries become `colorRange.colorMap` thresholds; symbol colors become a custom sequential ColorRange.
 
 ```json
 {
   "visualChannels": {
     "colorField": { "name": "population", "type": "real" },
-    "colorScale": "quantize"
+    "colorScale": "custom"
   },
   "visConfig": {
-    "colorDomain": [0, 1000, 10000, 100000, 1000000],
     "colorRange": {
       "name": "Custom sequential",
-      "type": "custom",
+      "type": "sequential",
       "category": "Custom",
-      "colors": ["#fee5d9", "#fcae91", "#fb6a4a", "#a50f15"]
+      "colors": ["#fee5d9", "#fcae91", "#fb6a4a", "#a50f15"],
+      "colorMap": [
+        [1000, "#fee5d9"],
+        [10000, "#fcae91"],
+        [100000, "#fb6a4a"],
+        [null, "#a50f15"]
+      ]
     }
   }
 }
 ```
 
-Note: `colorDomain` includes both `minValue` (start) and every `classMaxValue` (the breakpoints). Length is `classBreakInfos.length + 1`.
+`colorMap` is a list of `[upper_threshold, color]` pairs — one entry per `classBreakInfos` entry (**N**, not N+1), each threshold being that break's `classMaxValue`, and the last threshold `null` meaning "no upper bound". `minValue` is not represented: the first pair's threshold is already its upper edge.
 
-For heavy-tailed distributions (population, GDP, revenue) the source's break choices were the user's deliberate decision — preserve them rather than re-binning. CARTO's `quantize` honors the explicit `colorDomain`.
+**Do not emit `colorDomain`.** It does not stay in the map — Builder drops it on save and recomputes the domain from the data on every load of a vector layer — so the user's break choices are lost. `colorDomain` under `visualChannels` is rejected outright; under `visConfig` it validates and is then ignored, which is worse. Pinning break-points is exactly what `colorRange.colorMap` is for.
+
+For heavy-tailed distributions (population, GDP, revenue) the source's break choices were the user's deliberate decision — preserve them via `colorMap` rather than re-binning. See [`lessons.md`](lessons.md) "`uniqueValue` on a numeric column" for the same shape applied to categorical-looking numeric data.
 
 ## Visual variables (additive on top of any renderer)
 
@@ -225,9 +261,12 @@ Each maps to a kepler visualChannel:
 
 | ArcGIS visualVariable | kepler equivalent |
 |---|---|
-| `colorInfo` | `colorField` + `colorScale: "quantize"`; `stops[].value` → `colorDomain`; `stops[].color` → `colorRange.colors` |
-| `sizeInfo` | `sizeField` + `sizeScale: "linear"` (or `quantize`); `stops[].value` → `sizeDomain`; `stops[].size` → `sizeRange` |
-| `opacityInfo` | If single-value, set `visConfig.opacity`; if data-bound, route to `opacityField` if Builder supports it (fetch schema), else skip with Note |
+| `colorInfo` | `colorField` + `colorScale: "custom"`; the `stops[]` pairs become `visConfig.colorRange.colorMap` (`[stops[i].value, hex]`, last threshold `null`) |
+| `sizeInfo` on a point layer | `radiusField` + `radiusScale` (`linear` \| `sqrt`); `stops[].size` bounds → `visConfig.radiusRange` `[min, max]` |
+| `sizeInfo` on a line / polygon outline | `sizeField` + `sizeScale` (`linear` \| `sqrt` \| `log`); `stops[].size` bounds → `visConfig.sizeRange` `[min, max]` |
+| `opacityInfo` | Set `visConfig.opacity` from the stops' representative value. There is no opacity visual channel, so a data-bound ramp can't be preserved — record `Notes: opacity-visualvariable-collapsed` |
+
+There is no `*Domain` visual channel: `colorDomain`, `strokeColorDomain` and `uniqueValuesColorDomain` are rejected under `visualChannels`, and `sizeDomain` / `radiusDomain` don't exist at all. Ranges are `visConfig.sizeRange` / `visConfig.radiusRange`; pinned color break-points are `visConfig.colorRange.colorMap`.
 
 **Conflict resolution**: when both the renderer AND a `visualVariable` bind color, the visualVariable wins (matches ArcGIS rendering precedence). Record `Notes: visualVariable-color overrode renderer-color`.
 
@@ -264,27 +303,25 @@ Like `mapconfig-defaults.md`'s top-level boilerplate, the **layer config** has f
 
 | Field | Required shape | Notes |
 |---|---|---|
+| `config.color` | RGB int array `[r, g, b]` | The layer's fill color. Lives on `config`, not in `visConfig`. |
 | `config.visConfig.strokeColor` | RGB int array `[r, g, b]` | The active stroke color |
-| `config.visConfig.initialStrokeColor` | RGB int array `[r, g, b]` — **must be set, not null** | The "original" stroke before a visual variable applies. Builder's "revert to default" UI reads this; null crashes layer init. Default to the same value as `strokeColor`. |
-| `config.visConfig.fillColor` | RGB int array `[r, g, b]` | Active fill color (for point / polygon layers). |
-| `config.visConfig.initialFillColor` | RGB int array `[r, g, b]` — **must be set, not null** | Same logic as `initialStrokeColor`: default to the same value as `fillColor`. |
 | `config.visConfig.opacity` | float 0.0-1.0 | Not `null`. |
-| `config.visConfig.radius` | number | Not `null`. |
-| `config.visConfig.thickness` | number | Line / stroke width. Not `null`. |
+| `config.visConfig.radius` | number | Point radius, `[0, 100]` — or `[0, 200]` once `customMarkers: true`. Not `null`. |
+| `config.visConfig.thickness` | number | Line / stroke width in px. Not `null`. |
+
+`initialFillColor` and `initialStrokeColor` are **not layer fields** — they appear nowhere in the schema. `visConfig` is passthrough, so emitting them validates cleanly and they are then read by nothing; the same goes for `fillColor`, whose real home is `config.color`.
 
 When composing a layer config, normalize defaults before adding it to `visState.layers[]`:
 
 ```python
 def normalize_layer_defaults(layer):
-    vc = layer["config"]["visConfig"]
-    # Mirror initial colors from active colors when the agent didn't set them
-    if vc.get("initialStrokeColor") is None:
-        vc["initialStrokeColor"] = vc.get("strokeColor", [0, 0, 0])
-    if vc.get("initialFillColor") is None:
-        vc["initialFillColor"] = vc.get("fillColor", [128, 128, 128])
-    # Sensible non-null defaults for the others
+    cfg = layer["config"]
+    vc = cfg.setdefault("visConfig", {})
+    cfg.setdefault("color", [128, 128, 128])     # fill color lives here, not in visConfig
+    vc.setdefault("strokeColor", [0, 0, 0])
     vc.setdefault("opacity", 0.8)
     vc.setdefault("thickness", 1)
+    layer.setdefault("visualChannels", {})        # sibling of config; required even when empty
     return layer
 ```
 
@@ -292,7 +329,7 @@ def normalize_layer_defaults(layer):
 
 Full flow (acquire → dedup → `POST /assets` → reference → fallback) is in [`marker-upload.md`](marker-upload.md). The three rules the renderer translator must apply when `visConfig.customMarkers: true`:
 
-- **`radius` is the rendered icon-size knob, NOT `customMarkerSize`** (schema: `radius` is `[0, 200]` when `customMarkers: true` vs `[0, 100]` for circles). `customMarkerSize` is a legacy mirror current Builder ignores — set both, `radius` as source of truth. Symptom of getting it wrong: `customMarkerSize: 24` renders at ~12 px (the leftover `radius` default).
+- **`radius` is the rendered icon-size knob** (schema: `radius` is `[0, 200]` when `customMarkers: true` vs `[0, 100]` for circles). `customMarkerSize` is not a schema field at all — emitting it validates (passthrough) and sizes nothing, leaving the icon at the leftover `radius` default of ~12 px. Set `radius` and only `radius`.
 - **Multi-color PNGs need BOTH** an uploaded asset id in `customMarkersId` AND `visConfig.filled: false` — kepler's TileLayer applies its `getFillColor` tint only when `filled` is truthy; `filled: true` collapses the icon to one shade. Either alone stays monochromatic. Brand color goes in `strokeColor` (the sidebar chip uses it when fill is off).
 - **Pad non-square PNGs to square** at acquisition time (transparent fill, `max(w,h)`) — the icon layer has a single size knob, so deck.gl squashes a rectangular source. Compute the content-hash AFTER padding. Apply in both `esriPMS` (`imageData`) and `CIMPictureMarker` (`url` data URI) paths; fall back to raw bytes + a `Notes:` if PIL is missing.
 
