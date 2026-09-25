@@ -69,7 +69,7 @@ Full tree required if `config` is included — Kepler's validator is strict.
 "capabilities": { "querySources": false }  // true = SQL + add/remove_source tools
 ```
 
-**Default `querySources` to `false`.** Set it to `true` only when the user asks for the agent to run SQL, and never on a map that is or will be public. Builder refuses that combination, but the API accepts it. When a public map is published, the backend strips the SQL grants from the public agent token, so the agent still offers `execute_query` and every query fails for public viewers.
+**Default `querySources` to `false`.** Set it to `true` only when the user asks for the agent to run SQL, and never on a map that is or will be public.
 
 **On an existing agent, keep `capabilities` as they are.** Any change to `agent.config` (swapping the model, editing instructions) resends the whole block, so copy `capabilities` from `maps get` instead of from the example above. See "Change only the agent's model" in `updates.md`.
 
