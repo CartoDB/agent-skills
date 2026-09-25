@@ -110,6 +110,8 @@ carto maps get <id> --json > /tmp/m.json
 carto maps update <id> /tmp/m.json
 ```
 
+**Reordering layers on an existing map means reordering `config.layerGrouping`**, not just `visState.layers` — Builder writes that tree on every save and it owns the render order (first entry on top). A new layer that isn't added to the tree renders at the bottom. See `references/layers.md` → *"Layer groups"*.
+
 The CLI will refuse a partial `keplerMapConfig` update that would wipe existing content. The rejection names the wipes explicitly:
 
 ```

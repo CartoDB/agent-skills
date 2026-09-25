@@ -225,7 +225,7 @@ The cartographic rule: **layers that cover more pixels go to the bottom; sparse 
 | Index 3 | `h3`, `quadbin`, `heatmapTile`, `clusterTile` | Tiles viewport wall-to-wall at the aggregation level |
 | **Last index** (bottom) | `raster` (basemap-like imagery) | Total coverage |
 
-**`layerOrder` overrides the array order.** When `layerOrder` is missing, Builder uses array-index order. The CLI auto-emits `layerOrder` on create.
+**`layerGrouping` overrides the array order.** When the map has a `config.layerGrouping` tree — every map saved from Builder does — the tree's order is the render order (first entry on top) and a layer missing from it lands at the bottom. Without a tree, Builder uses `visState.layers` order. Don't emit `visState.layerOrder`: Builder reads it as indices, only when no tree exists, and the CLI doesn't fill it in. Full rules: `references/layers.md` → *"Layer groups"*.
 
 **Edge case.** A `tileset` polygon with `filled: false` (outline-only) can sit above fill layers without occluding them.
 

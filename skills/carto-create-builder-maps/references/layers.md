@@ -6,7 +6,7 @@ For cartographic decisions (which layer to pick by data character, which palette
 
 ### Z-order — stack smallest geometry first
 
-Layer stack order matters as much as palette. `visState.layers[0]` renders **on top**; subsequent indices stack below (this is the opposite of standard deck.gl — see `references/cartography.md` §1.8). Author smallest / most-foreground geometry first — points and lines above polygons, polygons above rasters. Same rule for cell-fill renderers: `h3` / `quadbin` / `heatmapTile` / `clusterTile` cells stack at the polygon rank, so points above cells, cells above raster. **Anti-pattern: the borough-polygon-on-top-of-collision-points trap** — the background fill smothers the foreground feature and the map looks empty even though the data is there. When in doubt set `visState.layerOrder` explicitly so the configuration is self-documenting; the CLI also surfaces a *"⚠ Layer order will hide foreground features"* warning pre-flight when it detects wide-on-top-of-narrow stacking without an explicit `layerOrder`.
+Layer stack order matters as much as palette. `visState.layers[0]` renders **on top**; subsequent indices stack below (this is the opposite of standard deck.gl — see `references/cartography.md` §1.8). Author smallest / most-foreground geometry first — points and lines above polygons, polygons above rasters. Same rule for cell-fill renderers: `h3` / `quadbin` / `heatmapTile` / `clusterTile` cells stack at the polygon rank, so points above cells, cells above raster. **Anti-pattern: the borough-polygon-on-top-of-collision-points trap** — the background fill smothers the foreground feature and the map looks empty even though the data is there. **Once the map has a `layerGrouping` tree, the tree owns the stack** — see *"Layer groups"* below; every map saved from Builder carries one. Don't emit `visState.layerOrder`: Builder reads it as indices into `layers` and only when no tree exists, and setting it silences the CLI's *"⚠ Layer order will hide foreground features"* pre-flight warning (which also only checks `visState.layers`, not the tree).
 
 ### Layer × dataset compatibility
 
@@ -566,7 +566,7 @@ Authoritative list: `carto maps schema enums`. Current: `tileset`, `quadbin`, `h
 
 ## Layer groups — collapsible folders in the layer panel
 
-Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups are purely an organisation/visibility convenience in the layer panel — they don't change the data or the geometry. Authoritative shape: `carto maps schema layergrouping`.
+Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups don't change the data or the geometry, but **the tree sets the render order**: layers stack in the tree's flattened order, first entry on top, and that overrides `visState.layers` order. Authoritative shape: `carto maps schema layergrouping`.
 
 **Where it lives.** A single `layerGrouping` array at the **config root** — a sibling of `visState`, *not* inside it, and *not* a property on any layer:
 
@@ -590,11 +590,12 @@ Builder can organise the layer list into named, collapsible **groups** (e.g. "Ba
 
 **The model — read this before authoring:**
 
-- It's a **flat, ordered array** of entries. Each entry is either `{ "type": "layer", "layerId": … }` or `{ "type": "group", … }`. Order is panel order, top to bottom.
+- It's a **flat, ordered array** of entries. Each entry is either `{ "type": "layer", "layerId": … }` or `{ "type": "group", … }`. Order is panel order **and map stacking order**, top to bottom. A group stacks as a block: its `children` render together at the group's position.
 - A layer joins a group by being listed in that group's **`children`** — there is **no `groupId` field on the layer**. Don't add one; it does nothing.
 - **Groups don't nest.** `children` holds layer entries only, never sub-groups.
 - **`layerId` must match a `visState.layers[].id`** (the layer's top-level `id`, *not* its `dataId`/`$ref`). A dangling id is pruned by Builder on load — the validator flags it.
-- **You don't have to list every layer.** Any layer omitted from the tree renders **ungrouped at the top level** — Builder appends it on load. So the minimal change to add one group is: add a single group entry referencing the layers you want folded; leave the rest out.
+- **You don't have to list every layer.** Any layer omitted from the tree renders **ungrouped at the top level** — Builder appends it to the **end** of the tree on load, which is the **bottom of the stack**. Fine for a background layer; for anything that must sit above others, list it explicitly at the right position.
+- **Editing an existing map:** it almost certainly has a tree already (Builder writes one on every save). To restack, reorder the tree entries; to add a layer, insert its `{ "type": "layer" }` entry where it should render. Changing only `visState.layers` order has no visible effect.
 - **`id` per group must be unique**; a layer may appear **once** in the whole tree.
 
 **Group fields:**

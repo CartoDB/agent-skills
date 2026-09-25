@@ -472,12 +472,12 @@ Three layers, two folded into a **"Reference"** group and one left ungrouped at 
 ```
 
 **What this demonstrates:**
-- `layerGrouping` is a **flat, ordered array** at the config root — *not* nested in `visState`, and *not* a field on any layer. Panel order is top-to-bottom: the ungrouped "Stores" layer first, then the folded "Reference" group.
+- `layerGrouping` is a **flat, ordered array** at the config root — *not* nested in `visState`, and *not* a field on any layer. Panel order is top-to-bottom: the ungrouped "Stores" layer first, then the folded "Reference" group. This is also the **map stacking order** (it overrides `visState.layers` order), so stores render above the reference layers; `visState.layers` is kept in the same order so both read the same.
 - The district boundaries use `"lineStyle": "dashed"` + `"dashArray": [4, 4]` — a dashed stroke pushes the reference outlines behind the subject layer (see `cartography.md` §1.2 for when to dash).
 - Layers join the group by appearing in its **`children`** — there's no `groupId` on `L_districts` / `L_roads`.
 - Each `layerId` matches a `visState.layers[].id` (the layer `id`, not the `$ref` dataId). A dangling id would be flagged by the validator and pruned by Builder.
 - `isCollapsed: true` ships the group folded in the panel; `isVisible: true` keeps both reference layers rendering (group visibility ANDs with each layer's own `isVisible`).
-- The "Stores" layer is omitted from any group on purpose — listing it as a top-level `{type:"layer"}` entry just fixes its panel order. Dropping it from the array entirely would still work: Builder appends ungrouped layers on load.
+- The "Stores" layer is omitted from any group on purpose — listing it as a top-level `{type:"layer"}` entry fixes its panel and stacking position. Dropping it from the array would still load, but Builder appends omitted layers to the **end** of the tree — the bottom of the stack — so the stores would render under the districts.
 - **Labels work on vector tileset layers of any geometry.** The polygon "Districts" and line "Major roads" layers both carry an active `textLabel` (`field` set to `name`); the renderer auto-places them at the polygon centroid and line midpoint — no centroid column needed. The **line** layer also sets `visConfig.textLabelUniqueIdField: "name"` so a road spanning multiple tiles gets **one** label instead of one per tile — this control is line-only. Leave `field: null` to keep a layer's labels off. Labels aren't available on h3/quadbin/heatmap or raster layers. See `references/cartography.md` §6.3.
 
 ---
