@@ -64,7 +64,7 @@ jq '.agent = {
   "config": {
     "model": "ac_7xhfwyml::anthropic::claude-opus-4-5",
     "tools": [],
-    "capabilities": {"querySources": true},
+    "capabilities": {"querySources": false},
     "useCase": "Help analysts explore this dataset.",
     "instructions": "# Behavior\nBe concise. Cite column names when summarizing.",
     "introduction": {"welcome":"Hi!","starters":["Top 10 by score","What changed last quarter?"]}
@@ -74,6 +74,24 @@ jq '.agent = {
 carto maps update <map-id> --json < with-agent.json
 ```
 When the configuration declares an agent, the create/update verify step re-fetches the map and surfaces any backend `agent.issues` (`MISSING_MODEL` / `UNAVAILABLE_MODEL` / `UNAVAILABLE_TOOL`) as warnings.
+
+Set `querySources` to `true` only when the user asks for SQL, and never on a public map (see `agent-config.md`).
+
+### Change only the agent's model
+
+Read the current agent, change `model`, send the rest back untouched. Don't rebuild `agent.config` from an example: `capabilities`, `tools`, `instructions` and `introduction` must stay as the user set them.
+
+```sh
+carto maps agents models                       # pick the new model id from this list
+
+carto maps get <map-id> --json \
+  | jq '{agent: (.agent | .config.model = "<model-id-from-the-list>")}' > agent-only.json
+
+carto maps update <map-id> --json < agent-only.json
+carto maps publish <map-id>                    # published agents keep the old model until republished
+```
+
+On MCP, the same rule applies to `update_map`: read the map with `read_maps`, change only `agent.config.model`, and send the agent block back as read.
 
 ---
 

@@ -24,7 +24,7 @@ Full tree required if `config` is included — Kepler's validator is strict.
       "model": "ac_7xhfwyml::anthropic::claude-opus-4-5",
       "tools": [],                                   // workflow UUIDs
       "capabilities": {
-        "querySources": true                         // allow agent to run SQL against datasets
+        "querySources": false                        // true = agent can run SQL; never on public maps
       },
       "useCase": "One-sentence description of what this agent is for.",
       "instructions": "# Context & constraints\n…\n# Behavior\n…\n# Data definition\n…",
@@ -61,13 +61,17 @@ Full tree required if `config` is included — Kepler's validator is strict.
 - **SQL-parameter-gated:** `set_sql_parameter_*` appear only when a matching parameter kind exists.
 - **Workflow-gated:** `async_workflow_job_*` / `add_source_from_workflows` activate only when `config.tools[]` is non-empty.
 
-> **Implication for authoring.** To give the agent a capability, change the *map shape* — not `agent.config`. "Answer 'top 10 by score'" → include a formula or category widget. "Free-form SQL" → `capabilities.querySources: true`. Don't try to enable tools individually.
+> **Implication for authoring.** To give the agent a capability, change the *map shape* — not `agent.config`. "Answer 'top 10 by score'" → include a formula or category widget. "Free-form SQL" → `capabilities.querySources: true`, only when the user asks for it and never on a public map. Don't try to enable tools individually.
 
 ### Capabilities & server-computed fields
 
 ```jsonc
-"capabilities": { "querySources": true }   // SQL + add/remove_source tools
+"capabilities": { "querySources": false }  // true = SQL + add/remove_source tools
 ```
+
+**Default `querySources` to `false`.** Set it to `true` only when the user asks for the agent to run SQL, and never on a map that is or will be public. Builder refuses that combination, but the API accepts it. When a public map is published, the backend strips the SQL grants from the public agent token, so the agent still offers `execute_query` and every query fails for public viewers.
+
+**On an existing agent, keep `capabilities` as they are.** Any change to `agent.config` (swapping the model, editing instructions) resends the whole block, so copy `capabilities` from `maps get` instead of from the example above. See "Change only the agent's model" in `updates.md`.
 
 `maps get --json` strips `agent.token` and `agent.issues` so the output can be piped straight back into `create` / `update`. Don't resend them.
 
