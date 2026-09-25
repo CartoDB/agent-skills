@@ -81,14 +81,17 @@ Trust the source. If `describe` (`explore_data` / `carto connections describe`) 
 
 **H3 vs. quadbin for agent-chosen aggregation:** default to `h3`. Pick `quadbin` only when the surrounding data ecosystem is already quadbin-indexed.
 
-**Resolution when aggregating, rough h3 guide:**
+**Resolution when aggregating — `dataset.aggregationResLevel`.** The valid range is **`[1, 6]` for h3** and **`[1, 9]` for quadbin**; those are the bounds Builder's resolution slider exposes, and a value outside them is rejected. Over-cap bundles are the trap: they may well render, but the user can no longer change the resolution from the panel, so the map is stranded the moment anyone tries to edit it.
+
+Within the h3 range, coarser for wider extents:
 
 | Target zoom / extent | h3 resolution |
 |---|---|
-| Country / continent | 3–4 |
-| Region / state | 5–6 |
-| City / metropolitan | 7–9 |
-| Neighbourhood / street | 10–12 |
+| Country / continent | 1–2 |
+| Region / state | 3–4 |
+| City / metropolitan and finer | 5–6 |
+
+Quadbin has the wider range and is tile-z native — cells shrink as the user zooms — so it is the one to reach for when the map needs finer cells at neighbourhood or street extent.
 
 ### 1.1–1.7 Per-layer capability reference
 
@@ -105,7 +108,7 @@ Given the layer type is fixed, here's what you can style. **Each geometry has in
 
 **Default:** `filled: true, radius: 4`.
 
-**Rule: radius = point diameter; size = stroke.** On points, `sizeField` drives stroke width, not diameter.
+**Rule: `radius` is the point radius; `size` is the stroke.** On points, `sizeField` drives stroke width, not the dot itself.
 
 **No polygon attribution applies to points** — `enable3d`, `heightField`, `wireframe`, `elevationScale` are ignored.
 
@@ -150,7 +153,7 @@ A contrasting stroke is correct when polygons are large and few (countries on a 
 
 **Why hex:** hexagons avoid orientation bias (all neighbours equidistant).
 
-- `colorField` + `colorAggregation` — long-form aggregations (`average`, not `avg`); numeric: `count` / `sum` / `average` / `maximum` / `minimum` / `stdev` / `variance`; string/boolean/date: `mode` / `any_value`. See [`layers.md`](layers.md).
+- `colorField` + `colorAggregation` — long-form aggregations (`average`, not `avg`); numeric (`integer` / `real`): `count` / `sum` / `average` / `maximum` / `minimum` / `stdev` / `variance`; `string`: `mode` / `any_value`. Every other column type — `boolean`, `date`, `timestamp` — cannot be aggregated at all, so don't bind one to an aggregated channel. See [`layers.md`](layers.md).
 - `filled`, `stroked`, `thickness`, `opacity` — same as polygons (§1.3)
 - `enable3d` + `heightField` + `heightAggregation` → volumetric hex
 
@@ -183,7 +186,7 @@ Pick over h3 / quadbin only when narrative reasons outweigh the loss of quantita
 - Suppress the legend — heatmaps are almost always misread quantitatively (§6.1)
 
 **`clusterTile`** — adaptive point clustering.
-- `radius`, `radiusRange`, `clusterRadius`
+- `radiusRange` sets the cluster-marker size band; `clusterLevel` tunes how aggressively cells merge, relative to the tile
 - Cluster size and color can encode separate dimensions (size = count, color = average)
 
 **Opacity:** same design considerations as h3 / quadbin — typical `0.4–0.8`, fit to the layer's role (see §1.4).
@@ -300,10 +303,11 @@ The `colorScale` values to emit — matching what Builder's UI offers:
 | `custom` + `uiCustomScaleType: "logarithmic"` | Logarithmic | Heavy-tailed across 4+ orders of magnitude |
 | `custom` (hand-authored `colorMap`) | Custom thresholds | Domain-specific breakpoints (grades, policy cutoffs, Jenks pre-computed) |
 | `ordinal` | Categorical | String fields, or hexColor mode (§4.7) |
+| `identity` | Pass-through | The column already holds the colour. Requires `colorField.colorColumn` — see §4.7 |
 
-If a configuration read back via `get --json` shows `log`, `sqrt`, `linear`, `identity` on a *color* channel, treat it as legacy — Builder's UI doesn't produce those. They're valid for size / height / radius channels.
+Those five are the whole set for `colorScale` / `strokeColorScale`; anything else is rejected. `log`, `sqrt` and `linear` are continuous scales that belong to the size / height / radius channels — if you see one on a *color* channel in a configuration read back via `get --json`, treat it as legacy.
 
-> **Gotcha: `ordinal` only honours string columns.** If `colorField.type` is `integer` or `real` and `colorScale: "ordinal"`, Builder silently renders `quantize` — the legend shows numeric bins instead of categorical labels. Same for `strokeColorScale` and `sizeScale`. Tier-1 catches this. **Fix:** `CAST(<col> AS STRING)` in source SQL + set `colorField.type: "string"`; or switch to `quantize` with explicit breaks.
+> **Gotcha: `ordinal` is invalid on a numeric column.** If `colorField.type` is `integer`, `real` or `timestamp` and `colorScale: "ordinal"`, Builder treats the field as continuous and silently renders `quantize` — the legend shows numeric bins instead of categorical labels. Same for `strokeColorScale`. Validation catches this. **Fix:** `CAST(<col> AS STRING)` in source SQL + set `colorField.type: "string"`; or switch to `quantize` with explicit `colorRange.colorMap` breaks. (`string`, `boolean` and `date` are categorical and take `ordinal` fine.)
 
 ### 3.2 Pick `colorScale` by distribution shape AND data meaning
 
@@ -311,19 +315,21 @@ If a configuration read back via `get --json` shows `log`, `sqrt`, `linear`, `id
 
 | Data shape | What viewers should read | `colorScale` | Notes |
 |---|---|---|---|
-| **Bounded with semantic landmarks** (0–100 scores, 0–1 ratios, percentages, age bands) | Magnitude on a fixed-meaning scale | **`quantize`** + explicit `visualChannels.colorDomain` set to the scale's natural extent (e.g. `[0, 100]`) | Anchored bins, round-number legend, comparable across viewports. Without `colorDomain`, breaks shift as the user pans |
+| **Bounded with semantic landmarks** (0–100 scores, 0–1 ratios, percentages, age bands) | Magnitude on a fixed-meaning scale | **`custom`** + a `colorRange.colorMap` whose break-points are the scale's natural landmarks (e.g. `20 / 40 / 60 / 80`, last key `null`) | Anchored bins that don't move. Plain `quantize` recomputes its breaks from the data on every load, so they shift as the user pans — pinning them needs `colorMap` |
 | **Skewed long-tail unbounded** where viewers care about *rank* | Rank | `quantile` | Equal-population bins. Don't pick for bounded scores — breaks become arbitrary |
 | **Heavy-tailed across 4+ orders of magnitude** (point density, throughput, financial outliers) | Magnitude on log scale | `custom` + `uiCustomScaleType: "logarithmic"` + log10-spaced `colorMap` | Linear breaks compress the tail; quantile flattens the bulk |
 | **Categorical-looking integers** (severity 1/2/3, tier id, status code) | Discrete categories | `CAST(<col> AS STRING)` + `ordinal` | The integers are labels, not magnitudes |
 
 **Default ladder when in doubt:**
-1. Bounded / has semantic extent → `quantize` + `colorDomain`.
+1. Bounded / has semantic extent → `custom` with a `colorMap` on the landmarks; plain `quantize` if the exact breaks don't matter.
 2. Heavy-tailed across orders of magnitude → `custom` + log10 `colorMap`.
 3. Skewed unbounded, viewers want rank → `quantile`.
 4. Categorical labels disguised as integers → cast to string + `ordinal`.
 5. Stakeholder-agreed breakpoints → `custom` with explicit `colorMap`.
 6. String / native categorical → `ordinal`.
 7. Hex column → `ordinal` + hexColor mode (§4.7).
+
+> **There is no authorable domain.** `visualChannels.colorDomain`, `strokeColorDomain` and `uniqueValuesColorDomain` are rejected — kepler's save writes only field + scale per channel, and vector layers recompute the domain from the data on every load, so a domain written into a bundle never survives. Whenever you need specific values pinned to specific colours — anchored break-points, a fixed legend order, a category that must always be red — the answer is `colorRange.colorMap` with `colorScale: "custom"` (numeric breaks) or `"ordinal"` (text categories). See `layers.md` §"Channel domains are not authorable".
 
 **On CARTO-indexed cell datasets (h3, quadbin, pre-aggregated tilesets):** cell counts are frequently log-normal — prefer the logarithmic option before falling back to quantile.
 
@@ -444,19 +450,20 @@ More than 12 categories is unreadable with any palette. **Collapse to top-N by f
 
 ### 4.6 Custom palettes and borrowing
 
-`colorRange.name` and `category` must match the runtime's registry or the legend breaks. For a one-off palette:
+Nothing resolves the palette *by* its name — the map and the legend both render straight from `colors[]`, so the colours you supply are the colours you get. What `name` does is declare intent, and that is exactly what gets checked: a bundle whose `category` claims CARTOColors but whose `name` is not in the registry is treated as a fabricated palette and rejected, because a name nobody recognises is evidence the colours beside it were invented too.
 
-- Keep `name` pointing to a real CARTO palette (e.g., `Teal`)
-- Replace `colors` with your custom array
-- Optionally set `colorMap` for exact thresholds
-- The runtime renders the colors provided; the legend resolves by name
+So for a one-off palette, **say so** rather than borrowing a real palette's name:
 
-Set `category` only to `CARTO`, `ColorBrewer`, `Uber`, or an account-palette category confirmed to exist.
+- Set `type: "custom"`, **or** `category: "Custom"` — either one marks the range as author-supplied and skips the registry check
+- Put your hex array in `colors[]`, and `colorMap` if you want exact thresholds
+- Give `name` whatever describes the palette. Don't name it after a CARTOColors entry you aren't using — that is the one shape the check exists to catch, and borrowing `Teal` for a Viridis ramp passes validation while leaving a map that claims to be something it isn't
+
+A palette from another real registry keeps its own `category` (`Uber`, `ColorBrewer`, an account-palette category confirmed to exist). That is also a custom-intent signal, so the name is taken at face value and not matched against CARTOColors.
 
 **When to reach for a non-CARTO ramp:**
 
-- Need a **perceptually-uniform** ramp — paste **Viridis** or **Cividis** hex into `colors[]` and keep `name` on a nearest CARTO entry.
-- Stakeholder agreed on a **ColorBrewer** palette — same lineage as CARTO (both from Brewer). Paste hex into `colors[]`; keep `name` on a real CARTO entry.
+- Need a **perceptually-uniform** ramp — paste **Viridis** or **Cividis** hex into `colors[]` with `type: "custom"`.
+- Stakeholder agreed on a **ColorBrewer** palette — same lineage as CARTO (both from Brewer). Paste the hex into `colors[]` and set `category: "ColorBrewer"`.
 
 Don't invent palettes ad-hoc — luminance ordering, colorblind safety, and print legibility all need checking.
 
@@ -489,7 +496,7 @@ When the dataset carries its own hex column (or a SQL query projects one), the r
 }
 ```
 
-`colorScale` stays `ordinal`. The legend pairs each unique `name` with its `colorColumn` value via `GROUP BY name, colorColumn`.
+`colorScale` stays `ordinal`; the SDK switches the accessor to the `identity` pass-through on its own once it sees `colorColumn`, which is why `identity` is also a legal value on the channel (§3.1). The legend pairs each unique `name` with its `colorColumn` value via `GROUP BY name, colorColumn`.
 
 **Use when:** domain-required colors (brand, regulatory), dataset author has already done the cartography upstream, many categories (>12) where a palette would cycle meaninglessly.
 
@@ -519,7 +526,7 @@ Real-world high-zoom context (delivery, indoor, ops)
 
 **Default when in doubt: `positron`.** Neutral, doesn't fight the data, works with every palette family.
 
-**Layer-group toggles** (`basemapConfig.visibleLayerGroups`, mirror in `mapStyle.visibleLayerGroups`): clean thematic view → off: `road`, `border`, `label`; on: `land`, `water`, `building`. Reference map → keep everything on. Print → off `building` at low zoom, off `label` when the thematic layer carries text.
+**Layer-group toggles** (`basemapConfig.visibleLayerGroups`, mirror in `mapStyle.visibleLayerGroups`): clean thematic view → off: `road`, `border`, `label`; on: `land`, `water`, `building`. Reference map → keep everything on. Print → off `building` at low zoom, off `label` when the thematic layer carries text. **Always write all six keys** — an omitted key reads as `false` and hides that group, so a partial record is not "accept the defaults" (see [`basemap.md`](basemap.md)).
 
 ---
 
@@ -533,7 +540,7 @@ Auto-generated per layer unless suppressed. Type inferred from `colorScale`:
 - `ordinal` → categorical
 - `custom` + `logarithmic` → binned with exponential labels
 
-**When to suppress** (`config.legend.isHidden: true`):
+**When to suppress** (`legendSettings.layers[<layerId>].active: false`, at the config root — there is no per-layer legend flag inside `layer.config`):
 - Reference backdrop layer (light gray admin polygons under points).
 - Two layers encode the same measure (suppress the duplicate).
 - An external widget already shows the distribution.
@@ -546,7 +553,7 @@ Auto-generated per layer unless suppressed. Type inferred from `colorScale`:
 |---|---|
 | `custom` (categorical `colorMap`) | The order of entries IS the legend order — author intentionally |
 | `custom` (numeric breaks) | Ascending key order — emit sorted |
-| `ordinal` | Set `visualChannels.colorDomain: [...]` explicitly. If absent, Builder derives from data (non-deterministic for CLI maps) |
+| `ordinal` | Set `colorRange.colorMap` explicitly — its entry order is the legend order. If absent, Builder derives the categories from the data (non-deterministic for programmatically-authored maps) |
 | `quantize` / `quantile` | Always low→high; not author-controllable except via class count |
 
 ### 6.2 Popup (hover + click)
@@ -705,7 +712,7 @@ Three archetypal recipes. Every field name is real. Widget composition is out of
 - Data: point source, ~2M rows, no pre-aggregation.
 - Layer: **agent choice** (§1.0) — aggregate to `h3` (density question, quantitative reading wanted).
 - Aggregation: `colorAggregation: "count"`.
-- Resolution: h3 res 8 (city scale).
+- Resolution: h3 res 6 (the finest the range allows; quadbin if finer cells are needed).
 - Classification: `custom` + log10 if counts span 4+ orders, else `quantile`.
 - Channel: `colorField` on cell count.
 - Classes: 5.
@@ -739,11 +746,12 @@ Walk this list before emit. If any answer is *"no"* or *"unsure"*, fix it or not
 - [ ] For point sources, aggregation defaults to `h3` over `heatmapTile` / `clusterTile` when quantitative reading matters (§1.0).
 - [ ] Primary channel is color unless there's a specific reason otherwise (§2.1).
 - [ ] Attribution matches the geometry — point fields on points, line on lines, polygon on polygons (§1.1–§1.3).
-- [ ] Scale type matches data shape AND meaning: `quantize` + `colorDomain` for bounded with semantic landmarks; `custom` + log10 for heavy-tailed; `quantile` only for skewed-unbounded where viewers want rank; cast-to-STRING + `ordinal` for categorical-looking integers; `custom` colorMap for stakeholder-agreed breaks (§3.2). **`quantile` is NOT the safe default.**
+- [ ] Scale type matches data shape AND meaning: `custom` + `colorMap` on the landmarks for bounded scales; `custom` + log10 for heavy-tailed; `quantile` only for skewed-unbounded where viewers want rank; cast-to-STRING + `ordinal` for categorical-looking integers; `custom` colorMap for stakeholder-agreed breaks (§3.2). **`quantile` is NOT the safe default.**
+- [ ] No `colorDomain` / `strokeColorDomain` / `uniqueValuesColorDomain` anywhere in `visualChannels` — they are rejected; pin values with `colorRange.colorMap` instead (§3.2).
 - [ ] **Palette family matches measure character.** Sequential for magnitude, diverging for signed, qualitative for categorical (§4). String columns → qualitative (§7.8). If uncertain on the specific palette: `Teal` (sequential), `Temps` / `Geyser` (diverging), `Bold` / `Safe` (qualitative) — see §4.2 defaults.
 - [ ] Palette is a fresh fit per map — not a reflex from the prior session (§7.10).
 - [ ] Palette is colorblind-safe if audience is public or unknown (§4.1).
-- [ ] Palette is named exactly as the runtime knows it, or built via the borrow pattern (§4.6).
+- [ ] Palette is named exactly as the runtime knows it, or marked `type: "custom"` / `category: "Custom"` if the colours are your own (§4.6).
 - [ ] Basemap pairs with palette luminance (§4.4, §5).
 - [ ] Class count is 3–7, default 5 (§3.4).
 - [ ] 3D extrusion only on supported layers (polygon, h3, quadbin); default to counts/totals; if extruding a rate, label the legend unambiguously so the height isn't read as quantity (§7.3).
