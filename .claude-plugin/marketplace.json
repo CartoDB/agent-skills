@@ -47,7 +47,8 @@
         "./skills/carto-territory-planning",
         "./skills/carto-routing-od-analysis",
         "./skills/carto-geocoding",
-        "./skills/carto-composite-scoring"
+        "./skills/carto-composite-scoring",
+        "./skills/carto-raster-algebra"
       ]
     }
   ]
