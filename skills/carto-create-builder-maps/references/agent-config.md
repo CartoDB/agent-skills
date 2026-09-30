@@ -12,9 +12,9 @@ carto maps agents status      # → { enabled, defaultModel, provider config }
 
 If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this organization and skip. Create/update also soft-strips an `agent` block and warns if it's present on an AI-disabled organization, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
 
-**You don't have to pick the model.** Omit `agent.config.model` and the CLI auto-fills it with the organization's `defaultModel` from `/settings/carto-ai` (emits a `→ Using organization default model for agent: …` log). Only set `agent.config.model` explicitly when the user asks for a specific provider or model — then `maps agents models` is the catalogue to pick from. If the organization has neither AI enabled nor a `defaultModel`, the CLI surfaces the missing-model error at Tier-1 so you can act.
+**`agent.config.model` is required.** A `config` without it is rejected — there is no fallback to the organization's `defaultModel` at authoring time. Look an id up rather than composing one: `maps agents models` is the catalogue of what this organization accepts. If the organization has neither AI enabled nor a `defaultModel`, that surfaces here too, so you can act.
 
-Full tree required if `config` is included — Kepler's validator is strict.
+If `config` is included, `model`, `capabilities` and `introduction` are all required — each missing one is its own rejection.
 
 ```jsonc
 {
@@ -40,9 +40,11 @@ Full tree required if `config` is included — Kepler's validator is strict.
 }
 ```
 
+> **Length limits on the agent block.** `config.useCase` ≤ 500 characters; `config.introduction.welcome` ≤ 300; `config.introduction.starters` ≤ 4 entries, each ≤ 100 characters. Exceeding any of them is a rejection, not a warning — Builder's agent dialog refuses or truncates past these, so a longer bundle saves a map that cannot be rebuilt from the UI. Keep `useCase` to one sentence and move detail into `instructions`, which has no cap.
+
 ### Model string grammar
 
-`<source>::<provider>::<model>`. `source` is `carto` for CARTO-managed models or `ac_xxxxxxxx` (organization account id) for "bring your own key" entries. `provider` is `anthropic` / `openai` / `gemini` / `vertex` / `bedrock` / `azure` / etc. Discover what's enabled on this organization: `carto maps agents models` (pretty) or `--json` (structured). Only strings from that list pass server-side validation — anything else silently falls back to the organization default and surfaces as `agent.issues[]`.
+Two id forms are current side by side: **`carto::<model>`** — two parts — for CARTO-hosted models, and **`<account-id>::<provider>::<model>`** — three parts — for "bring your own key" entries, where `<account-id>` is the organization account id (`ac_xxxxxxxx`) and `<provider>` is `anthropic` / `openai` / `gemini` / `vertex` / `bedrock` / `azure` / etc. **Don't compose an id from the parts** — the shape alone doesn't tell you what a tenant accepts. Discover what's enabled on this organization: `carto maps agents models` (pretty) or `--json` (structured). Only strings from that list pass server-side validation — anything else silently falls back to the organization default and surfaces as `agent.issues[]`.
 
 ### Tools — `config.tools[]` is **MCP UUIDs only**
 

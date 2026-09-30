@@ -6,7 +6,7 @@ license: MIT
 
 # carto-create-builder-maps
 
-CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate the map estate. It also covers **cross-profile copy** (`dev → prod` promotion, customer-segregated org delivery via `carto maps copy` / `maps clone`) — see the *Promote / copy across orgs* references below.
+CARTO Builder is a mapping tool that renders interactive maps from a JSON map configuration. This skill covers the full authoring lifecycle: create from natural language, edit datasets / layers / widgets / popups / privacy, publish snapshots for shared viewers, validate offline, and operate the map estate. It also covers **cross-profile copy** (`dev → prod` promotion, customer-segregated org delivery via `carto maps copy`) — see the *Promote / copy across orgs* references below.
 
 > **Access-path routing.** The phases, cartographic rules, and configuration guidance below are path-agnostic — the JSON you compose is identical either way. Only the transport differs:
 >
@@ -19,9 +19,9 @@ CARTO Builder is a mapping tool that renders interactive maps from a JSON map co
 > | Preview inline (MCP-Apps hosts only) | `view_map` (mapId) — see [`carto-preview-builder-map`](../carto-preview-builder-map) | — (CLI can't render inline; use `screenshot` for a PNG) |
 > | Inspect a dataset | `explore_data` (describe) | `carto connections describe` |
 > | SQL probe | `execute_query` | `carto sql query` |
-> | Import a file first | `import_data` (submit \| status) | `carto imports create` |
+> | Import a file first | `import_data` (submit \| status) | `carto import` |
 >
-> **CLI-only — no MCP equivalent:** `carto maps schema` (field/enum/palette catalogues), `carto maps agents *` (AI surfaces), `carto maps screenshot` (PNG render), `carto maps copy` / `clone` (cross-profile promotion), `carto maps markers` (custom-icon upload). Reach for the CLI for these, for scripted/bulk authoring, and whenever the server isn't attached.
+> **CLI-only — no MCP equivalent:** `carto maps schema` (field/enum/palette catalogues), `carto maps agents *` (AI surfaces), `carto maps screenshot` (PNG render), `carto maps copy` (cross-profile promotion, and same-org duplication). Reach for the CLI for these, for scripted/bulk authoring, and whenever the server isn't attached.
 >
 > **Token vs OAuth.** Over an API token the MCP session exposes a read/discovery subset only (`validate_map`, `view_map`, `explore_data`, `execute_query` remain; `create_map` / `update_map` / `delete` are hidden) — author over the CLI, or reconnect over OAuth. On sandboxed chat hosts (Claude.ai, ChatGPT) the CLI can't run at all — MCP is the only live path there. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
@@ -49,7 +49,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 - [`references/troubleshooting.md`](references/troubleshooting.md) — symptom → fix table, antipatterns to avoid emitting, escape-hatches when stuck, visual verification via `carto maps screenshot`.
 
 **Promote / copy across orgs — read when migrating maps between profiles**
-- [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `maps copy` and `maps clone` mechanics, connection mapping (`--connection-mapping` / `--connection`), `--skip-source-validation`, what transfers vs. what doesn't.
+- [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `maps copy` mechanics, connection mapping (`--connection-mapping` / `--connection`), `--skip-source-validation`, what transfers vs. what doesn't.
 - [`references/agent-migration-caveats.md`](references/agent-migration-caveats.md) — `UNAVAILABLE_MODEL` / `UNAVAILABLE_TOOL` issues after copying a map with an AI agent, why the CLI can't auto-fix them, the manual Builder steps.
 - [`references/post-copy-validation.md`](references/post-copy-validation.md) — confirm the destination map renders correctly: datasets, connections, agent issues, destination URL construction.
 
@@ -66,7 +66,7 @@ This phase is a **gate, not a suggestion**. But the order matters: **the data is
 #### Sequence
 
 1. **Goal — one line.** *"What's the map about, and what's the takeaway?"* Don't proceed without an answer; *"just make a map of X"* is fine if X is specific.
-2. **Data hint — one line.** *"Where's the data — a table you already have, a demo dataset, or a file to import?"* Resolve to a concrete table FQN before moving on. Demo data: search `carto-demo-data.demo_tables` by topic. File: run `import_data` (MCP) / `carto imports create` (CLI) first.
+2. **Data hint — one line.** *"Where's the data — a table you already have, a demo dataset, or a file to import?"* Resolve to a concrete table FQN before moving on. Demo data: search `carto-demo-data.demo_tables` by topic. File: run `import_data` (MCP) / `carto import` (CLI) first.
 3. **SILENT data inspection.** Before asking anything else:
    - `explore_data describe` / `carto connections describe <conn> <table>` → schema, row count, geom type (point / line / polygon / h3 / quadbin / raster).
    - `execute_query` / `carto sql query` for: NULL ratios on candidate `colorField` columns, min/max/p50/p95/p99 on numeric columns relevant to the goal, `COUNT(DISTINCT ...)` on candidate categorical columns to detect cardinality traps, date range on temporal columns.
@@ -150,12 +150,12 @@ When asking the Phase 1 intake questions (and on every follow-up turn), **stay i
 
 - **Access** — confirm MCP map tools are present (or `carto auth status` on the CLI) before the first API-touching command.
 - **Connection UUID + FQN syntax** — once the user names the table, resolve with `explore_data` (`list_connections` / `describe`) or `carto connections list` / `describe`. Don't ask the user to hand-type `project.dataset.table`.
-- **Imports — when the user has a file, not a table** — if the user offers a path / URL to a geospatial file (CSV / GeoJSON / GeoPackage / GeoParquet / KML / KMZ / Shapefile-zip, ≤ 1GB), land it as a warehouse table FIRST via `import_data` (MCP) / `carto imports create --file <path>` (or `--url <url>`) `--connection <name> --destination <fqn>` (CLI), then build the map on the imported table. Defaults: pick a connection (prefer the user's primary CARTO Data Warehouse if present), pick a sensible destination FQN that mirrors the file's basename. Waits for completion by default; background only a multi-GB load (`--async` / `import_data` status polling). Don't ask the user to convert formats — the importer handles all 7.
+- **Imports — when the user has a file, not a table** — if the user offers a path / URL to a geospatial file (CSV / GeoJSON / GeoPackage / GeoParquet / KML / KMZ / Shapefile-zip, ≤ 1GB), land it as a warehouse table FIRST via `import_data` (MCP) / `carto import --file <path>` (or `--url <url>`) `--connection <name> --destination <fqn>` (CLI), then build the map on the imported table. Defaults: pick a connection (prefer the user's primary CARTO Data Warehouse if present), pick a sensible destination FQN that mirrors the file's basename. Waits for completion by default; background only a multi-GB load (`--async` / `import_data` status polling). Don't ask the user to convert formats — the importer handles all 7.
 - **Layer type** — infer from dataset shape:
   - line / polygon source → `tileset`.
   - point source, sparse / feature-level (find-this-store, click-to-zoom) → `tileset`.
   - **point source, dense / large (the typical aggregation case) → aggregate to `h3` or `quadbin`** (h3 = hex aesthetic, quadbin = square + zoom-adaptive cell size). This is the right default for "where does X cluster?" / "density of Y" questions on a large point table — quantitative reading, comparable across viewports, no per-row render budget pressure.
-  - pre-indexed h3 / quadbin source → `h3` / `quadbin` directly (no aggregationExp needed).
+  - pre-indexed h3 / quadbin source → `h3` / `quadbin` directly. Still set `aggregationExp` on the dataset: only `dataset.type: "tileset"` is excused from it, and a pre-indexed `table` / `query` is not. See [`configuration-shape.md`](references/configuration-shape.md) *"Spatial indexes (H3, quadbin)"*.
   - band-stored raster → `raster`.
   - **`heatmapTile` and `clusterTile` are NOT silent defaults** — pick them only when the user explicitly asks for *"a heatmap"* / *"clustered points"*, OR when the narrative is specifically pattern-without-numbers (`heatmapTile`) or numbered-bubbles-with-zoom-to-individual (`clusterTile`). For everything else where the data is dense points, default to `h3` / `quadbin` aggregation — they preserve quantitative reading while heatmap blurs it and cluster turns it into bubble counts.
 
@@ -184,11 +184,16 @@ Don't offer them proactively, don't list them in *"what else can I do?"* unless 
 | `collaborative` | User asks for other org members to edit, not just view. |
 | Custom palette / 3D / custom markers | User asks for specific styling, or the default looks wrong. |
 
-### Layer stack order is inverted — set `layerOrder` explicitly
+### Layer stack order is inverted — and `layerGrouping` owns it once present
 
 `visState.layers[0]` renders **on top**, the opposite of standard deck.gl. Author the most-foreground geometry first: points and lines above polygons, polygons above `h3` / `quadbin` / `heatmapTile` / `clusterTile` cells, cells above raster. The classic failure is a background polygon smothering the features underneath it, so the map reads as empty even though every dataset loaded fine.
 
-Emit `visState.layerOrder` (array of layer ids, index 0 on top) on every multi-layer map, so stacking is a stated intent rather than a side effect of array position. The CLI warns pre-flight when it spots wide-on-top-of-narrow stacking, but it only recognises certain geometry pairs — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
+What sets the stack depends on the map:
+
+- **`config.layerGrouping` present** (every map saved from Builder has one): the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
+- **No `layerGrouping`** (a fresh bundle): `visState.layers` order is the render order.
+
+Keep `visState.layers` in the same order as the tree so both read the same. **Don't emit `visState.layerOrder`.** Builder reads it as layer *indices* (not ids), only when there is no tree, and its presence switches off the CLI's pre-flight stacking warning. That warning only recognises certain geometry pairs and doesn't look at `layerGrouping` — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
 
 ### Validate before you write
 

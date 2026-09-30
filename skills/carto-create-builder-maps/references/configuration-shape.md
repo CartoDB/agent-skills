@@ -27,7 +27,7 @@ The annotated tree below shows every top-level field the map API accepts, plus p
       "connectionId": "uuid-from-connections-list",
       "geoColumn": "geom",           // or "h3:h3" / "quadbin:quadbin" (pre-indexed) or "h3:geom" / "quadbin:geom" (dynamic binning)
       "columns": ["geom"],           // columns to fetch for rendering
-      "format": "tilejson",          // `tilejson` for table/query/tileset, `raster` for raster. Legacy values (json/geojson/table/binary).
+      "format": "tilejson",          // `tilejson` for table/query/tileset, `raster` for raster. Optional — derived from `type` when omitted.
       "label": "NYC Collisions"
     }
   ],
@@ -53,9 +53,8 @@ The annotated tree below shows every top-level field the map API accepts, plus p
       // (`references/sql-parameters.md`); they re-run the query rather than filtering
       // already-fetched rows.
       "spatialFilter": null,
-      // Split-map mode (optional). See *"Split-map mode"* section below — both
-      // `mapState.isSplit` and `visState.splitMaps` must agree, and every layer
-      // id in `visState.layers[]` must appear in BOTH side-entries' layer maps.
+      // Split-map mode (optional). See *"Split-map mode"* section below —
+      // `visState.splitMaps` is the whole of it: two entries turn the split on.
       // Layer groups (optional). Collapsible folders for the layer panel — a flat,
       // ordered array of {type:"layer",layerId} / {type:"group",…,children} entries.
       // Sibling of visState (NOT inside it); layers join a group via the group's
@@ -71,10 +70,20 @@ The annotated tree below shows every top-level field the map API accepts, plus p
   },
 
   // Privacy — CLI-level; maps to POST /maps/:id/privacy behind the scenes.
+  // Two accepted forms; send ONE, not both.
+  // Preferred — explicit per-grantee policies:
   "privacy": {
-    "privacy": "private",            // private | shared | public
-    "sharingScope": "organization"   // organization | specific (with sharing lists)
+    "policies": [                    // {type:"organization"} | {type:"public"}
+      { "type": "user", "id": "<user-id>" },    // {type:"user"|"group"} need an id
+      { "type": "group", "id": "<group-id>" }
+    ],
+    "publicPassword": null           // set a string to password-protect a public map
   }
+  // Legacy form, still accepted:
+  // "privacy": {
+  //   "privacy": "private",         // private | shared | public
+  //   "sharingScope": "organization" // organization | specific (with userIds / groupIds)
+  // }
 }
 ```
 
@@ -86,13 +95,10 @@ Fields that are **server-computed and auto-stripped** by `maps get --json` so th
 
 Builder's **split-map** view shows the same map in two side-by-side viewports with different per-side layer visibility — useful for before/after comparisons (year vs year, scenario vs scenario) where filtering rebinds the data and you want both states visible simultaneously.
 
-State lives in **two coordinated places** under `keplerMapConfig.config`:
+State lives in **one place** under `keplerMapConfig.config` — `visState.splitMaps`:
 
 ```jsonc
 {
-  "mapState": {
-    "isSplit": true                    // viewport flag — must mirror splitMaps.length > 1
-  },
   "visState": {
     "layers": [
       { "id": "L_2020", /* ... */ },
@@ -106,15 +112,14 @@ State lives in **two coordinated places** under `keplerMapConfig.config`:
 }
 ```
 
-**Authoring rules** — the CLI surfaces validation issues for each:
+**Authoring rules:**
 
-1. **`splitMaps.length === 2` ⇒ split active.** Length 0 / 1 / absent ⇒ single-pane.
-2. **Every `visState.layers[].id` MUST appear in BOTH side-entries** as a key. Layers not listed render on neither side (silently hidden).
-3. **All keys in `splitMaps[i].layers` MUST match an existing layer id.** Unknown ids are dropped by Builder; the side renders without that toggle.
-4. **Values are booleans.** `true` ⇒ visible on this side. Strings / numbers fail validation.
-5. **`mapState.isSplit` MUST equal `splitMaps.length > 1`.** Desyncs put the toolbar and the layout in disagreement (toolbar says split, layout single-pane, or vice versa).
+1. **`splitMaps.length === 2` ⇒ split active.** Length 0 / 1 / absent ⇒ single-pane. Every reader derives the split from the length alone — there is no companion flag to keep in sync. `mapState.isSplit` rides along in most stored maps, but nothing reads it and a Builder save drops it; don't author it.
+2. **At most two panes.** A third and beyond are dropped silently, so a longer array is rejected on the way in. `[0]` = left/top, `[1]` = right/bottom.
+3. **Each entry is `{ "layers": { "<layerId>": <value> } }`.** The `layers` map is required — a nullish one throws on load.
+4. **Write booleans, and list every layer on both sides.** Neither is enforced: kepler backfills a layer omitted from a side, ignores a key that matches no layer, and reads the values by truthiness. Doing it properly keeps the file readable and states the intent; it is not what stands between you and a broken render.
 
-**Round-trip behaviour.** `carto maps get <id> --json` preserves `splitMaps` faithfully. `carto maps create` / `update` accept it as long as the rules above hold; the CLI's pre-flight validation flags drift before the API call.
+**Round-trip behaviour.** `carto maps get <id> --json` preserves `splitMaps` faithfully, and `carto maps create` / `update` accept it.
 
 **When NOT to author split-map mode:**
 - Single-layer maps (split with one layer is a UI no-op).
@@ -181,20 +186,22 @@ Works against any warehouse CARTO connects to — BigQuery, Snowflake, Redshift,
 
 ### `format` values
 
-The backend enum still carries six values — `json | table | geojson | binary | tilejson | raster` — for backwards compatibility with maps created before the move to dynamic tiling. **Only two of them are authored by modern Builder today**:
+A *response* can still carry six values — `json | table | geojson | binary | tilejson | raster` — from maps created before the move to dynamic tiling. **Only two of them are authorable**, and each `type` has exactly one:
 
-| dataset.type | `format` to emit | Notes |
+| dataset.type | `format` | Notes |
 |---|---|---|
 | `table` | `tilejson` | Dynamic tiling — Builder writes this for every new table dataset. |
 | `query` | `tilejson` | Same — tiles are generated from the SQL result. |
 | `tileset` | `tilejson` | Pre-built CARTO tileset. |
 | `raster` | `raster` | Always. Mismatches (e.g. `raster` + `tilejson`) are tolerated by the API but produce undefined tile-server behaviour. |
 
+Because the mapping is one-to-one, **`format` is optional on the way in: omit it and it's derived from `type`**. Writing it explicitly is fine and the examples do; what you must not do is write a value that disagrees with the table.
+
 **Rule for agents authoring new datasets: `tilejson` or `raster`. Nothing else.** Builder's own frontend enum doesn't even include `table` or `binary`, and it writes only `TILEJSON` / `RASTER` for new datasets. `json` is the backend's document-mode path (loaded via the SQL API for legacy maps) and was migrated out when Builder moved to dynamic tiling. `geojson`, `binary`, and `table` are similarly vestigial.
 
-**Editing legacy maps**: if `maps get --json` returns a dataset with a legacy `format`, pass it through unchanged on update — stripping or changing it would break the existing map. Only create *new* datasets with `tilejson` / `raster`.
+**Editing legacy maps**: the four legacy formats are **rejected on create and update** — you cannot pass one back through, and rewriting it to `tilejson` yourself doesn't fix the map either. A stored legacy format is not fixable from a bundle: the map's owner has to open it once in Builder's *editor*, which migrates the dataset and saves it (viewer and public mode migrate nothing). When you hit one, report that to the user rather than editing the value.
 
-**Why the Tier-1 validator still accepts the legacy values**: so legacy maps still survive `get | update` without manual fix-up. The corresponding legacy *layer* types (`point`, `geojson`, `line`, `s2`, `hexagonId`, `grid`, `hexagon`, `heatmap`, `cluster`, `trip`) are rejected on create/update because Builder migrated them to `unknown` during the document-mode-to-dynamic-tiling move.
+The legacy *layer* types (`point`, `geojson`, `line`, `s2`, `hexagonId`, `grid`, `hexagon`, `heatmap`, `cluster`, `trip`) are rejected the same way, and for the same reason — opening the map in Builder's editor migrates the layer and its dataset together.
 
 ### `type: "tileset"` — a pre-built CARTO tileset
 
@@ -250,18 +257,22 @@ The warehouse column holds an index integer, and `geoColumn` uses a prefix:
 - `h3:<colname>` → H3 cell index in `<colname>`. Canonical pre-indexed form is `h3:h3`; for dynamic binning from a raw geometry column, pass the raw column name (typically `h3:geom`).
 - `quadbin:<colname>` → quadbin index in `<colname>`. Canonical pre-indexed form is `quadbin:quadbin`; for dynamic binning, pass the raw column name (typically `quadbin:geom`).
 
-**`aggregationExp` / `aggregationResLevel`** are required for **dynamically-binned** spatial-index datasets (`type: "query"` / `"table"` with a `h3:` / `quadbin:` geoColumn prefix) and must be consistent with the layer type below. They are **NOT required** — and not used — when `dataset.type === "tileset"` and the tileset is pre-indexed (the tileset metadata carries the binning). Tier-1 skips the check in that case.
+**`aggregationExp`** is required on any dataset an `h3` / `quadbin` / `heatmapTile` / `clusterTile` layer reads, and must be consistent with the layer type below. Two forms count as an answer: an expression, or an explicit `null` to render the raw cell values. **Omitting the key is the failure** — the client then substitutes an aggregation expression nobody asked for. The exemption is the dataset *type*, not whether the column is pre-indexed: only `dataset.type === "tileset"` is excused (the tileset metadata carries the binning). A `table` or `query` dataset still needs `aggregationExp` even when its `geoColumn` points at an already-indexed `h3:h3` / `quadbin:quadbin` column.
+
+**`aggregationResLevel`** is optional — plenty of Builder-authored spatial-index maps carry none and render fine, because the client falls back to its own level. That fallback is not the level Builder starts from, so set it whenever the resolution matters.
 
 > **Dynamic H3 / quadbin binning requires POINT geometries.** The tile server's dynamic-binning path internally calls `H3_FROMGEOGPOINT` / `QUADBIN_FROMGEOGPOINT`, which reject any non-POINT input (polygons, lines). When the source is polygons, Builder rejects the tilejson with a misleading `"Aggregation resolution level can't be greater than the resolution of the spatial indexes in the table"` error that blames the wrong thing — an LLM reading it obediently tries lowering `aggregationResLevel` and the error stays. The real fix is either **(a)** wrap the source SQL with `ST_CENTROID(<col>)` — `SELECT ST_CENTROID(geom) AS geom FROM ...` — or **(b)** pre-compute the spatial index upstream: `SELECT H3_FROMGEOGPOINT(ST_CENTROID(geom), <res>) AS h3, COUNT(*) ... GROUP BY h3` + `geoColumn: "h3:h3"`. Tier-1 catches this when the configuration declares a non-POINT `dataset.geomType`; when the hint is absent, the `verifyRender` step translates the misleading tile-server error into a message that names the POINT constraint and the workarounds.
 
-### Ref syntax — how `dataId` / `dataSource` / `sqlParameters[].dataSources[].id` point at a dataset
+### Ref syntax — how `dataId` / `dataSource` point at a dataset
 
-Two forms, nothing else:
+These two are the references that decide what renders: `layer.config.dataId` and `widget.dataSource`. Two forms, nothing else:
 
-- `"$ref:<name>"` — declare the name once on the dataset (`"$ref": "<name>"`) and reference it from layers / widgets / SQL parameters.
-- A real dataset UUID — when you're editing a map that already exists and you know the id (typically via `maps get --json`).
+- `"$ref:<name>"` — declare the name once on the dataset (`"$ref": "<name>"`) and reference it from layers and widgets. **This is the only form that works on create**: the server assigns the real dataset ids, and the `$ref:` reference is what gets substituted for them before the config is sent. A layer whose `dataId` is a bare name the server never assigned ends up pointing at no dataset at all — Kepler drops the layer and the map opens missing it, with no error anywhere.
+- A real dataset UUID — only when you're editing a map that already exists and you read the id off it (typically via `maps get --json`).
 
-There is **no `@name` or `#name` shorthand**. Tier-1 validation rejects unresolved refs and dangling ids loudly — if you see `UNRESOLVED_REF` or `Dangling data reference`, the typo is your cue.
+A dataset's `$ref` and its `id` are mutually exclusive: `$ref` says "create this one", `id` says "update that one". There is **no `@name` or `#name` shorthand**. Tier-1 validation rejects unresolved refs, bare-name `dataId`s on create, and dangling ids loudly — if you see `UNRESOLVED_REF` or `Dangling data reference`, the typo is your cue.
+
+**SQL parameters are not in this list.** A `sqlParameters[]` entry holds no reference to a dataset that you author: the binding is the `{{placeholder}}` in `dataset.source`, matched by `sqlName` (see [`sql-parameters.md`](sql-parameters.md)). You will still see a `dataSources[]` array on parameters read back from an existing map — it is a cache of "which datasets use this parameter" that Builder rebuilds from the live datasets on every read, matching on the query template rather than on the stored ids. Preserve it on a round-trip if it is there, don't write it on a new map, and don't read it as the thing that wires the parameter up: a stale entry decides nothing.
 
 ---
 
@@ -274,20 +285,22 @@ Every dataset sits at the intersection of three things: the **warehouse** (via `
 
 Full per-field reference: `carto maps schema dataset`. Key ones:
 
-- `connectionId`, `source`, `type`, `format` are required.
+- `connectionId`, `source` and `type` are required on every NEW dataset (one carrying `$ref` rather than a server-assigned `id`). `format` is optional — derived from `type`.
 - `geoColumn` uses the `h3:<col>` / `quadbin:<col>` prefix pattern to mark spatial indexes.
-- `aggregationExp` + `aggregationResLevel` are required for h3/quadbin datasets **when the dataset is `table` or `query`** (dynamic binning). For pre-indexed tilesets (`dataset.type: "tileset"`), the binning is baked into the tileset metadata — don't set these fields, the CLI doesn't require them, and the tile server ignores anything you pass.
+- `aggregationExp` is required for h3/quadbin datasets **when the dataset is `table` or `query`** (dynamic binning) — see the rule above for the `null` form. `aggregationResLevel` is optional, but set it when the resolution matters. For pre-indexed tilesets (`dataset.type: "tileset"`), the binning is baked into the tileset metadata — don't set these fields, and the tile server ignores anything you pass.
 - `queryTemplate` + `queryParameters` turn on the SQL-parameters flow (see [`sql-parameters.md`](sql-parameters.md)).
 - `uniqueIdProperty` enables cross-tile feature highlighting.
 
-### Dataset type × layer type matrix (always `format: "tilejson"`)
+### Dataset type × layer type matrix
 
 | Dataset `type` | Compatible layer types |
 |---|---|
-| `table` | `tileset` (any geom), `h3` (if `geoColumn: "h3:…"`), `quadbin` |
-| `query` | `tileset`, `h3`, `quadbin`, `heatmapTile` |
+| `table` | `tileset` (any geom), plus `h3` / `quadbin` / `heatmapTile` / `clusterTile` when `geoColumn` carries the matching prefix |
+| `query` | same as `table` |
 | `tileset` | `tileset` only (it's pre-tiled by the provider) |
-| `raster` | `quadbin` (raster sources aggregate into quadbin cells) |
+| `raster` | `raster`, or `quadbin` when the source is binned into quadbin cells |
+
+What actually gates the aggregating layer types is the `geoColumn` prefix, not the dataset `type`: `h3` needs an `h3:` column, and `quadbin` / `heatmapTile` / `clusterTile` all need a `quadbin:` one (the last two use quadbin under the hood). `format` follows `type`, per the table above — it is `tilejson` everywhere except `raster`.
 
 ### `columns` — what to ask the warehouse for
 
@@ -304,7 +317,7 @@ For `tileset`-type datasets, `columns: null` means "let the tileset's own schema
 
 ### Workflow-sourced datasets
 
-Datasets produced by the "Create map from workflow node" command carry two provenance fields: `sourceWorkflowId` and `sourceWorkflowNodeId`. Both are **server-assigned** — clients cannot set them to an arbitrary value. PATCH accepts them only to **clear** them (set to null), disconnecting the map from the workflow. Pass them through unchanged on `maps get | maps update`; otherwise leave them undefined.
+Datasets produced by the "Create map from workflow node" command carry two provenance fields: `sourceWorkflowId` and `sourceWorkflowNodeId`. Both are **server-assigned and not writable** — `sourceWorkflowId` is stripped from your payload, and `sourceWorkflowNodeId` is accepted by neither the create nor the patch route. There is no way to set or clear them from a bundle, so leave them undefined; a map cannot be disconnected from its workflow this way.
 
 ### Spatial index datasets (`h3` / `quadbin`)
 
@@ -324,7 +337,7 @@ When a dataset holds a spatial index column (H3 cell id or quadbin id), Builder 
 
 **`aggregationExp` combines cells when zooming out**: the server aggregates adjacent cells into a lower-resolution cell using the expression. If your source table is already at resolution 9 but the user zooms out, the server uses `aggregationExp` to compute a single value for each parent cell.
 
-**`aggregationResLevel`** is the *target* resolution Builder shows when fully zoomed out. Too low = coarse, too high = slow. **Stay within Builder's UI selector range** — H3: `[1, 6]` (default 4); quadbin: `[1, 9]` (default 6). Tier-1 rejects values outside the range; configurations outside it would render but the user couldn't subsequently adjust the resolution from the Builder UI (the slider is bounded). The H3 cap is *visual-design*, not a warehouse limit — the H3 system supports up to res 15, but cells smaller than ~0.1 km² stop being useful for thematic maps. Pre-indexed tilesets are exempt (the binning is baked at upload time).
+**`aggregationResLevel`** is the *target* resolution Builder shows when fully zoomed out. Too low = coarse, too high = slow. **Stay within Builder's UI selector range** — H3: `[1, 6]`; quadbin: `[1, 9]`. Tier-1 rejects values outside the range; configurations outside it would render but the user couldn't subsequently adjust the resolution from the Builder UI (the slider is bounded). The H3 cap is *visual-design*, not a warehouse limit — the H3 system supports up to res 15, but cells smaller than ~0.1 km² stop being useful for thematic maps. Pre-indexed tilesets are exempt (the binning is baked at upload time).
 
 Key pattern: the columns produced by `aggregationExp` (aliased with `as …_sum`, `as …_max`) are what layers reference via `visualChannels.colorField` — they don't exist in the raw table.
 
@@ -340,7 +353,7 @@ On `keplerMapConfig.config.mapSettings`:
 ```
 
 **Semantics** (mirrored from Builder's layer-type picker):
-- When `controlCacheTime: true` and `cacheTime > 0`, Builder computes `lastRefreshAt = Date.now() - cacheTime*60*1000` on each dataset and sends `Cache-Control: max-age=<age>` on subsequent tile requests. That tells the CDN/service layer "don't hand me anything older than this."
+- When `controlCacheTime: true` and `cacheTime > 0`, Builder sends `Cache-Control: max-age=<cacheTime*60>` on the maps-api source-instantiation and attribute-stats requests — **not** on the tile fetches themselves. That tells the CDN/service layer "don't hand me anything older than this."
 - When `controlCacheTime: false`, service defaults apply (whatever the CDN set).
 - The unit is **minutes**.
 - There is **no polling**, **no auto-refresh**, **no TTL on the dataset itself** — these are the only cache/refresh primitives.
@@ -353,7 +366,9 @@ If your dataset has a column that uniquely identifies each feature (e.g. `collis
 
 ### Other mapSettings worth knowing
 
-18 feature settings on `keplerMapConfig.config.mapSettings` — 15 boolean flags plus `cacheTime` (integer minutes), `measurementUnit` (`kilometers`|`miles`), and `exportDataSettings` (per-dataset export allowlist). Cosmetic / behavioural, not data-affecting, generally safe to copy wholesale. For the authoritative list with defaults, run `carto maps schema mapsettings`.
+19 feature settings on `keplerMapConfig.config.mapSettings` — 16 boolean flags plus `cacheTime` (integer minutes), `measurementUnit` (`kilometers`|`miles`), and `exportDataSettings` (per-dataset export allowlist). Cosmetic / behavioural, not data-affecting, generally safe to copy wholesale. For the authoritative list with defaults, run `carto maps schema mapsettings`.
+
+Two more flags, neither of them in the table below. `exportMap` lets viewers export the current map view as a high-resolution PNG — propose it alongside `exportPDF` for stakeholder-facing maps. `showDateControl` is **deprecated**: Builder migrates its value to `sqlParameterControls` on load, so set `sqlParameterControls` directly on new maps and only pass `showDateControl` through on a round-trip.
 
 **Defaults**: almost everything is `false` by default. Only `scrollWheelZoom` defaults to `true` and `measurementUnit` defaults to `'kilometers'`. Set the rest explicitly if you want them on in a public viewer (`exportPDF`, `basemapsSelector`, `showMeasureDistanceTool`, `showMyLocationButton`, etc.). `cacheTime` is in **minutes** and only kicks in when `controlCacheTime: true`.
 

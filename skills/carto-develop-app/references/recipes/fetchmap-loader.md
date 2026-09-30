@@ -8,7 +8,7 @@ See [`fetchmap.md`](../fetchmap.md) for the full reference.
 
 ```ts
 import { Deck } from '@deck.gl/core';
-import { fetchMap } from '@carto/api-client';
+import { fetchMap } from '@deck.gl/carto';
 import maplibregl from 'maplibre-gl';
 
 const mapInfo = await fetchMap({
@@ -19,7 +19,7 @@ const mapInfo = await fetchMap({
 
 const map = new maplibregl.Map({
   container: 'map',
-  style: mapInfo.mapStyle.styleUrl,
+  style: mapInfo.basemap.props.style,
   interactive: false,
   ...mapInfo.initialViewState,
 });
@@ -29,7 +29,6 @@ new Deck({
   initialViewState: mapInfo.initialViewState,
   controller: true,
   layers: mapInfo.layers,
-  getTooltip: mapInfo.getTooltip,
   onViewStateChange: ({ viewState }) => {
     const { longitude, latitude, zoom, pitch, bearing } = viewState;
     map.jumpTo({ center: [longitude, latitude], zoom, pitch, bearing });
@@ -44,7 +43,7 @@ That's the whole app. ~25 lines.
 ```tsx
 import { useEffect, useState } from 'react';
 import DeckGL from '@deck.gl/react';
-import { fetchMap, type FetchMapResult } from '@carto/api-client';
+import { fetchMap, type FetchMapResult } from '@deck.gl/carto';
 import { Map as MaplibreMap } from 'react-map-gl/maplibre';
 
 export default function App() {
@@ -65,9 +64,8 @@ export default function App() {
       initialViewState={info.initialViewState}
       controller
       layers={info.layers}
-      getTooltip={info.getTooltip}
     >
-      <MaplibreMap mapStyle={info.mapStyle.styleUrl} />
+      <MaplibreMap mapStyle={info.basemap.props.style} />
     </DeckGL>
   );
 }

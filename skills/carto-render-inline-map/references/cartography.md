@@ -191,10 +191,12 @@ CARTO palettes (resolved by name in `colors`):
 
 | Family | Use for | Available names |
 |---|---|---|
-| **Sequential single-hue** | Magnitude in one direction (counts, sums, populations, intensities) | `Burg`, `BurgYl`, `RedOr`, `OrYel`, `Peach`, `PinkYl`, `Mint`, `BluGrn`, `DarkMint`, `Emrld`, `BluYl`, `Teal`, `TealGrn`, `Purp`, `BrwnYl`, `Gray` |
+| **Sequential single-hue** | Magnitude in one direction (counts, sums, populations, intensities) | `Burg`, `BurgYl`, `RedOr`, `OrYel`, `Peach`, `PinkYl`, `Mint`, `BluGrn`, `DarkMint`, `Emrld`, `BluYl`, `Teal`, `TealGrn`, `Purp`, `BrwnYl` |
 | **Sequential multi-hue** | Same, more contrast across the range | `PurpOr`, `Sunset`, `SunsetDark`, `Magenta` |
 | **Diverging** | Signed values around a meaningful midpoint (deltas, residuals, z-scores) | `ArmyRose`, `Fall`, `Geyser`, `Temps`, `TealRose`, `Tropic`, `Earth` |
 | **Qualitative** | Discrete unordered categories | `Antique`, `Bold`, `Pastel`, `Prism`, `Safe`, `Vivid` |
+
+**`Gray` is not one of them.** Builder's palette picker offers it, but it is not a CARTOColors palette — the renderer resolves a `colors` name against CARTOColors and throws on it. For a grey ramp, pass a custom RGBA array.
 
 **Colorblind-safe subset** (recommended when audience is public or unknown):
 - Sequential: `Teal`, `Purp`, `Mint`, `Emrld`, `BluYl`, `DarkMint`

@@ -138,7 +138,7 @@ Response: `{ "id": "<uuid>", "url": "<presigned-GET>" }`. The `url` is a **7-day
 The exact field name varies by layer subtype — **always fetch live**:
 
 ```bash
-carto maps schema layer.tileset --json | jq '.properties.config.properties.visConfig.properties' | grep -iE "marker|icon"
+carto maps schema layer.tileset --json | jq '.properties | keys' | grep -iE "marker|icon"
 ```
 
 Common candidates to look for in the live schema (verify before emitting). The serializer pattern is: emit the asset `id` in `customMarkersId` / `markerMap[].markerId` / `othersMarkerId`; Builder substitutes a fresh presigned URL into `customMarkersUrl` / `markerUrl` / `othersMarker` on read.
@@ -192,20 +192,19 @@ Translation:
 
 ## Size and offset
 
-**`radius` is the rendered icon size**, NOT `customMarkerSize`. The live schema documents `radius` as `[0, 200] when customMarkers: true` (vs `[0, 100]` for plain circles). `customMarkerSize` is a legacy mirror that current Builder builds ignore at view time — set both, but `radius` is the source of truth.
+**`radius` is the rendered icon size.** The live schema documents `radius` as `[0, 200] when customMarkers: true` (vs `[0, 100]` for plain circles). `customMarkerSize` is not a schema field — `visConfig` is passthrough, so it validates, is stored, and sizes nothing. Set `radius` alone.
 
 ArcGIS `symbol.width` / `symbol.height` are typographic points; kepler `radius` is pixels. 1pt ≈ 1px for marker icons is a good-enough approximation, but **don't halve** the source size like the legacy "radius = size_px / 2" formula did — that produces 7–12 px icons on screen when the source intent was 14–24 px. Use `max(width, height)` directly, with a sensible floor (24 px is a reasonable city-scale default):
 
 ```python
 size_px = max(symbol.get("width", 24), symbol.get("height", 24))
 target = max(int(size_px), 24)            # 24-px floor for legibility
-vc["radius"] = target                       # Builder reads this
-vc["customMarkerSize"] = target             # legacy mirror, harmless
+vc["radius"] = target                       # the only icon-size knob
 ```
 
 `symbol.xoffset` / `symbol.yoffset` are rarely meaningful and not preserved by kepler — skip silently.
 
-`symbol.angle` (rotation) is supported by some kepler subtypes via `visConfig.iconRotation` or similar — set it if the live schema exposes the field; otherwise drop with `Notes: marker-rotation-dropped: <angle>` if `angle != 0`.
+`symbol.angle` (rotation) has no fixed-value equivalent — the `rotationField` visual channel binds a data column, not a constant. Drop a non-zero constant angle with `Notes: marker-rotation-dropped: <angle>`.
 
 ## Multi-color icons: uploaded asset + `visConfig.filled: false`
 
@@ -226,7 +225,7 @@ if vc.get("customMarkers"):
             vc["customMarkersId"] = asset["id"]                   # durable ref; server hydrates the URL
 ```
 
-**Brand color stays in `strokeColor`** (and `initialStrokeColor`): with `filled: false` the fill never renders, but Builder uses `strokeColor` for the icon's outline ring AND for the sidebar data-panel chip, so brand identity ("Underground" / "Elizabeth Line") is preserved there.
+**Brand color stays in `visConfig.strokeColor`**: with `filled: false` the fill never renders, but Builder uses `strokeColor` for the icon's outline ring AND for the sidebar data-panel chip, so brand identity ("Underground" / "Elizabeth Line") is preserved there. (`initialStrokeColor` is not a field — don't mirror it there.)
 
 ## Aspect-ratio preservation — pad non-square PNGs to square
 

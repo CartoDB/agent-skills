@@ -28,10 +28,11 @@ This file documents field-level translation, the click-only-by-default rule for 
 
 ## Translated kepler `popupSettings`
 
+`popupSettings` sits on `keplerMapConfig.config`, alongside `visState` — not inside it.
+
 ```json
 {
   "popupSettings": {
-    "coordinates": false,
     "layers": {
       "<layer-id>": {
         "enabled": true,
@@ -53,7 +54,9 @@ This file documents field-level translation, the click-only-by-default rule for 
 }
 ```
 
-The keyed entry is **the layer's own id** (the `id` on `keplerMapConfig.config.visState.layers[]`), NOT the dataset `$ref`. Mixing those up emits a popup that never fires.
+The keyed entry is **the layer's own id** (the `id` on `keplerMapConfig.config.visState.layers[]`), NOT the dataset `$ref`. Mixing those up emits a popup that never fires — Tier-1 catches a key that names a dataset and tells you which layer binds to it.
+
+`coordinates` is a legacy kepler field that nothing in Builder reads; omit it. `enabled` defaults to `true` when the entry has a `hover` or `click` section, so it need not be written by hand.
 
 ## Translation rules
 
@@ -131,7 +134,9 @@ Plain `{name}`-style brace substitutions are NOT Arcade — they're ArcGIS's sim
 
 ## Empty popups — omit `popupSettings` entirely
 
-If **no** source layer has a populated `popupInfo`, **do not emit `keplerMapConfig.config.visState.popupSettings` at all** — the key is absent from `visState` entirely. Not `{}`, not `{layers: {}}`, not `{layers: []}`, not `{coordinates: false, layers: {}}`. All those empty-shape forms have been observed crashing Builder's loader on initial load. Verified against a manually-created Builder map with no popups — Builder UI doesn't write the key either.
+If **no** source layer has a populated `popupInfo`, **do not emit `keplerMapConfig.config.popupSettings` at all** — the key is absent from `config` entirely. Not `{}`, not `{layers: {}}`, not `{layers: []}`, not `{coordinates: false, layers: {}}`. All those empty-shape forms have been observed crashing Builder's loader on initial load. Verified against a manually-created Builder map with no popups — Builder UI doesn't write the key either.
+
+Omitting the key has one consequence to handle at the same time: with no `popupSettings`, Builder converts the legacy `visState.interactionConfig` into one on load. Set that tooltip's `enabled` to `false` so the conversion produces nothing — see [`mapconfig-defaults.md`](mapconfig-defaults.md) "`interactionConfig` is the legacy popup path".
 
 This **deliberately overrides** `carto-create-builder-maps`'s "Popups — emit by default" guidance, which is a fresh-authoring rule (the agent is helping the user start a new map and end users can't otherwise inspect features). For migration, the user's prior decision is the source of truth.
 

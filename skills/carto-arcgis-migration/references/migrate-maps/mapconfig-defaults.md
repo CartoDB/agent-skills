@@ -6,7 +6,7 @@ Every shape below is **verified against a manually-created Builder map** (the on
 
 ## Required `keplerMapConfig.config` keys
 
-These seven keys must all be present at the `config` level:
+Of these seven, the schema requires only `mapState` and `visState` — the rest are optional to the validator and are here because Builder's runtime wants them anyway. Emit all seven:
 
 ```json
 {
@@ -20,12 +20,14 @@ These seven keys must all be present at the `config` level:
       "descriptionOpen": false,
       "descriptionPreview": false
     },
-    "filters":        { "<dataset-$ref>": {}, ... },
+    "filters":        { "<dataset-id>": {}, ... },
     "spatialFilter":  null,
     "visState":       { ... }
   }
 }
 ```
+
+`mapState` is rejected when absent, not defaulted — a viewport has no right answer, and a map that opens over the wrong part of the world reads as working. `mapStyle` is the opposite: omit it and it is filled from `basemapConfig.styleId`. Emitting it explicitly, as above, is still the right habit — it keeps the pair visible in the bundle and the two ids obviously in step.
 
 `uiState` as `{}` (empty) **crashes Builder** — its panel initialization reads each of the four sub-fields and throws on undefined. Always populate with the four defaults above.
 
@@ -33,7 +35,7 @@ These seven keys must all be present at the `config` level:
 
 ## Required `visState` keys
 
-These six keys must all be present in `visState`:
+Only `layers` is required by the schema; the other five are optional there and emitted for Builder's benefit:
 
 ```json
 {
@@ -57,9 +59,18 @@ These six keys must all be present in `visState`:
 |---|---|---|
 | `animationConfig` | `{currentTime: null, speed: 1}` | Time-slider widgets read it even when no temporal data is configured |
 | `filters` (inside visState) | `[]` empty array | Kepler legacy filter list. **Different from `config.filters` at the top level (object keyed by dataset id) — both must be present** |
-| `interactionConfig` | `{brush, coordinate, geocoder, tooltip}` with the sub-objects above | Builder's event-handler setup iterates the keys |
+| `interactionConfig` | `{brush, coordinate, geocoder, tooltip}` with the sub-objects above | Builder's event-handler setup iterates the keys. `tooltip` is mandatory whenever `interactionConfig` is present — the static SDK reads `tooltip.enabled` after guarding only the parent object |
 | `layerBlending` | string `"normal"` | Layer compositing mode; deck.gl default but Builder won't infer |
 | `splitMaps` | `[]` empty array | Split-view feature reads this; `null` crashes the panel even when no split is active |
+
+### `interactionConfig` is the legacy popup path — mind the interaction with `popupSettings`
+
+`interactionConfig` is the pre-`popupSettings` way of declaring tooltips, and it is deprecated. Two consequences matter for migration:
+
+- When a map **has** `popupSettings`, `interactionConfig` is ignored. Never author popups here.
+- When a map has **no** `popupSettings`, Builder converts `interactionConfig` into one on load, and the conversion is one-way: the next save persists the generated `popupSettings`.
+
+That second branch is exactly the case this skill produces for a source layer with no `popupInfo` (see [`popup-mapping.md`](popup-mapping.md) "Empty popups"). Emitting `tooltip: {enabled: true}` there asks Builder to manufacture the popups the migration deliberately left out. **When the map emits no `popupSettings`, set `"enabled": false` on the tooltip**; keep `true` only when `popupSettings` is present, where it is inert anyway.
 
 ## `basemapConfig.type` — always omit
 
@@ -67,11 +78,15 @@ These six keys must all be present in `visState`:
 
 Earlier guidance to set `type: "carto"` / `type: "google"` / `type: "custom"` was wrong — verified against manually-created Builder maps with each provider.
 
+`basemapConfig` takes exactly two keys — `styleId` (required) and the optional `visibleLayerGroups` — and nothing else. Any other key, `type` included, is dropped.
+
 | Basemap source | `basemapConfig` shape |
 |---|---|
 | CARTO default (`voyager` / `positron` / `dark-matter`) | `{"styleId": "<id>"}` |
-| Google (`satellite` / `roadmap` / `hybrid` / `terrain` / `google-positron` / `google-dark-matter` / `google-voyager`) | `{"styleId": "<id>"}` |
-| Custom MapLibre style | `{"styleId": "<id>", ...custom-style-config...}` |
+| Google (`satellite` / `roadmap` / `hybrid` / `terrain` / `google-3d` / `google-positron` / `google-dark-matter` / `google-voyager`) | `{"styleId": "<id>"}` |
+| Custom MapLibre style | `{"styleId": "custom:<accountBasemapId>"}`, with the style's own configuration in `config.customBaseMaps.customStyle` under that same id |
+
+`visibleLayerGroups` is all-or-nothing: omit it to accept the defaults, or send **all six** keys (`land`, `water`, `building`, `road`, `border`, `label`). A partial record hides the groups it leaves out in Builder while an embed ignores the filtering entirely, so the same map renders differently in the two.
 
 `mapStyle.styleType` mirrors `basemapConfig.styleId` in all cases (per `basemap-mapping.md`'s "Setting both fields" rule).
 
@@ -80,8 +95,7 @@ Earlier guidance to set `type: "carto"` / `type: "google"` / `type: "custom"` wa
 Insert these defaults as a single compose step after layers and datasets are built:
 
 ```python
-def apply_mapconfig_defaults(kepler_map_config, datasets, basemap_style_id, basemap_source):
-    """basemap_source: 'carto' | 'google' | 'custom'"""
+def apply_mapconfig_defaults(kepler_map_config, dataset_ids, basemap_style_id):
     cfg = kepler_map_config["config"]
 
     cfg["uiState"] = {
@@ -90,7 +104,11 @@ def apply_mapconfig_defaults(kepler_map_config, datasets, basemap_style_id, base
         "descriptionOpen": False,
         "descriptionPreview": False,
     }
-    cfg["filters"] = {ds["$ref"]: {} for ds in datasets}  # top-level object form
+    cfg["filters"] = {ds_id: {} for ds_id in dataset_ids}   # top-level object form
+
+    # Legacy tooltip path: Builder turns it into popupSettings when the map has
+    # none, so leave it disabled unless the map actually ships popupSettings.
+    has_popups = bool(cfg.get("popupSettings", {}).get("layers"))
 
     vs = cfg["visState"]
     vs["animationConfig"]   = {"currentTime": None, "speed": 1}
@@ -99,12 +117,12 @@ def apply_mapconfig_defaults(kepler_map_config, datasets, basemap_style_id, base
         "brush":      {"enabled": False, "size": 0.5},
         "coordinate": {"enabled": False},
         "geocoder":   {"enabled": False},
-        "tooltip":    {"compareMode": False, "compareType": "absolute", "enabled": True},
+        "tooltip":    {"compareMode": False, "compareType": "absolute", "enabled": has_popups},
     }
     vs["layerBlending"]     = "normal"
     vs["splitMaps"]         = []
 
-    # basemapConfig — styleId alone is sufficient regardless of source
+    # basemapConfig — styleId alone, whatever the provider. No `type` field exists.
     cfg["basemapConfig"] = {"styleId": basemap_style_id}
     cfg["mapStyle"]      = {"styleType": basemap_style_id}
 
@@ -112,7 +130,7 @@ def apply_mapconfig_defaults(kepler_map_config, datasets, basemap_style_id, base
     cfg["spatialFilter"] = None
 ```
 
-Call this once per map after composing `visState.layers` and `datasets`.
+Call this once per map after composing `visState.layers`, `popupSettings` and the datasets.
 
 ## Why these aren't surfaced by `carto maps schema`
 
