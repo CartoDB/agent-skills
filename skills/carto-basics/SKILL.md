@@ -49,4 +49,4 @@ The MCP server and CLI serve different intents — some flows chain across both.
 - **Always pass `--json`** when you need machine-readable output. CLI text output is for humans and may change.
 - **Map URLs** use the tenant domain from `auth status`, not a generic workspace URL. Private maps live at `https://{tenant_domain}/builder/{map_id}`; public/shared maps at `https://{tenant_domain}/map/{map_id}`. Never construct `workspace-{region}.app.carto.com` URLs.
 - **Confirmation prompts**: destructive commands like `maps delete` prompt for the literal word "delete". Pass `--yes` (or `--json`) for non-interactive use.
-- **Async jobs**: `imports create` and `sql job` poll until completion by default. Pass `--async` (where supported) to return immediately and poll separately.
+- **Async jobs**: `import` and `sql job` poll until completion by default. Pass `--async` (where supported) to return immediately and poll separately.

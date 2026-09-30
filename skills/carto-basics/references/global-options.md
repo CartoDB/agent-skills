@@ -41,7 +41,7 @@ carto maps list --all --json | jq '.[] | {id, name}'
 
 Long-running operations:
 
-- `imports create` — polls until the import finishes; pass `--async` to return immediately.
+- `import` — polls until the import finishes; pass `--async` to return immediately.
 - `sql job` — polls until the job completes; no timeout; no `--async`.
 - `activity export` — waits and downloads files to disk.
 
