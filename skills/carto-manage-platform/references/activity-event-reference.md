@@ -73,7 +73,7 @@ Common payload: `userId`, `email`, `role`, `loginMethod`.
 
 | Event | Triggers |
 |---|---|
-| `ImportStarted` | `imports create` job started. |
+| `ImportStarted` | `carto import` job started. |
 | `ImportCompleted` | Import finished successfully. |
 | `ImportFailed` | Import errored. |
 
