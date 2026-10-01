@@ -94,6 +94,8 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 // table — paginated row browser / feature browser. No top-level `column` / `operation`;
 // list the columns to display + their formatting. Bottom-of-map surface.
 // Set `uniqueIdProperty` on the dataset for click-to-zoom row→feature linkage.
+// `pageSize`: 5 rows is Builder's default and keeps the map usable when the table opens.
+// Leaving it out also gives 5. Go higher (10 or 25) only when the user asks for more rows.
 { "id": "w-table", "type": "table", "title": "Raw incidents",
   "dataSource": "$ref:incidents",
   "columns": [
@@ -101,7 +103,7 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
     { "field": "injuries",          "headerName": "Injured",  "type": "number", "format": ",.0f" },
     { "field": "factor",            "headerName": "Cause",    "type": "string" }
   ],
-  "dense": true, "pageSize": 20,
+  "dense": true, "pageSize": 5,
   "global": false,
   "collapsible": true, "autoCollapse": true }
 ```
