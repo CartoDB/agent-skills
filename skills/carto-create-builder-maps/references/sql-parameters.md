@@ -14,7 +14,7 @@ Let users change a filter and re-query live — Builder renders the parameter as
 **What you have to set** to make the parameter *appear* to the user:
 1. `keplerMapConfig.config.mapSettings.sqlParameterControls: true` — without this, the control is hidden.
 2. `keplerMapConfig.config.sqlParameters[]` — the control itself. Each entry carries its `sqlName` (inside `item`, or inside `start` / `end`) matching the `{{paramName}}` in the source. That placeholder is the whole binding: a parameter reaches a dataset because the dataset's `source` names it. A `dataSources[]` list on the parameter does not establish it — see the note under the kind examples.
-3. Optional — `keplerMapConfig.config.uiState`: `controlsPaneOpen: true` opens the right-hand controls pane on load, and `controlsPaneTab: "parameters"` selects the SQL-parameters tab rather than the widgets one.
+3. Order — SQL parameters appear in the parameters bar above the map, and the `sqlParameters[]` array order is their order in the bar, left to right. There is no index field: to reorder, reorder the array. Put the most-used parameters first, because they stay visible when the bar overflows and the rest scroll behind arrows. Builder writes the same array back when an Editor drags a parameter, so carry the order through on every update.
 
 **Authoring → persistence example (BigQuery).**
 
