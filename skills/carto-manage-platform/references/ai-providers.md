@@ -8,7 +8,7 @@ The `cartoAi` section of the settings bundle is the same thing the Workspace "AI
 
 - `enabled` — CARTO AI on/off for the org.
 - `defaultModel` — org fallback model, e.g. `carto::claude-sonnet-5`.
-- `features.<feature>.enabled` and `features.<feature>.defaultModel` — per-feature toggles and defaults, for `aiAgentsInBuilder`, `askAIInDataObservatory`, `aiAssistantInWorkflows`, `aiAssistantInAppStudio`. Defaults are per feature, not one org-wide dropdown.
+- `features.<feature>.enabled` and `features.<feature>.defaultModel` — per-feature toggles and defaults, for `aiAgentsInBuilder` (Builder AI Agents) and `askAIInDataObservatory` (AI Assistant in Data Observatory). Defaults are per feature, not one org-wide dropdown.
 - One block per provider: `openai`, `google`, `vertex`, `bedrock`, `snowflake`, `anthropic`, `azure`, `databricks`, `oracle`, `custom`. Each has `enabled`, `models` (list of model ids) and the provider's credential fields **flat on the block**, not nested under a `credentials` key.
 
 Credential fields per provider:
@@ -64,9 +64,7 @@ Each feature takes its own `enabled` and `defaultModel`; send any subset, the re
 ```bash
 echo '{"cartoAi":{"features":{
   "aiAgentsInBuilder":      {"enabled": true,  "defaultModel": "ac_xxxx::anthropic::claude-sonnet-5-5"},
-  "askAIInDataObservatory": {"enabled": true,  "defaultModel": "carto::claude-sonnet-5"},
-  "aiAssistantInWorkflows": {"enabled": false},
-  "aiAssistantInAppStudio": {"enabled": false}
+  "askAIInDataObservatory": {"enabled": true,  "defaultModel": "carto::claude-sonnet-5"}
 }}}' | carto admin settings apply -
 ```
 
