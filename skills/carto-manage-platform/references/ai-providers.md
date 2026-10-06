@@ -8,7 +8,7 @@ The `cartoAi` section of the settings bundle is the same thing the Workspace "AI
 
 - `enabled` — CARTO AI on/off for the org.
 - `defaultModel` — org fallback model.
-- `features.<feature>.enabled` and `features.<feature>.defaultModel` — per-feature toggles and defaults, for `aiAgentsInBuilder` and `askAIInDataObservatory`. `aiAgentsInBuilder` covers Builder AI Agents **and** the agent configuration assistant that helps users create those agents; one switch, one default model for both. `askAIInDataObservatory` is the AI Assistant in Data Observatory. Defaults are per feature, not one org-wide dropdown. The schema also accepts `aiAssistantInWorkflows` and `aiAssistantInAppStudio`; those features are not generally available and are intentionally not documented here.
+- `features.<feature>.enabled` and `features.<feature>.defaultModel` — per-feature toggles and defaults, for `aiAgentsInBuilder` and `askAIInDataObservatory`. `aiAgentsInBuilder` covers Builder AI Agents **and** the agent configuration assistant that helps users create those agents; one switch, one default model for both. `askAIInDataObservatory` is the AI Assistant in Data Observatory. Defaults are per feature, not one org-wide dropdown.
 - One block per provider: `openai`, `google`, `vertex`, `bedrock`, `snowflake`, `anthropic`, `azure`, `databricks`, `oracle`, `custom`. Each has `enabled`, `models` (list of model ids) and the provider's credential fields **flat on the block**, not nested under a `credentials` key.
 
 Credential fields per provider (secret fields in bold are never returned by `get`; the others are):
