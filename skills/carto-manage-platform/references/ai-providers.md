@@ -57,6 +57,19 @@ echo '{"cartoAi":{
 }}' | carto admin settings apply -
 ```
 
+### Enable or disable individual AI features
+
+Each feature takes its own `enabled` and `defaultModel`; send any subset, the rest are untouched. A disabled feature is enforced server-side (the AI API answers 403 for it), and the org-level `cartoAi.enabled` must be true for any feature switch to take effect.
+
+```bash
+echo '{"cartoAi":{"features":{
+  "aiAgentsInBuilder":      {"enabled": true,  "defaultModel": "ac_xxxx::anthropic::claude-sonnet-5-5"},
+  "askAIInDataObservatory": {"enabled": true,  "defaultModel": "carto::claude-sonnet-5"},
+  "aiAssistantInWorkflows": {"enabled": false},
+  "aiAssistantInAppStudio": {"enabled": false}
+}}}' | carto admin settings apply -
+```
+
 Per-feature `defaultModel` takes the full model id as listed by `maps agents models` (`carto::...` for CARTO-managed, `{accountId}::{provider}::{model}` for BYOK).
 
 ## Remove or disable a provider
