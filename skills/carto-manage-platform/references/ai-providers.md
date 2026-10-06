@@ -74,7 +74,9 @@ jq -n --arg k "$KEY" '{cartoAi:{
     askAIInDataObservatory: {enabled: true, defaultModel: "ac_xxxx::anthropic::claude-sonnet-5-5"}
   }
 }}' > ~/ai-provider.json
+chmod 600 ~/ai-provider.json
 carto admin settings apply --file ~/ai-provider.json
+rm ~/ai-provider.json
 ```
 
 ### Enable or disable individual AI features
