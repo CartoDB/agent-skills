@@ -300,6 +300,18 @@ All seven widget kinds in one map (formula × 2, histogram, category, pie, times
 
 **Widget order in that array:** `w1`/`w2` (headline metrics), then `w4`/`w5` (categorical breakdowns), then `w3`/`w7` (distribution and filter) — the right rail renders them top-to-bottom in array order. `w6` (`timeseries`) renders on the bottom-of-map surface instead, NOT in the right panel: array position doesn't affect on-screen position for that kind, but keep it last by convention.
 
+**Two-column layout with a full-width headline.** Six right-panel widgets is the point where two docked columns read better than one (see `references/widgets.md` *"Choosing a layout"*). Add the panel layout next to `widgets` and mark the headline formula as full width. `w1` takes the first row on its own, then the rest pair up in array order: `w2` with `w4`, `w5` with `w3`, and `w7` stretches to fill the last row.
+
+```jsonc
+// keplerMapConfig.config, alongside "widgets"
+"widgetsPanelLayout": { "columns": 2, "placement": "docked" },
+"widgets": [
+  { "id":"w1","type":"formula","title":"Total incidents","fullWidth":true /* ... rest as above */ },
+  { "id":"w2", /* ... */ }, { "id":"w4", /* ... */ }, { "id":"w5", /* ... */ },
+  { "id":"w3", /* ... */ }, { "id":"w7", /* ... */ }, { "id":"w6", /* ... */ }
+]
+```
+
 ## E. Split-map mode (side-by-side comparison)
 
 A two-layer map in **split view** — left side shows 2020 collisions, right side shows 2024. Same dataset, two `query`-typed sub-selections wired to two layers, with `splitMaps` toggling visibility per side. See `references/configuration-shape.md` *§ Split-map mode* for the validation rules.
