@@ -128,6 +128,22 @@ Widget kinds DON'T all render in the same place in Builder. Two distinct surface
 
 Omitting the object means the default, `{ "columns": 1, "placement": "docked" }` — the default is part of the format, not Builder state. **Round-trip trap:** because `keplerMapConfig` is replaced wholesale (see [`updates.md`](updates.md)), dropping `widgetsPanelLayout` from an update silently resets a two-column or floating panel back to that default. No warning is emitted. Carry the object through on every update of a map that has one.
 
+**Choosing a layout.** Pick from the number of right-panel widgets and what the map is for, unless the user asked for something specific:
+
+| Right-panel widgets | Layout | Why |
+|---|---|---|
+| 1 to 3 | `{ "columns": 1, "placement": "floating" }` | A small card over the map keeps the map full width and the focus on the data. |
+| 4 or 5 | `{ "columns": 1, "placement": "docked" }` (the default, so omit the object) | A single column reads top to bottom without covering the map. |
+| 6 or more | `{ "columns": 2, "placement": "docked" }` | Two columns halve the scrolling. Docked keeps a large panel from hiding the map. |
+
+- **Full width for the headline.** With two columns, give the one or two key `formula` widgets `fullWidth: true` and put them first in `widgets[]`, so they read as the summary row. Pair the rest by kind (two formulas, two categories, a pie next to a histogram).
+- **Dashboard-style requests** ("dashboard", "report", "overview", "KPIs") lean to two docked columns even with fewer widgets.
+- **Storytelling or public maps** where the map is the hero lean to floating with few widgets.
+- **Dual map view** always shows the panel docked, so don't choose floating for a split map.
+- **Tables and time series** render at the bottom of the map, so don't count them when choosing.
+
+See [`examples.md` §D](examples.md#d-widgets-gallery--one-of-each-kind) for a two-column layout with a full-width headline.
+
 ### Collapsibility
 
 **Every widget is collapsible; `autoCollapse: true` collapses it while no layer bound to its `dataSource` is visible** — one hidden from the layer panel, or one whose `visibilityByZoom` range excludes the current zoom. Viewers collapse any widget from its header, and `autoCollapse` works on its own. It is NOT an initial state: with such a layer visible the widget renders expanded, so `autoCollapse` is not the way to open a map with a widget already collapsed. A `table` widget collapses as a tabbed group instead: tabs with no visible layer are skipped, and the group collapses when none is left.
