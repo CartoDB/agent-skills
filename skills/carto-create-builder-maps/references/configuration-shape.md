@@ -63,7 +63,8 @@ The annotated tree below shows every top-level field the map API accepts, plus p
     }
   },
 
-  // Optional AI agent config. Full tree — omit the whole field to disable.
+  // Optional AI agent config. Omit it for a map without an agent. On an update, omitting it
+  // keeps the stored agent, and a partial block is merged over it (see references/agent-config.md).
   "agent": {
     "enabledForViewer": false,
     "config": { /* see references/agent-config.md for the full tree */ }
