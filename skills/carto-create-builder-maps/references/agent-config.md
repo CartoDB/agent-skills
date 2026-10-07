@@ -12,7 +12,7 @@ carto maps agents status      # → { enabled, defaultModel, provider config }
 
 If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this organization and skip. Create/update also soft-strips an `agent` block and warns if it's present on an AI-disabled organization, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
 
-**`agent.config.model` is optional.** A write without one gets the organization's `defaultModel` when it has one; otherwise the agent is saved without a model and Builder flags it (`MISSING_MODEL`) until one is picked. To choose one, look an id up rather than composing it: `maps agents models` is the catalogue of what this organization accepts. An empty string is rejected.
+**`agent.config.model` is optional.** A write without one gets the organization's `defaultModel` when it has one; otherwise the agent is saved without a model and Builder flags it until one is picked. To choose one, look an id up rather than composing it: `maps agents models` is the catalogue of what this organization accepts. An empty string is rejected.
 
 Nothing else in `config` is required either. A new agent gets `tools: []`, `useCase: ""`, `capabilities: { "querySources": false }` and an empty `introduction` for whatever it leaves out. Unknown keys in `config`, `capabilities` or `introduction` are rejected, naming the key and the ones allowed.
 
@@ -42,8 +42,6 @@ Nothing else in `config` is required either. A new agent gets `tools: []`, `useC
 ```
 
 > **Length limits on the agent block.** `config.useCase` ≤ 500 characters; `config.introduction.welcome` ≤ 300; `config.introduction.starters` ≤ 4 entries, each ≤ 100 characters. Exceeding any of them on a write is a rejection, not a warning. Keep `useCase` to one sentence and move detail into `instructions`, which has no cap.
->
-> Some maps already store an agent over these limits. They open fine, but sending that agent back unchanged is rejected. To edit something else on such a map, omit `agent` (the stored one is kept), or shorten the offending text if the user wants it changed.
 
 ### Model string grammar
 
