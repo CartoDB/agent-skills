@@ -87,19 +87,17 @@ Set `querySources` to `true` only when the user asks for SQL, and never on a pub
 
 ### Change only the agent's model
 
-Read the current agent, change `model`, send the rest back untouched. Don't rebuild `agent.config` from an example: `capabilities`, `tools`, `instructions` and `introduction` must stay as the user set them.
+Send only the new model. The update merges `agent` over the stored one, so `capabilities`, `tools`, `instructions`, `introduction`, `semanticModel` and `enabledForViewer` stay as the user set them.
 
 ```sh
 carto maps agents models                       # pick the new model id from this list
 
-carto maps get <map-id> --json \
-  | jq '{agent: (.agent | .config.model = "<model-id-from-the-list>")}' > agent-only.json
-
+echo '{"agent": {"config": {"model": "<model-id-from-the-list>"}}}' > agent-only.json
 carto maps update <map-id> --json < agent-only.json
 carto maps publish <map-id>                    # published agents keep the old model until republished
 ```
 
-On MCP, the same rule applies to `update_map`: read the map with `read_maps`, change only `agent.config.model`, and send the agent block back as read.
+On MCP, the same applies to `update_map`: send `{ "agent": { "config": { "model": "…" } } }`. The same works for any other agent field. To clear one, send `""` or `[]`.
 
 ---
 
@@ -115,7 +113,7 @@ On MCP, the same rule applies to `update_map`: read the map with `read_maps`, ch
 | `tags` | Partial ✓ (replaces the whole array, but a partial *configuration* leaves the server's tags alone if you omit `tags`). |
 | `collaborative` | Partial ✓ |
 | `privacy` | Partial ✓ — applied via a separate endpoint (POST /privacy). Safe to send alone. |
-| `agent` | Partial ✓ — patched atomically via PATCH /maps. |
+| `agent` | Partial ✓ — merged over the stored agent key by key, inside `capabilities` and `introduction` too; omitted keys keep their value, `""` / `[]` clear one. |
 | `datasets` | Partial ✓ by default (merge mode). `--datasets-mode replace` flips to "delete any dataset not mentioned". |
 | **`keplerMapConfig`** | **WHOLESALE-REPLACE ✗** — the entire object gets persisted as-is. Agents treating this as partial will wipe server state. |
 

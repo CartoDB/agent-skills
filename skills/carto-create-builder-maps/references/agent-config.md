@@ -12,9 +12,9 @@ carto maps agents status      # → { enabled, defaultModel, provider config }
 
 If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this organization and skip. Create/update also soft-strips an `agent` block and warns if it's present on an AI-disabled organization, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
 
-**`agent.config.model` is required.** A `config` without it is rejected — there is no fallback to the organization's `defaultModel` at authoring time. Look an id up rather than composing one: `maps agents models` is the catalogue of what this organization accepts. If the organization has neither AI enabled nor a `defaultModel`, that surfaces here too, so you can act.
+**`agent.config.model` is optional.** A write without one gets the organization's `defaultModel` when it has one; otherwise the agent is saved without a model and Builder flags it (`MISSING_MODEL`) until one is picked. To choose one, look an id up rather than composing it: `maps agents models` is the catalogue of what this organization accepts. An empty string is rejected.
 
-If `config` is included, `model`, `capabilities` and `introduction` are all required — each missing one is its own rejection.
+Nothing else in `config` is required either. A new agent gets `tools: []`, `useCase: ""`, `capabilities: { "querySources": false }` and an empty `introduction` for whatever it leaves out. Unknown keys in `config`, `capabilities` or `introduction` are rejected, naming the key and the ones allowed.
 
 ```jsonc
 {
@@ -28,6 +28,7 @@ If `config` is included, `model`, `capabilities` and `introduction` are all requ
       },
       "useCase": "One-sentence description of what this agent is for.",
       "instructions": "# Context & constraints\n…\n# Behavior\n…\n# Data definition\n…",
+      "semanticModel": "",                           // optional YAML describing the data; see below
       "introduction": {
         "welcome":  "Hi — I can help you explore this map.",
         "starters": [
@@ -40,11 +41,17 @@ If `config` is included, `model`, `capabilities` and `introduction` are all requ
 }
 ```
 
-> **Length limits on the agent block.** `config.useCase` ≤ 500 characters; `config.introduction.welcome` ≤ 300; `config.introduction.starters` ≤ 4 entries, each ≤ 100 characters. Exceeding any of them is a rejection, not a warning — Builder's agent dialog refuses or truncates past these, so a longer bundle saves a map that cannot be rebuilt from the UI. Keep `useCase` to one sentence and move detail into `instructions`, which has no cap.
+> **Length limits on the agent block.** `config.useCase` ≤ 500 characters; `config.introduction.welcome` ≤ 300; `config.introduction.starters` ≤ 4 entries, each ≤ 100 characters. Exceeding any of them on a write is a rejection, not a warning. Keep `useCase` to one sentence and move detail into `instructions`, which has no cap.
+>
+> Some maps already store an agent over these limits. They open fine, but sending that agent back unchanged is rejected. To edit something else on such a map, omit `agent` (the stored one is kept), or shorten the offending text if the user wants it changed.
 
 ### Model string grammar
 
 Two id forms are current side by side: **`carto::<model>`** — two parts — for CARTO-hosted models, and **`<account-id>::<provider>::<model>`** — three parts — for "bring your own key" entries, where `<account-id>` is the organization account id (`ac_xxxxxxxx`) and `<provider>` is `anthropic` / `openai` / `gemini` / `vertex` / `bedrock` / `azure` / etc. **Don't compose an id from the parts** — the shape alone doesn't tell you what a tenant accepts. Discover what's enabled on this organization: `carto maps agents models` (pretty) or `--json` (structured). Only strings from that list pass server-side validation — anything else silently falls back to the organization default and surfaces as `agent.issues[]`.
+
+### Semantic model — `config.semanticModel`
+
+Optional YAML that describes the map's data to the agent (entities, measures, relationships). It must parse as YAML or the write is rejected; `""` clears it. It has no length cap.
 
 ### Tools — `config.tools[]` is **MCP UUIDs only**
 
@@ -73,7 +80,7 @@ Two id forms are current side by side: **`carto::<model>`** — two parts — fo
 
 **Default `querySources` to `false`.** Set it to `true` only when the user asks for the agent to run SQL, and never on a map that is or will be public.
 
-**On an existing agent, keep `capabilities` as they are.** Any change to `agent.config` (swapping the model, editing instructions) resends the whole block, so copy `capabilities` from `maps get` instead of from the example above. See "Change only the agent's model" in `updates.md`.
+**On an existing agent, send only what changes.** An update merges `agent` over the stored one. Every key you leave out keeps its stored value, inside `capabilities` and `introduction` too, and so does `enabledForViewer`. To clear a value, send `""` or `[]`; `model` cannot be cleared. Sending `introduction.starters` replaces the whole list. The update reports the keys it kept. See "Change only the agent's model" in `updates.md`.
 
 `maps get --json` strips `agent.token` and `agent.issues` so the output can be piped straight back into `create` / `update`. Don't resend them.
 
