@@ -112,7 +112,7 @@ On MCP, the same applies to `update_map`: send `{ "agent": { "config": { "model"
 | `description` | Partial ✓ |
 | `tags` | Partial ✓ (replaces the whole array, but a partial *configuration* leaves the server's tags alone if you omit `tags`). |
 | `collaborative` | Partial ✓ |
-| `privacy` | Partial ✓ — applied via a separate endpoint (POST /privacy). Safe to send alone. |
+| `privacy` | **Replaces sharing ✗** — applied via a separate endpoint (POST /privacy). Omit it to keep the current sharing. Any block you send rewrites it: a `policies` array (preferred) becomes the full grant list, `{"policies": []}` or `{"privacy": "private"}` revokes every share and public link. Send one form, not both; a block with both is rejected. The first share publishes the map, and making it private unpublishes it. |
 | `agent` | Partial ✓ — merged over the stored agent key by key, inside `capabilities` and `introduction` too; omitted keys keep their value, `""` / `[]` clear one. |
 | `datasets` | Partial ✓ by default (merge mode). `--datasets-mode replace` flips to "delete any dataset not mentioned". |
 | **`keplerMapConfig`** | **WHOLESALE-REPLACE ✗** — the entire object gets persisted as-is. Agents treating this as partial will wipe server state. |
@@ -144,7 +144,7 @@ The CLI will refuse a partial `keplerMapConfig` update that would wipe existing 
 
 **`--allow-kepler-replace`** is the escape hatch for the rare case where an agent legitimately wants to wipe and rewrite. Not a convenience flag — the wipe is the intent.
 
-**The guard does not cover every field.** It counts layers, widgets and sqlParameters, and flags a missing `config`, `visState` or `mapState`. It also flags the basemap when other kepler fields are set: an update that sends neither `basemapConfig` nor `mapStyle` (it would reset the basemap to the default), and one that sends `mapStyle` without the map's stored `basemapConfig` (it would drop the stored style and visible layer groups). Re-send what the map has stored to keep it: its `basemapConfig`, or its `mapStyle` on a map that has no `basemapConfig`. Everything else under `config` — `popupSettings`, `legendSettings`, `layerGrouping`, `widgetsPanelLayout`, `uiState` — is replaced with whatever the input carries, and its loss is reported by nothing. Dropping `widgetsPanelLayout` from an update silently returns a two-column or floating widgets panel to the default (1 column, docked). Read-modify-write is what protects them.
+**The guard does not cover every field.** It counts layers, widgets and sqlParameters, so replacing one layer with another (same count) passes unflagged, and flags a missing `config`, `visState` or `mapState`. It also flags the basemap when other kepler fields are set: an update that sends neither `basemapConfig` nor `mapStyle` (it would reset the basemap to the default), and one that sends `mapStyle` without the map's stored `basemapConfig` (it would drop the stored style and visible layer groups). Re-send what the map has stored to keep it: its `basemapConfig`, or its `mapStyle` on a map that has no `basemapConfig`. Everything else under `config` — `popupSettings`, `legendSettings`, `mapSettings`, `layerGrouping`, `customBaseMaps`, `uiState` — is replaced with whatever the input carries, and its loss is reported by nothing. `widgetsPanelLayout` is flagged only when the stored layout is not the default; dropping it from an update otherwise silently returns a two-column or floating widgets panel to the default (1 column, docked). Read-modify-write is what protects them.
 
 **Why the CLI doesn't auto-merge:** merging kepler configs is non-trivial (arrays with positional meaning, refs, nested objects, layer-order implications). A CLI-side merge would produce its own class of bugs. The read-modify-write pattern is explicit, debuggable, and matches how Builder's own save path works.
 
@@ -153,16 +153,16 @@ The CLI will refuse a partial `keplerMapConfig` update that would wipe existing 
 
 ## Validation levers
 
-Every create/update runs three checks after writing:
+Every create/update runs these checks:
 
 | Check | What it does | Warning code |
 |---|---|---|
 | **Map configuration JSON** (Tier-1) | `validateBundle` runs before any network call — unknown fields, bad refs, dangling dataIds, etc. | rejected at pre-flight |
-| **Sources** | `SELECT … WHERE 1=0` per dataset via the SQL API | `SOURCE_INACCESSIBLE` |
-| **Render** | Hits the tilejson endpoint per dataset (what Builder uses) | `DATASET_WONT_RENDER` |
+| **Sources** (before writing) | `SELECT … WHERE 1=0` per dataset via the SQL API | `SOURCE_INACCESSIBLE` / `COLUMN_NOT_FOUND` |
+| **Render** | Hits the tilejson endpoint per dataset (what Builder uses); new datasets are checked before writing | `DATASET_WONT_RENDER` |
 | **Agent** (only if the configuration declares one) | Re-fetches the map and reads `agent.issues` | `AGENT_ISSUE` |
 
-All are non-fatal — they emit warnings into the JSON `warnings[]` array; the create/update itself succeeds. `--dry-run` on update skips them (no writes happened). There is no way to opt out: the checks are cheap and always useful.
+Not all are non-fatal. Tier-1 issues reject the write. A `SOURCE_INACCESSIBLE` or `COLUMN_NOT_FOUND` warning that carries a `detail` rejects it too, and so does a tile server 4xx on a brand-new dataset. The rest land in the JSON `warnings[]` array and the create/update succeeds. `--dry-run` on update runs Tier-1 only: it skips the source dry-run, the render and agent checks, and the `keplerMapConfig` wipe guard, so a clean dry run does not promise the real update will pass. There is no way to opt out: the checks are cheap and always useful.
 
 ---
 

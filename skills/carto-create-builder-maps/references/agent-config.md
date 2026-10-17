@@ -2,7 +2,7 @@
 
 Enables the Agent on the map. **Opt-in** — only include this block when the user explicitly asks for an Agent on the map. Organization must have CARTO AI enabled.
 
-> The `carto maps agents status` / `models` / `mcp-tools` / `core-tools` catalogues are **CLI-only** — no MCP equivalent. On a chat-host MCP session without a shell, you can't run these; emit the `agent` block and let the create/update verify step surface any `agent.issues`, or ask the user to confirm AI is enabled.
+> On MCP, `admin_carto` (agents_status \| list_agent_models) and `read_workflows` (list_mcp_tools) serve the `carto maps agents status` / `models` / `mcp-tools` catalogues. Only `carto maps agents core-tools` is **CLI-only**; without a shell, emit the `agent` block and let the create/update verify step surface any `agent.issues`.
 
 **Check organization AI enablement before emitting an agent block:**
 

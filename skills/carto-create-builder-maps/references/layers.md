@@ -1,6 +1,6 @@
 # Layers — per-layer-type authoring
 
-Every `keplerMapConfig.visState.layers[]` entry has the same top-level shape. The difference between layer types is the `type` field and the defaults Kepler fills in. This file documents each layer type's authoring shape, decision criteria, and the gotchas that aren't visible from `carto maps schema layer.<type>` (schema is CLI-only). The "CLI auto-fills / auto-composes / Tier-1 rejects" behaviours below run identically on the MCP `create_map` / `update_map` / `validate_map` pipeline — the config is the same object on either path.
+Every `keplerMapConfig.visState.layers[]` entry has the same top-level shape. The difference between layer types is the `type` field and the defaults Kepler fills in. This file documents each layer type's authoring shape, decision criteria, and the gotchas that aren't visible from `carto maps schema layer.<type>` (on MCP, `validate_map` method `schema`, section `layer.<type>`). The "CLI auto-fills / auto-composes / Tier-1 rejects" behaviours below run identically on the MCP `create_map` / `update_map` / `validate_map` pipeline — the config is the same object on either path.
 
 For cartographic decisions (which layer to pick by data character, which palette family, which scale), read `cartography.md` first — that's *what to pick*; this file is *how to encode it*.
 
