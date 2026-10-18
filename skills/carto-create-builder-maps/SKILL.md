@@ -104,7 +104,7 @@ Read [`references/cartography.md`](references/cartography.md) ahead of writing J
 
 - **Layer type** by data character (point / line / polygon / h3 / quadbin / heatmap / cluster / raster).
 - **Palette family** (qualitative / sequential / diverging) — pick by narrative + basemap, not reflex.
-- **Scale type** — pick by data shape AND meaning, not reflex. Default ladder: bounded with semantic landmarks (0–100 scores, %, ratios) → `quantize` + explicit `colorDomain` matching the natural extent; heavy-tailed across orders of magnitude → `custom` + `uiCustomScaleType: "logarithmic"`; skewed unbounded where viewers care about RANK not magnitude → `quantile` (the genuine use case, not the safe default); categorical-looking integers → cast to STRING + `ordinal`. See `references/cartography.md` §3.2 — `quantile` is NOT the universal safe default; reflex-picking it on bounded scales like ENERGY STAR / age / % is the most common scale-choice error.
+- **Scale type** — pick by data shape AND meaning, not reflex. Default ladder: bounded with semantic landmarks (0–100 scores, %, ratios) → `quantize`, or `custom` + `colorRange.colorMap` on the natural landmarks (`colorDomain` is rejected); heavy-tailed across orders of magnitude → `custom` + `uiCustomScaleType: "logarithmic"`; skewed unbounded where viewers care about RANK not magnitude → `quantile` (the genuine use case, not the safe default); categorical-looking integers → cast to STRING + `ordinal`. See `references/cartography.md` §3.2 — `quantile` is NOT the universal safe default; reflex-picking it on bounded scales like ENERGY STAR / age / % is the most common scale-choice error.
 - **Basemap** (`positron` light default / `dark-matter` / `voyager` / Google variants / custom).
 - **Multi-layer hue separation** when there's more than one layer (palette-family-per-layer, not shades of one ramp).
 
@@ -124,7 +124,7 @@ Reference [`references/configuration-shape.md`](references/configuration-shape.m
 
 ### Phase 4 — Validate offline
 
-`validate_map` (MCP) / `carto maps validate map.json` (CLI). Tier-1 catches shape, types, enum values, cross-references, agent fields, `aggregationExp` coherence, privacy coercion, and the dozen-or-so cross-field rules (canonical visualChannels path, custom-marker pairings, popup hover cap, etc.) — all with zero backend calls. Iterate until clean.
+`validate_map` (MCP) / `carto maps validate map.json` (CLI). Tier-1 catches shape, types, enum values, cross-references, agent fields, `aggregationExp` coherence, privacy coercion, and the dozen-or-so cross-field rules (canonical visualChannels path, custom-marker pairings, popup shape, etc.) — all with zero backend calls. Iterate until clean.
 
 ### Phase 5 — Create + verify
 
@@ -193,8 +193,8 @@ Don't offer them proactively, don't list them in *"what else can I do?"* unless 
 
 What sets the stack depends on the map:
 
-- **`config.layerGrouping` present** (every map saved from Builder has one): the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
-- **No `layerGrouping`** (a fresh bundle): `visState.layers` order is the render order.
+- **`config.layerGrouping` present** (every map saved from Builder has one) and Builder's layer-groups feature on: the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
+- **No `layerGrouping`** (a fresh bundle), or the feature off: `visState.layers` order is the render order.
 
 Keep `visState.layers` in the same order as the tree so both read the same. **Don't emit `visState.layerOrder`.** Builder reads it as layer *indices* (not ids), only when there is no tree, and its presence switches off the CLI's pre-flight stacking warning. That warning only recognises certain geometry pairs and doesn't look at `layerGrouping` — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
 

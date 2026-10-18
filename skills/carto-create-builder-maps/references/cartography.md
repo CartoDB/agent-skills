@@ -199,7 +199,7 @@ Pick over h3 / quadbin only when narrative reasons outweigh the loss of quantita
 |---|---|---|
 | `Rgb` | True/false-colour composite | `colorBands`: three `{ band, type, value }` entries — `type: "band"` or `"expression"` (e.g., `(B04-B03)/(B04+B03)` for NDVI) |
 | `ColorRange` | Continuous palette on one band | `colorField` + `colorRange` (sequential) |
-| `UniqueValues` | Categorical raster (land cover, masks) | `colorField` + `uniqueValuesColorRange` + `uniqueValuesColorScale: "ordinal"` + `uniqueValuesColorDomain` |
+| `UniqueValues` | Categorical raster (land cover, masks) | `colorField` + `uniqueValuesColorRange` + `uniqueValuesColorScale: "ordinal"`; pin classes to colours with `uniqueValuesColorRange.colorMap` (`uniqueValuesColorDomain` is rejected) |
 
 **Default to `ColorRange`** for any single-band continuous measure. Reach for `Rgb` only when the data is natively multi-band and the composite is the point.
 
@@ -225,7 +225,7 @@ The cartographic rule: **layers that cover more pixels go to the bottom; sparse 
 | Index 3 | `h3`, `quadbin`, `heatmapTile`, `clusterTile` | Tiles viewport wall-to-wall at the aggregation level |
 | **Last index** (bottom) | `raster` (basemap-like imagery) | Total coverage |
 
-**`layerGrouping` overrides the array order.** When the map has a `config.layerGrouping` tree — every map saved from Builder does — the tree's order is the render order (first entry on top) and a layer missing from it lands at the bottom. Without a tree, Builder uses `visState.layers` order. Don't emit `visState.layerOrder`: Builder reads it as indices, only when no tree exists, and the CLI doesn't fill it in. Full rules: `references/layers.md` → *"Layer groups"*.
+**`layerGrouping` overrides the array order.** When the map has a `config.layerGrouping` tree — every map saved from Builder does — the tree's order is the render order (first entry on top) and a layer missing from it lands at the bottom, when Builder's layer-groups feature is on; with it off, kepler's layer order drives render. Without a tree, Builder uses `visState.layers` order. Don't emit `visState.layerOrder`: Builder reads it as indices, only when no tree exists, and the CLI doesn't fill it in. Full rules: `references/layers.md` → *"Layer groups"*.
 
 **Edge case.** A `tileset` polygon with `filled: false` (outline-only) can sit above fill layers without occluding them.
 
@@ -302,7 +302,7 @@ The `colorScale` values to emit — matching what Builder's UI offers:
 | `quantile` | Quantile | Equal *count* per class. Rank, not magnitude. Use when the question is *"top-N?"* |
 | `custom` + `uiCustomScaleType: "logarithmic"` | Logarithmic | Heavy-tailed across 4+ orders of magnitude |
 | `custom` (hand-authored `colorMap`) | Custom thresholds | Domain-specific breakpoints (grades, policy cutoffs, Jenks pre-computed) |
-| `ordinal` | Categorical | String fields, or hexColor mode (§4.7) |
+| `ordinal` | Categorical | String, boolean or date fields, or hexColor mode (§4.7). Rejected on `integer` / `real` / `timestamp` and with `colorAggregation: "custom"` |
 | `identity` | Pass-through | The column already holds the colour. Requires `colorField.colorColumn` — see §4.7 |
 
 Those five are the whole set for `colorScale` / `strokeColorScale`; anything else is rejected. `log`, `sqrt` and `linear` are continuous scales that belong to the size / height / radius channels — if you see one on a *color* channel in a configuration read back via `get --json`, treat it as legacy.
@@ -563,7 +563,7 @@ Auto-generated per layer unless suppressed. Type inferred from `colorScale`:
 `popupStyle`: `light`, `lightWithHiFirst`, `dark`, `darkWithHiFirst`, `panel`, `none`.
 
 **Rules:**
-- **Hover popup:** capped at 5 columns by Tier-1 validation. Prefer 2–4.
+- **Hover popup:** Builder's editor stops at 5 columns; Tier-1 does not enforce it, so keep to 5 yourself. Prefer 2–4.
 - **Click popup:** no hard cap. Scope by relevance — don't dump 30 columns.
 - **Style:** `light` on positron/voyager, `dark` on dark-matter. `WithHiFirst` promotes the hovered field to the top.
 - **`panel`** docks the popup to a side panel — choose for dense detail or mobile-portrait.

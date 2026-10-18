@@ -349,7 +349,8 @@ Both `type: "h3"` and `type: "quadbin"` extend `TileLayer`, so every field in `l
 > | Channel | Picker offers | Notes |
 > |---|---|---|
 > | `colorScale` / `strokeColorScale` | `quantize` \| `quantile` \| `custom` (+ "Logarithmic" via `custom` + `uiCustomScaleType: "logarithmic"`) — categorical adds `ordinal` | Binned scales only. The runtime won't reject `colorScale: "log"` / `"linear"` / `"sqrt"` but Builder doesn't author those and they render unpredictably — **don't emit them on color**. For log-shaped colour on a skewed distribution, use the Logarithmic form (`colorScale: "custom"` + `uiCustomScaleType: "logarithmic"` + log10-spaced `colorMap`). |
-> | `sizeScale` / `heightScale` / `radiusScale` | `linear` \| `sqrt` \| `log` \| `quantize` \| `custom` | Continuous scales — visual size reads better as a smooth function of the data than as bins. |
+> | `sizeScale` / `heightScale` | `linear` \| `sqrt` \| `log` | Continuous scales — visual size reads better as a smooth function of the data than as bins. |
+> | `radiusScale` | `linear` \| `sqrt` | Anything else is rejected. |
 >
 > For long-tail / skewed distributions on color, prefer the Logarithmic form over `quantile` — `quantile` splits the *raw* /stats distribution, which collapses to flat breaks when the aggregated per-cell distribution diverges from the raw one.
 
@@ -566,7 +567,7 @@ Authoritative list: `carto maps schema enums`. Current: `tileset`, `quadbin`, `h
 
 ## Layer groups — collapsible folders in the layer panel
 
-Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups don't change the data or the geometry, but **the tree sets the render order**: layers stack in the tree's flattened order, first entry on top, and that overrides `visState.layers` order. Authoritative shape: `carto maps schema layergrouping`.
+Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups don't change the data or the geometry, but **the tree sets the render order** when Builder's layer-groups feature is on: layers stack in the tree's flattened order, first entry on top, and that overrides `visState.layers` order. With the feature off, kepler's layer order drives render. Authoritative shape: `carto maps schema layergrouping`.
 
 **Where it lives.** A single `layerGrouping` array at the **config root** — a sibling of `visState`, *not* inside it, and *not* a property on any layer:
 
