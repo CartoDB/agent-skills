@@ -9,16 +9,16 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 | Kind | When to pick | Required fields beyond `dataSource` |
 |---|---|---|
 | `formula` | Single headline metric (sum / avg / min / max / count / custom). | `column` (except `operation: "count"`), `operation`. For `operation: "custom"` add `operationExp` (raw SQL, e.g. `"SUM(revenue) / COUNT(*)"`). |
-| `histogram` | Distribution of a numeric column. | `column`, `operation`, **`buckets` (REQUIRED — see callout)**. Optional `min`/`max` to pin the domain. |
-| `category` | Bar chart by string/categorical value. | `column`, `operation`, **`operationColumn` (REQUIRED at mount — see callout)**. `orderBy`: `frequency_desc` (default) \| `frequency_asc` \| `alphabetical_asc` \| `alphabetical_desc`. |
+| `histogram` | Distribution of a numeric column. | `column`, `operation`, `buckets` (filled with 30 when omitted — see callout). Optional `min`/`max` to pin the domain. |
+| `category` | Bar chart by string/categorical value. | `column`, `operation`, `operationColumn` (required for `avg` / `min` / `max` / `sum`; empty for `count` / `custom` — see callout). `orderBy`: `frequency_desc` (default) \| `frequency_asc` \| `alphabetical_asc` \| `alphabetical_desc`. |
 | `pie` | Same shape as `category`, rendered as pie. | Same as `category`. |
 | `range` | Min/max slider filter. | `column`, `operation`. |
-| `timeseries` | Line / bar over time. | `column` (date/timestamp), `operation`, **`operationColumn` (REQUIRED at mount — see callout)**, `stepSize` (`second`…`year` — no `quarter`; use `stepSize: "month"` + `stepMultiplier: 3`), `chartType` (`line` \| `bar`), **`showControls` (REQUIRED at mount — emit `false` by default; see callout below)**. Optional `series[]` for multi-line, `splitByCategory` for per-category series. |
+| `timeseries` | Line / bar over time. | `column` (date/timestamp), `operation`, `operationColumn` (as for `category`), `stepSize` (`second`…`year` — no `quarter`; use `stepSize: "month"` + `stepMultiplier: 3`), `chartType` (`line` \| `bar` only), `showControls` (filled with `false` when omitted; see callout below). Optional `series[]` for multi-line, `splitByCategory` for per-category series. |
 | `table` | Paginated row browser / feature browser. | `dataSource` + `columns: [{ field, headerName, type, format }]`. Only `field` is required per column; `type` (`number` / `string` / `date`) drives sorting and default formatting, and `format` is a d3-format specifier, not a preset id and not a date pattern. |
 
 > **Histogram requires both `column` AND `buckets`.** An omitted `buckets` is filled with Builder's own 30, but author it explicitly: the tick loop is `for (let i = 1; i < widget.buckets; i++)`, so a value that reaches the widget as `undefined` — or the still-accepted `1` — renders an empty container.
 
-> **`operationColumn` is required at mount on `category` / `pie` / `timeseries`, even when `operation: "count"`.** Builder's widgets panel throws when mounting these widgets without it; the React `ErrorBoundary` catches the throw and renders the styled "Error 500" page (which masquerades as a backend failure — see *"`Error 500` page in CARTO Builder is ambiguous"*). For `avg` / `min` / `max` / `sum`, set it to the numeric column being aggregated. For `count` and `custom` the key still has to be there but names nothing — emit `"operationColumn": ""`, which is what Builder writes. The same rule applies to `series[]` entries, where omitting the key is what breaks.
+> **`operationColumn` on `category` / `pie` / `timeseries`.** For `avg` / `min` / `max` / `sum`, set it to the numeric column being aggregated; leaving it empty is rejected. For `count` and `custom` it names nothing: leave it empty or omit it, and an omission is filled with `""`, which is what Builder writes. `series[]` entries are the exception: there the key is required, even for `count` and `custom`.
 
 > **`showControls` belongs on every `timeseries`.** An omission is filled with `false`, which is what Builder persists on creation — but the component's own fallback is `true`, so leaving it out is what makes a CLI-authored timeseries diverge from a Builder-authored one. **Emit `"showControls": false` by default**; emit `true` ONLY when the user explicitly asks for time-scrubbing animation playback. The animation playback has several non-obvious failure modes: rejected outright on aggregated datasets (h3 / quadbin / heatmapTile / clusterTile — per-row timestamps are gone once binned), disabled when the widget is in `global: true` mode, and disabled when cross-filtering is active.
 
@@ -43,24 +43,24 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 
 ```jsonc
 // category — bar chart by string/categorical value.
-// `column` groups; `operationColumn` is REQUIRED at mount (mirror `column` for `count`).
+// `column` groups; `operationColumn` stays empty for `count`.
 { "id": "w-cat", "type": "category", "title": "Sales by region",
-  "column": "region", "operation": "count", "operationColumn": "region",
+  "column": "region", "operation": "count", "operationColumn": "",
   "dataSource": "$ref:stores",
   "orderBy": "frequency_desc" }
 ```
 
 ```jsonc
 // pie — same shape as category, rendered as pie. Use sparingly (≤ 7 slices).
-// `operationColumn` is REQUIRED at mount (mirror `column` for `count`).
+// `operationColumn` stays empty for `count`.
 { "id": "w-pie", "type": "pie", "title": "Top contributing factor",
-  "column": "factor", "operation": "count", "operationColumn": "factor",
+  "column": "factor", "operation": "count", "operationColumn": "",
   "dataSource": "$ref:incidents" }
 ```
 
 ```jsonc
 // histogram — distribution of a numeric column.
-// `buckets` is REQUIRED — without it the widget renders empty.
+// `buckets` is filled with 30 when omitted; author it explicitly.
 { "id": "w-hist", "type": "histogram", "title": "Revenue distribution",
   "column": "revenue", "operation": "count",
   "buckets": 30,
@@ -78,7 +78,7 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 
 ```jsonc
 // timeseries — line / bar over time. `stepSize` accepts second…year (NO quarter — use month + stepMultiplier: 3).
-// `operationColumn` and `showControls` are REQUIRED at mount. Bottom-of-map surface.
+// `operationColumn` names the summed column; `showControls` is filled with false when omitted. Bottom-of-map surface.
 { "id": "w-time", "type": "timeseries", "title": "Sales over time",
   "column": "sale_date", "operation": "sum", "operationColumn": "revenue",
   "stepSize": "month", "chartType": "line",
@@ -146,7 +146,7 @@ See [`examples.md` §D](examples.md#d-widgets-gallery--one-of-each-kind) for a t
 
 ### Collapsibility
 
-**Every widget is collapsible; `autoCollapse: true` collapses it while no layer bound to its `dataSource` is visible** — one hidden from the layer panel, or one whose `visibilityByZoom` range excludes the current zoom. Viewers collapse any widget from its header, and `autoCollapse` works on its own. It is NOT an initial state: with such a layer visible the widget renders expanded, so `autoCollapse` is not the way to open a map with a widget already collapsed. A `table` widget collapses as a tabbed group instead: tabs with no visible layer are skipped, and the group collapses when none is left.
+**`collapsible: true` lets viewers collapse a widget; `autoCollapse: true` collapses it while no layer bound to its `dataSource` is visible** — one hidden from the layer panel, or one whose `visibilityByZoom` range excludes the current zoom. `autoCollapse` needs `collapsible: true`; Builder disables the control without it. It is NOT an initial state: with such a layer visible the widget renders expanded, so `autoCollapse` is not the way to open a map with a widget already collapsed. A `table` widget collapses as a tabbed group instead: tabs with no visible layer are skipped, and the group collapses when none is left.
 
 - **Two columns** (`widgetsPanelLayout.columns: 2`): the two widgets sharing a row collapse and expand together, and the row auto-collapses only when **both** carry `autoCollapse: true` and neither has a visible layer. Set `autoCollapse` on both, or the row stays open.
 
@@ -163,7 +163,7 @@ See [`examples.md` §D](examples.md#d-widgets-gallery--one-of-each-kind) for a t
 
 - **`global` mode** — `false` (default) queries only the layer-rendered data (filtered by viewport / bounds); `true` queries the entire dataset via the Model API (whole-dataset stats). **Forced true** when the dataset is tileset/raster without an attached layer, or a dynamic spatial-index dataset — Builder disables the toggle, but the CLI doesn't enforce: a tileset-backed widget with no layer needs `global: true` or it renders empty.
 - **`spatialIndexAggregation`** — optional, and worth setting when the underlying dataset is h3/quadbin/heatmapTile/clusterTile: the tile server has already binned rows into cells, so this is how the widget aggregates them. Accepts the standard aggregation set MINUS `median` and `count unique` (same restriction as layer aggregations).
-- **`collapsible` / `autoCollapse` / `wrapperProps.expanded`** — see *"Collapsibility"* above. every widget collapses from its header; `autoCollapse` collapses the widget while no layer bound to its `dataSource` is visible (not an initial state, and row-scoped with two columns); `wrapperProps.expanded` is the per-viewer state Builder persists.
+- **`collapsible` / `autoCollapse` / `wrapperProps.expanded`** — see *"Collapsibility"* above. `collapsible` lets viewers collapse the widget; `autoCollapse` (needs `collapsible: true`) collapses the widget while no layer bound to its `dataSource` is visible (not an initial state, and row-scoped with two columns); `wrapperProps.expanded` is the per-viewer state Builder persists.
 - **`note` / `noteFormat` / `noteExpanded`** — optional freeform documentation shown alongside the widget. `noteFormat: "markdown"` renders Markdown; `plainText` (default) renders literal.
 - **`fullWidth`** — gives the widget a row of its own when the panel shows two columns (`widgetsPanelLayout.columns: 2`); no effect with one column. Omit it for a normal-width widget. See *"Widgets panel layout"* above.
 - **`operationExp`** — raw SQL for `operation: "custom"` (formula / category / pie / timeseries only). NOT supported when `dataSource` is a tileset or raster.
