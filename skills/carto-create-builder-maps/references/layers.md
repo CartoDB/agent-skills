@@ -567,7 +567,7 @@ Authoritative list: `carto maps schema enums`. Current: `tileset`, `quadbin`, `h
 
 ## Layer groups — collapsible folders in the layer panel
 
-Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups don't change the data or the geometry, but **the tree sets the render order** when Builder's layer-groups feature is on: layers stack in the tree's flattened order, first entry on top, and that overrides `visState.layers` order. With the feature off, kepler's layer order drives render. Authoritative shape: `carto maps schema layergrouping`.
+Builder can organise the layer list into named, collapsible **groups** (e.g. "Base layers", "Analysis"). Groups don't change the data or the geometry, but **the tree sets the render order**: layers stack in the tree's flattened order, first entry on top, and that overrides `visState.layers` order. Authoritative shape: `carto maps schema layergrouping`.
 
 **Where it lives.** A single `layerGrouping` array at the **config root** — a sibling of `visState`, *not* inside it, and *not* a property on any layer:
 

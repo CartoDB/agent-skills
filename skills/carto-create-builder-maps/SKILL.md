@@ -193,7 +193,7 @@ Don't offer them proactively, don't list them in *"what else can I do?"* unless 
 
 What sets the stack depends on the map:
 
-- **`config.layerGrouping` present** (every map saved from Builder has one) and Builder's layer-groups feature on: the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
+- **`config.layerGrouping` present** (every map saved from Builder has one) the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
 - **No `layerGrouping`** (a fresh bundle), or the feature off: `visState.layers` order is the render order.
 
 Keep `visState.layers` in the same order as the tree so both read the same. **Don't emit `visState.layerOrder`.** Builder reads it as layer *indices* (not ids), only when there is no tree, and its presence switches off the CLI's pre-flight stacking warning. That warning only recognises certain geometry pairs and doesn't look at `layerGrouping` — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
