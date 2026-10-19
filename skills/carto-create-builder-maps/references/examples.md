@@ -291,7 +291,7 @@ All seven widget kinds in one map (formula × 2, histogram, category, pie, times
         { "id":"w5","type":"pie","title":"Contributing factor","column":"contributing_factor_vehicle_1","operation":"count","dataSource":"$ref:col","operationColumn":"contributing_factor_vehicle_1","global":false,"isValid":true },
         { "id":"w3","type":"histogram","title":"Injuries distribution","column":"number_of_persons_injured","operation":"count","buckets":20,"formatter":"DECIMAL_SHORT_COMMA","xAxisFormatter":"DECIMAL_SHORT_COMMA","dataSource":"$ref:col","global":false,"isValid":true },
         { "id":"w7","type":"range","title":"Injuries range","column":"number_of_persons_injured","operation":"count","dataSource":"$ref:col","global":true,"isValid":true },
-        { "id":"w6","type":"timeseries","title":"Over time","column":"crash_datetime","operation":"count","stepSize":"month","chartType":"line","dataSource":"$ref:col","operationColumn":"crash_datetime","global":false,"isValid":true,"collapsible":true,"autoCollapse":true,"showControls":false }
+        { "id":"w6","type":"timeseries","title":"Over time","column":"crash_datetime","operation":"count","stepSize":"month","chartType":"line","dataSource":"$ref:col","operationColumn":"crash_datetime","global":false,"isValid":true,"autoCollapse":true,"showControls":false }
       ]
     }
   }

@@ -83,7 +83,7 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
   "column": "sale_date", "operation": "sum", "operationColumn": "revenue",
   "stepSize": "month", "chartType": "line",
   "dataSource": "$ref:stores", "global": false,
-  "collapsible": true, "autoCollapse": true,
+  "autoCollapse": true,
   "showControls": false,
   "isValid": true }
 // NB: emit showControls: false by default. Set true ONLY when the user explicitly asks for animation playback —
@@ -105,7 +105,7 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
   ],
   "dense": true, "pageSize": 5,
   "global": false,
-  "collapsible": true, "autoCollapse": true }
+  "autoCollapse": true }
 ```
 
 ### Widget rendering surfaces — right-side panel vs. bottom-of-map
@@ -146,15 +146,15 @@ See [`examples.md` §D](examples.md#d-widgets-gallery--one-of-each-kind) for a t
 
 ### Collapsibility
 
-**`collapsible: true` lets viewers collapse a widget; `autoCollapse: true` collapses it while no layer bound to its `dataSource` is visible** — one hidden from the layer panel, or one whose `visibilityByZoom` range excludes the current zoom. `autoCollapse` needs `collapsible: true`; Builder disables the control without it. It is NOT an initial state: with such a layer visible the widget renders expanded, so `autoCollapse` is not the way to open a map with a widget already collapsed. A `table` widget collapses as a tabbed group instead: tabs with no visible layer are skipped, and the group collapses when none is left.
+**Every widget is collapsible by viewers. `autoCollapse: true` collapses it while no layer bound to its `dataSource` is visible** — one hidden from the layer panel, or one whose `visibilityByZoom` range excludes the current zoom. It is NOT an initial state: with such a layer visible the widget renders expanded, so `autoCollapse` is not the way to open a map with a widget already collapsed. A `table` widget collapses as a tabbed group instead: tabs with no visible layer are skipped, and the group collapses when none is left.
 
 - **Two columns** (`widgetsPanelLayout.columns: 2`): the two widgets sharing a row collapse and expand together, and the row auto-collapses only when **both** carry `autoCollapse: true` and neither has a visible layer. Set `autoCollapse` on both, or the row stays open.
 
 ```jsonc
-// Table — bottom-of-map surface, collapsible, auto-collapsing when its layer is hidden
+// Table — bottom-of-map surface, auto-collapsing when its layer is hidden
 { "id":"w-table","type":"table","title":"Raw incidents",
   "dataSource":"$ref:col", "columns":[ /* ... */ ],
-  "collapsible": true, "autoCollapse": true }
+  "autoCollapse": true }
 ```
 
 > **`wrapperProps.expanded: false` is not the same thing as `autoCollapse: true`.** `wrapperProps` is per-viewer presentation state Builder persists with the widget — whether it is currently expanded; `autoCollapse` is the layer-visibility rule above. Both are accepted and survive round-trips. If you're round-tripping a Builder-authored bundle that carries `wrapperProps`, leave it.
@@ -163,7 +163,7 @@ See [`examples.md` §D](examples.md#d-widgets-gallery--one-of-each-kind) for a t
 
 - **`global` mode** — `false` (default) queries only the layer-rendered data (filtered by viewport / bounds); `true` queries the entire dataset via the Model API (whole-dataset stats). **Forced true** when the dataset is tileset/raster without an attached layer, or a dynamic spatial-index dataset — Builder disables the toggle, but the CLI doesn't enforce: a tileset-backed widget with no layer needs `global: true` or it renders empty.
 - **`spatialIndexAggregation`** — optional, and worth setting when the underlying dataset is h3/quadbin/heatmapTile/clusterTile: the tile server has already binned rows into cells, so this is how the widget aggregates them. Accepts the standard aggregation set MINUS `median` and `count unique` (same restriction as layer aggregations).
-- **`collapsible` / `autoCollapse` / `wrapperProps.expanded`** — see *"Collapsibility"* above. `collapsible` lets viewers collapse the widget; `autoCollapse` (needs `collapsible: true`) collapses the widget while no layer bound to its `dataSource` is visible (not an initial state, and row-scoped with two columns); `wrapperProps.expanded` is the per-viewer state Builder persists.
+- **`autoCollapse` / `wrapperProps.expanded`** — see *"Collapsibility"* above. `autoCollapse` collapses the widget while no layer bound to its `dataSource` is visible (not an initial state, and row-scoped with two columns); `wrapperProps.expanded` is the per-viewer state Builder persists.
 - **`note` / `noteFormat` / `noteExpanded`** — optional freeform documentation shown alongside the widget. `noteFormat: "markdown"` renders Markdown; `plainText` (default) renders literal.
 - **`fullWidth`** — gives the widget a row of its own when the panel shows two columns (`widgetsPanelLayout.columns: 2`); no effect with one column. Omit it for a normal-width widget. See *"Widgets panel layout"* above.
 - **`operationExp`** — raw SQL for `operation: "custom"` (formula / category / pie / timeseries only). NOT supported when `dataSource` is a tileset or raster.
