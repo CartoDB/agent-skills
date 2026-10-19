@@ -27,7 +27,7 @@ Apps follow the [CartoDB/deck.gl-examples](https://github.com/CartoDB/deck.gl-ex
 Run, then write `.env`:
 
 ```bash
-carto auth status --json                  # → apiBaseUrl (from tenant.domain region)
+carto auth status --json                  # → tenant_id (region) → apiBaseUrl
 carto connections list --json             # → connectionName (default: carto_dw)
 
 # One token, ONE grant per source — repeat --connection alongside every --source.
@@ -65,7 +65,7 @@ Then layer in only what was asked for: [widgets](references/widgets.md), [filter
 
 ## Always-on guidance
 
-- **`apiBaseUrl`** comes from `carto auth status --json` (`tenant.domain` region). Never hard-code.
+- **`apiBaseUrl`** is `https://<tenant_id>.api.carto.com`, with `tenant_id` (the region, e.g. `gcp-us-east1`) from `carto auth status --json`. `tenant_domain` is the organization's own domain (e.g. `clausa.app.carto.com`) and carries no region. `apis.baseUrl` in `https://<tenant_domain>/config.yaml` is authoritative (self-hosted included). Never hard-code.
 - **`connectionName`** defaults to `carto_dw`; confirm via `carto connections list --json`.
 - **Public tokens** must always pass `--source` and limit `--apis` to `sql,maps`. Never `imports` / `lds` in a public bundle.
 - **Complex analysis is a workflow, not app SQL.** Predicting revenue, composite/suitability scores, segmentation, multi-step joins — build it with [`carto-create-workflow`](../carto-create-workflow); the app then reads its output table or `CALL`s its procedure via the Workflows API (or, if an embedded agent drives it, invokes it as a published **MCP tool**). Heavy logic stays server-side; the app passes parameters. See [`workflows-and-sql.md`](references/workflows-and-sql.md).

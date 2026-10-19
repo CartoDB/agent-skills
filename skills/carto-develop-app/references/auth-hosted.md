@@ -1,6 +1,6 @@
 # Auth — hosted on CARTO (`carto app deploy`)
 
-For internal apps: CARTO hosts the static bundle at `https://<workspace>/app/<slug>/` behind the organization login and hands the app **the viewer's own token** at runtime. No OAuth client, no API token, no `.env` secret, no hosting to set up. The app runs as whoever opens it and sees exactly what they can see.
+For internal apps: CARTO hosts the static bundle at `https://workspace-<tenant_id>.app.carto.com/app/<slug>/` behind the organization login and hands the app **the viewer's own token** at runtime. No OAuth client, no API token, no `.env` secret, no hosting to set up. The app runs as whoever opens it and sees exactly what they can see.
 
 Based on the [Build a hosted application](https://docs.carto.com/carto-for-developers/guides/build-a-hosted-application) guide. Command reference: [`carto app`](https://docs.carto.com/carto-for-agents/cli/command-reference/app).
 
@@ -85,7 +85,11 @@ carto app share <slug> --org            # private until shared; --group / --user
 carto app versions <slug>               # rollback: carto app rollback <slug> <version>
 ```
 
-Add `"deploy": "npm run build && carto app deploy dist --name \"…\" --slug <slug>"` to `package.json`. End by printing the app URL from the deploy output.
+Add `"deploy": "npm run build && carto app deploy dist --name \"…\" --slug <slug>"` to `package.json`.
+
+**End by printing the full app URL: `https://workspace-<tenant_id>.app.carto.com/app/<slug>/`**, with `tenant_id` (the region, e.g. `gcp-us-east1`) from `carto auth status --json`. The plain deploy output prints it in full; with `--json`, `url` is only the path (`/app/<slug>/`). Never put that path on `tenant_domain` (e.g. `clausa.app.carto.com`): the organization's own domain doesn't serve hosted apps and answers with an error page.
+
+**`403` / `Permission denied` on deploy** usually means someone else in the organization already owns that slug: slugs are unique per organization and only the owner can redeploy. Pick another, e.g. add the user's name (`signal-check-ana`).
 
 ## Not supported
 
