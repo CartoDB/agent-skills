@@ -2,13 +2,13 @@
 
 Let users change a filter and re-query live — Builder renders the parameter as a viewer-side control, the warehouse re-runs the query on each change. Four parameter kinds: `Category`, `DateRange`, `Numeric`, `NumericRange`. The canonical authoring shape is simple:
 
-**Write `{{paramName}}` in `dataset.source`.** The CLI auto-translates that into whatever the warehouse expects. Only two providers use a NAMED placeholder — `@paramName` on BigQuery (with `UNNEST(...)` for arrays) and `:paramName` on Databricks. Every other provider is POSITIONAL: `$1` / `$2` on Postgres and Snowflake, `:1` / `:2` on Oracle. The CLI fetches the dataset's connection `provider_id` and picks the right dialect at translate time.
+**Write `{{paramName}}` in `dataset.source`.** The CLI auto-translates that into whatever the warehouse expects. NAMED placeholders: `@paramName` on BigQuery (and the BigQuery-backed `carto` / `carto_dw`, with `UNNEST(...)` for arrays), `:paramName` on `databricksRest` / `databricksWarehouse` and Fabric. POSITIONAL: `$1` / `$2` on Postgres and Redshift, `:1` / `:2` on Oracle, and `?` on Snowflake and the legacy `databricks` provider. The CLI fetches the dataset's connection `provider_id` and picks the right dialect at translate time; a provider outside this list throws instead of writing broken SQL.
 
 **What ends up persisted** (what you'll see on a configuration read back via `get --json`):
 - **`dataset.source`** — the *parsed* form, provider-native. `SELECT * FROM t WHERE agency IN UNNEST(@agency)` on BigQuery.
 - **`dataset.queryTemplate`** — the original with `{{agency}}`. Builder reads this when it shows the query in its SQL panel.
-- **`dataset.queryParameters`** — the initial bound values. The **container** is decided by the provider, NOT by the parameter kind: a named dict keyed by `sqlName` on BigQuery and Databricks (the two with named placeholders), a positional array on every other provider (Postgres, Snowflake, Redshift, Oracle), ordered to match `$1`/`$2` or `:1`/`:2`. The **value inside** is what follows the parameter kind: an array for `Category`, a scalar for `DateRange` / `Numeric` / `NumericRange`.
-  - BigQuery / Databricks: `{"agency": ["HPD","DSNY"], "date_from": "2022-01-01"}`
+- **`dataset.queryParameters`** — the initial bound values. The **container** is decided by the provider, NOT by the parameter kind: a named dict keyed by `sqlName` on the named-placeholder providers (BigQuery, `databricksRest` / `databricksWarehouse`), a positional array on the others (Postgres, Snowflake, Redshift, Oracle, legacy `databricks`), ordered to match the placeholders. The **value inside** is what follows the parameter kind: an array for `Category`, a scalar for `DateRange` / `Numeric` / `NumericRange`.
+  - BigQuery / `databricksRest` / `databricksWarehouse`: `{"agency": ["HPD","DSNY"], "date_from": "2022-01-01"}`
   - Postgres / Snowflake / Redshift / Oracle: `[["HPD","DSNY"], "2022-01-01"]`
 
 **What you have to set** to make the parameter *appear* to the user:
@@ -105,7 +105,7 @@ Run `carto maps schema sqlparameters` for the authoritative discriminated schema
 
 | Kind | Source-side syntax | Value shape | Notes |
 |---|---|---|---|
-| `Category` | `WHERE col IN {{name}}` | `item: { value: [...], sqlName }` + `values: [...]` (picker options, **capped at 1000** — see Tier-1 rules) + `selectionMode: "multi"` (default) \| `"single"` | `multi` empty selection filters to zero rows on BigQuery; CLI coerces an unset / empty `item.value` to a copy of `values` ("all selected") to prevent silent-blank legends. `single` requires `item.value` of length 1; the top-level `defaultValue` is optional (Builder resolves the effective default as `defaultValue ?? values[0]`) but when present must be a string drawn from `values[]`. Optional `orderBy` (same enum as category widgets). |
+| `Category` | `WHERE col IN {{name}}` | `item: { value: [...], sqlName }` + `values: [...]` (picker options) + `selectionMode: "multi"` (default) \| `"single"` | `multi` empty selection filters to zero rows on BigQuery; CLI coerces an unset / empty `item.value` to a copy of `values` ("all selected") to prevent silent-blank legends. `single` requires `item.value` of length 1; the top-level `defaultValue` is optional (Builder resolves the effective default as `defaultValue ?? values[0]`) but when present must be a string drawn from `values[]`. Optional `orderBy` (same enum as category widgets). |
 | `DateRange` | `WHERE col >= {{from}} AND col <= {{to}}` | `start: { value, sqlName }` + `end: { value, sqlName }` (ISO-8601 `YYYY-MM-DD`, no relative dates) | Builder validates `end >= start` at save. `allowedRange` is **deprecated** — preserved on read but no longer enforced; omit on new maps. |
 | `Numeric` | `WHERE col = {{name}}` | scalar `value` + `sqlName` + top-level `defaultValue`, `min`, `max`, optional `step` | Single value picker. |
 | `NumericRange` | `WHERE col BETWEEN {{from}} AND {{to}}` | `start` / `end`, each `{ value, sqlName }`, + required top-level `min` / `max` and optional `step` bounding both ends | Range slider. |
@@ -114,8 +114,8 @@ Run `carto maps schema sqlparameters` for the authoritative discriminated schema
 
 - **`sqlName` format** must match `/^[a-zA-Z_][a-zA-Z0-9_]*$/` (same regex as Builder).
 - **`sqlName` unique per map** — two parameters with the same `sqlName` collide at runtime. Tier-1 rejects.
-- **`Category` `values[]` capped at 1000** — same ceiling Builder's UI applies (`DEFAULT_MAX_NUMBER_OF_CATEGORIES` in `CategoryValuesFromDataSource.tsx`). The cap is both UX (the multi-select picker doesn't virtualise above ~1k items, so a 50k-value list is unusable) and runtime (tile requests embed the selected list in `WHERE col IN (…)` — wide IN-lists blow past the warehouse's parameter / query-length limits). If the underlying column genuinely has >1000 distinct values, **don't ship a Category picker** — pick the most common N (`orderBy: "frequency_desc"` mirrors Builder's default), or give the viewer a `Numeric` / `NumericRange` / `DateRange` parameter (free-form input, no enumeration). The cap is on what the editor configures, not on warehouse cardinality.
-- **Providers** — BigQuery, Snowflake, Postgres, Redshift, Databricks, Oracle all supported.
+- **`Category` `values[]` is not capped by Tier-1.** Builder's editor fetches at most 1000 values, and a long list is still a poor picker (wide `IN (…)` lists also strain query limits). If the column genuinely has >1000 distinct values, **don't ship a Category picker** — pick the most common N (`orderBy: "frequency_desc"` mirrors Builder's default), or give the viewer a `Numeric` / `NumericRange` / `DateRange` parameter.
+- **Providers** — BigQuery (incl. `carto` / `carto_dw`), Snowflake, Postgres, Redshift, Databricks (`databricks`, `databricksRest`, `databricksWarehouse`), Oracle and Fabric. Any other provider throws `Unsupported provider for SQL parameter substitution`.
 - **Orphaned placeholders** — `{{foo}}` in a `dataset.source` with no matching parameter throws `Invalid sql parameter placeholder` at parse time.
 - **Unreferenced parameters** — a parameter that no dataset references is carried through (useful for "defined but not yet wired" configs).
 
