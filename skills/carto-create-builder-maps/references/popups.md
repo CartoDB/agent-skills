@@ -28,7 +28,7 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
         "style": "light",                // floating tooltip on hover
         "fields": [
           { "name": "name" },
-          { "name": "alcoholic_bev_euro", "format": "$,.2f", "customName": "Spend (€)" },
+          { "name": "alcoholic_bev_euro", "format": ",.2f", "customName": "Spend (€)" },
           { "name": "total_cap", "format": ".3~s", "customName": "Total capacity",
             "spatialIndexAggregation": "sum" }
         ],
@@ -54,7 +54,7 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 | `panel` | **Info panel** (docked side panel) | **click only** |
 | `none` | Disabled | hover, click |
 
-**Field options:** `name` (dataset column, required — the only required key), `customName` (display override), `isExpression: true` if `name` is SQL not a column, `format` (a d3-format specifier — `"$,.2f"` currency, `",.0f"` integer, `".3~s"` SI-short, `".2%"` percent; a numeric specifier, not a preset id and not a date pattern), `spatialIndexAggregation` (long-form aggregation for h3 / quadbin / clusterTile layers — see [`layers.md`](layers.md) *"h3 / quadbin aggregation restrictions"* for column-type gating), `customExpression` (the SQL aggregation expression that goes with `spatialIndexAggregation: "custom"`, distinct from `isExpression`).
+**Field options:** `name` (dataset column, required — the only required key), `customName` (display override), `isExpression: true` if `name` is SQL not a column, `format` (a d3-format specifier — `"$,.2f"` dollars, `",.0f"` integer, `".3~s"` SI-short, `".2%"` percent; a numeric specifier, not a preset id and not a date pattern; see [`formatting.md`](formatting.md)), `spatialIndexAggregation` (long-form aggregation for h3 / quadbin / clusterTile layers — see [`layers.md`](layers.md) *"h3 / quadbin aggregation restrictions"* for column-type gating), `customExpression` (the SQL aggregation expression that goes with `spatialIndexAggregation: "custom"`, distinct from `isExpression`).
 
 > **Nothing validates the popup's `spatialIndexAggregation`.** The popup surface is deliberately outside the aggregation cross-checks, and its schema accepts the full aggregation list — `median` and `count unique` included. Those two render on no provider, so a popup field carrying one fails silently at render. Stick to `count` / `sum` / `average` / `minimum` / `maximum` / `stdev` / `variance` / `mode` / `any_value` / `custom`.
 
