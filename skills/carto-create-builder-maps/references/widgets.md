@@ -22,7 +22,8 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
 
 > **`showControls` belongs on every `timeseries`.** An omission is filled with `false`, which is what Builder persists on creation — but the component's own fallback is `true`, so leaving it out is what makes a CLI-authored timeseries diverge from a Builder-authored one. **Emit `"showControls": false` by default**; emit `true` ONLY when the user explicitly asks for time-scrubbing animation playback. The animation playback has several non-obvious failure modes: rejected outright on aggregated datasets (h3 / quadbin / heatmapTile / clusterTile — per-row timestamps are gone once binned), disabled when the widget is in `global: true` mode, and disabled when cross-filtering is active.
 
-> **`operation` takes the SHORT form; `spatialIndexAggregation` on the same widget takes the LONG one.** Widget `operation` and `series[].operation` accept `count` / `avg` / `min` / `max` / `sum` / `custom` only — the layer spellings (`average` / `maximum` / `minimum`) are rejected outright. `spatialIndexAggregation` is the opposite: it takes the long form (`count` / `sum` / `average` / `minimum` / `maximum` / `stdev` / `variance` / `mode` / `any_value` / `custom`), the same renderable set as the layer aggregations — no `median`, no `count unique`. See [`layers.md`](layers.md) *"h3 / quadbin aggregation restrictions"* for the column-type gating that applies to the long-form set.
+> **`operation` takes the SHORT form.** Widget `operation` and `series[].operation` accept `count` / `avg` / `min` / `max` / `sum` / `custom` only — the layer spellings (`average` / `maximum` / `minimum`) are rejected outright.
+
 
 > **Table widgets are feature-browsers — search-and-click, NOT a filter.** What they CAN do: per-column search filters the *rows shown inside the table view*, and clicking a row zooms the map to that feature's geometry (when the dataset has resolvable geometry — set `uniqueIdProperty` on the dataset for stable cross-tile linkage). Use this for *"find this specific record"* use cases: viewer types into the column search → finds the row → clicks it → map zooms to highlight the feature.
 >
@@ -161,14 +162,14 @@ See [`examples.md` §D](examples.md#d-widgets-gallery--one-of-each-kind) for a t
 
 ### Knobs that apply across kinds
 
-- **`global` mode** — `false` (default) queries only the layer-rendered data (filtered by viewport / bounds); `true` queries the entire dataset via the Model API (whole-dataset stats). **Forced true** when the dataset is tileset/raster without an attached layer, or a dynamic spatial-index dataset — Builder disables the toggle, but the CLI doesn't enforce: a tileset-backed widget with no layer needs `global: true` or it renders empty.
-- **`spatialIndexAggregation`** — optional, and worth setting when the underlying dataset is h3/quadbin/heatmapTile/clusterTile: the tile server has already binned rows into cells, so this is how the widget aggregates them. Accepts the standard aggregation set MINUS `median` and `count unique` (same restriction as layer aggregations).
+- **`global` mode** — `false` (default) queries only the layer-rendered data (filtered by viewport / bounds); `true` queries the entire dataset via the Model API (whole-dataset stats). **Forced true** when the dataset has no layer on the map or no tile metadata — Builder disables the toggle. A tileset or raster dataset can never use global mode (the Model API can't read it), so a widget on one shows nothing until the map has a layer on that dataset: add the layer in the same configuration.
+- **`spatialIndexAggregation`** — legacy on widgets: accepted for round-trips but Builder does not read it (only popup fields use it). Don't author it; a widget on an h3/quadbin dataset aggregates through `operation`.
 - **`autoCollapse` / `wrapperProps.expanded`** — see *"Collapsibility"* above. `autoCollapse` collapses the widget while no layer bound to its `dataSource` is visible (not an initial state, and row-scoped with two columns); `wrapperProps.expanded` is the per-viewer state Builder persists.
 - **`note` / `noteFormat` / `noteExpanded`** — optional freeform documentation shown alongside the widget. `noteFormat: "markdown"` renders Markdown; `plainText` (default) renders literal.
 - **`fullWidth`** — gives the widget a row of its own when the panel shows two columns (`widgetsPanelLayout.columns: 2`); no effect with one column. Omit it for a normal-width widget. See *"Widgets panel layout"* above.
 - **`operationExp`** — raw SQL for `operation: "custom"` (formula / category / pie / timeseries only). NOT supported when `dataSource` is a tileset or raster.
 
-> **Widget ↔ dataset gotcha.** A widget whose `dataSource` is a `tileset` or `raster` dataset *with no layer in the map referencing it* renders empty (Builder marks it incompatible: `TILESET_OR_RASTER_WITHOUT_LAYER`). Always include the layer in the same configuration as the widget.
+> **Widget ↔ dataset gotcha.** A widget whose `dataSource` is a `tileset` or `raster` dataset *with no layer in the map referencing it* renders empty: those datasets can't be read whole, so there is no viewport to query without a layer. Always include the layer in the same configuration as the widget.
 
 ### Cross-filtering — propagating a widget's filter to other datasets
 
