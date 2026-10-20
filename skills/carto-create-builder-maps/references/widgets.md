@@ -1,6 +1,6 @@
 # Widgets — analytical surface
 
-Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (dataset id) and (for most kinds) a `column`. Seven widget kinds: `formula`, `category`, `pie`, `histogram`, `range`, `timeseries`, `table`. For the full discriminated field surface per kind, run `carto maps schema widgets`.
+Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (dataset id) and (for most kinds) a `column`. Seven widget kinds: `formula`, `category`, `pie`, `histogram`, `range`, `timeseries`, `table`. For the full discriminated field surface per kind, run `carto maps schema widgets`. Number formats (`formatter`, table column `format`): see [`formatting.md`](formatting.md).
 
 > **Nesting gotcha — widgets and sqlParameters live at `config.*`, NOT `config.visState.*`.** Both are peer fields of `visState` directly under `keplerMapConfig.config`. Agents used to Kepler's upstream shape sometimes nest them under `visState` — the CLI + server accept it silently, Builder ignores the mis-nested array, and the widget never appears. Tier-1 rejects non-empty `visState.widgets` / `visState.sqlParameters` with a "move up one level" hint.
 
