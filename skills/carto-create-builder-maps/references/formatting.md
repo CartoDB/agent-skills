@@ -29,7 +29,11 @@ Variants when you need a different precision: `DECIMAL_SHORT` (`.1s`, 10k), `DEC
 
 Dates in popups and tables take a date pattern on a date or timestamp column: `LL` (October 20, 2026), `L` (10/20/2026), `LLL` (with time). Builder's own picker doesn't offer them, so use them only when the user asks for a date format.
 
-## 3. Rules
+## 3. Custom HTML popups
+
+A popup template only replaces `{{column}}` with that field's value, already formatted by the field's `format`. It has no conditionals, loops or expressions: `{{#col}}…{{/col}}` or `{{^col}}` print as literal text. So format in the field, never in the template: give the boolean field `yn` and write `{{lots_of_water}}`; give a 0 to 100 field `~%` and don't add a "%" after `{{water_pct}}`. Use plain fields unless the user asks for a custom design.
+
+## 4. Rules
 
 - `.1%` and `.2%` multiply by 100: use them only on 0 to 1 values. For values already from 0 to 100, use the 0 to 100 row: in popups and tables `~%` adds the sign without multiplying.
 - `DECIMAL_CURRENCY` and `$` always print dollars. For any other currency, use a number format and put the unit in the title or label: "Revenue (EUR)".
