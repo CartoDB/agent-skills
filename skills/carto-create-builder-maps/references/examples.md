@@ -214,7 +214,7 @@ Nothing on the parameter points at the dataset: the `{{date_from}}` / `{{date_to
 
 Use single-select when picking more than one value would make the analysis wrong, not just busier — e.g. a scenario/mode switch, or a value that feeds an index / share-of-total where the selection is a baseline. The picker `values[]` can still list many options; the constraint is on how many the viewer may *select*.
 
-Rules the CLI enforces for `selectionMode: "single"`: `item.value` must contain exactly one value, a top-level `defaultValue` (string) is required, `defaultValue` must be one of `values[]`, and `item.value[0]` must equal `defaultValue`. The source-side SQL is unchanged — a Category parameter is always substituted as an array, so `WHERE col IN {{param}}` still applies (the array just always has one element).
+Rules enforced for `selectionMode: "single"`: `item.value` must contain exactly one value, and a top-level `defaultValue`, when present, must be a string from `values[]`. `defaultValue` is optional (Builder falls back to `values[0]`), and `item.value[0]` does not have to equal it: the live selection is saved separately, which is what makes reset-to-default work. The source-side SQL is unchanged — a Category parameter is always substituted as an array, so `WHERE col IN {{param}}` still applies (the array just always has one element).
 
 ```json
 {
