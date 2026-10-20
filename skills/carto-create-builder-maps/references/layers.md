@@ -1,6 +1,6 @@
 # Layers — per-layer-type authoring
 
-Every `keplerMapConfig.visState.layers[]` entry has the same top-level shape. The difference between layer types is the `type` field and the defaults Kepler fills in. This file documents each layer type's authoring shape, decision criteria, and the gotchas that aren't visible from `carto maps schema layer.<type>` (schema is CLI-only). The "CLI auto-fills / auto-composes / Tier-1 rejects" behaviours below run identically on the MCP `create_map` / `update_map` / `validate_map` pipeline — the config is the same object on either path.
+Every `keplerMapConfig.visState.layers[]` entry has the same top-level shape. The difference between layer types is the `type` field and the defaults Kepler fills in. This file documents each layer type's authoring shape, decision criteria, and the gotchas that aren't visible from `carto maps schema layer.<type>` (on MCP, `validate_map` method `schema`, section `layer.<type>`). The "CLI auto-fills / auto-composes / Tier-1 rejects" behaviours below run identically on the MCP `create_map` / `update_map` / `validate_map` pipeline — the config is the same object on either path.
 
 For cartographic decisions (which layer to pick by data character, which palette family, which scale), read `cartography.md` first — that's *what to pick*; this file is *how to encode it*.
 
@@ -349,7 +349,8 @@ Both `type: "h3"` and `type: "quadbin"` extend `TileLayer`, so every field in `l
 > | Channel | Picker offers | Notes |
 > |---|---|---|
 > | `colorScale` / `strokeColorScale` | `quantize` \| `quantile` \| `custom` (+ "Logarithmic" via `custom` + `uiCustomScaleType: "logarithmic"`) — categorical adds `ordinal` | Binned scales only. The runtime won't reject `colorScale: "log"` / `"linear"` / `"sqrt"` but Builder doesn't author those and they render unpredictably — **don't emit them on color**. For log-shaped colour on a skewed distribution, use the Logarithmic form (`colorScale: "custom"` + `uiCustomScaleType: "logarithmic"` + log10-spaced `colorMap`). |
-> | `sizeScale` / `heightScale` / `radiusScale` | `linear` \| `sqrt` \| `log` \| `quantize` \| `custom` | Continuous scales — visual size reads better as a smooth function of the data than as bins. |
+> | `sizeScale` / `heightScale` | `linear` \| `sqrt` \| `log` | Continuous scales — visual size reads better as a smooth function of the data than as bins. |
+> | `radiusScale` | `linear` \| `sqrt` | Anything else is rejected. |
 >
 > For long-tail / skewed distributions on color, prefer the Logarithmic form over `quantile` — `quantile` splits the *raw* /stats distribution, which collapses to flat breaks when the aggregated per-cell distribution diverges from the raw one.
 

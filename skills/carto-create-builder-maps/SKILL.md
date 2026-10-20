@@ -14,20 +14,23 @@ CARTO Builder is a mapping tool that renders interactive maps from a JSON map co
 > |---|---|---|
 > | List / get / search maps | `read_maps` (list \| get) | `carto maps list` / `get` |
 > | Create / edit / publish | `create_map`, `update_map` (update \| update_dataset \| publish) | `carto maps create` / `update` / `publish` / `datasets update` |
-> | Offline validate | `validate_map` | `carto maps validate` |
+> | Offline validate | `validate_map` (validate) | `carto maps validate` |
+> | Pre-flight against the warehouse (SQL dry-run, render, agent) | `validate_map` (verify) | `carto maps verify-remote` |
+> | Bundle schema (field / enum / palette catalogues) | `validate_map` (schema) | `carto maps schema` |
+> | AI agent status / models / workflow MCP tools | `admin_carto` (agents_status \| list_agent_models), `read_workflows` (list_mcp_tools) | `carto maps agents status` / `models` / `mcp-tools` |
 > | Delete | `delete` (kind=map) | `carto maps delete` |
 > | Preview inline (MCP-Apps hosts only) | `view_map` (mapId) — see [`carto-preview-builder-map`](../carto-preview-builder-map) | — (CLI can't render inline; use `screenshot` for a PNG) |
 > | Inspect a dataset | `explore_data` (describe) | `carto connections describe` |
 > | SQL probe | `execute_query` | `carto sql query` |
 > | Import a file first | `import_data` (submit \| status) | `carto import` |
 >
-> **CLI-only — no MCP equivalent:** `carto maps schema` (field/enum/palette catalogues), `carto maps agents *` (AI surfaces), `carto maps screenshot` (PNG render), `carto maps copy` (cross-profile promotion, and same-org duplication). Reach for the CLI for these, for scripted/bulk authoring, and whenever the server isn't attached.
+> **CLI-only — no MCP equivalent:** `carto maps agents core-tools`, `carto maps screenshot` (PNG render), `carto maps copy` (cross-profile promotion, and same-org duplication). Reach for the CLI for these, for scripted/bulk authoring, and whenever the server isn't attached.
 >
 > **Token vs OAuth.** Over an API token the MCP session exposes a read/discovery subset only (`validate_map`, `view_map`, `explore_data`, `execute_query` remain; `create_map` / `update_map` / `delete` are hidden) — author over the CLI, or reconnect over OAuth. On sandboxed chat hosts (Claude.ai, ChatGPT) the CLI can't run at all — MCP is the only live path there. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 For ad-hoc spatial SQL exploration, use [`carto-query-datawarehouse`](../carto-query-datawarehouse).
 
-Field shapes, enum values, palette catalogues, and AI-tool catalogues are served by `carto maps schema [section]` (JSON Schema, generated from the same Zod definitions Tier-1 validation uses), `carto maps agents models` / `mcp-tools` / `core-tools` (AI surfaces), and `explore_data describe` / `carto connections describe <conn> <table>` (dataset metadata) — **never hardcode or assume them**. When this doc disagrees with the CLI/schema, the schema wins.
+Field shapes, enum values, palette catalogues, and AI-tool catalogues are served by `validate_map` (schema) / `carto maps schema [section]` (JSON Schema, generated from the same Zod definitions Tier-1 validation uses), `admin_carto` (list_agent_models) / `read_workflows` (list_mcp_tools) / `carto maps agents models` / `mcp-tools` / `core-tools` (AI surfaces), and `explore_data describe` / `carto connections describe <conn> <table>` (dataset metadata) — **never hardcode or assume them**. When this doc disagrees with the CLI/schema, the schema wins.
 
 ## References
 
@@ -39,7 +42,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 **Per-component — consult on demand while authoring**
 - [`references/layers.md`](references/layers.md) — per-layer-type authoring: `tileset` (point / line / polygon / 3D), `h3`, `quadbin`, `heatmapTile`, `clusterTile`, `raster`. Plus colour ranges (palettes / scales / `/stats`), stroke styles (`lineStyle` solid / dashed / dotted), polygon fill patterns (`fillPatternEnabled` + `fillPattern`) and basemap-aware contrast.
 - [`references/widgets.md`](references/widgets.md) — analytical surface: `formula`, `category`, `pie`, `histogram`, `range`, `timeseries`, `table`. Ordering, collapsibility defaults, cross-filtering across datasets.
-- [`references/popups.md`](references/popups.md) — `popupSettings` covers two interaction surfaces: tooltip popups (hover / click) AND info panels (docked side panel, click-only). 5-field hover cap, custom HTML templates with inline CSS, what the renderer sanitises out.
+- [`references/popups.md`](references/popups.md) — `popupSettings` covers two interaction surfaces: tooltip popups (hover / click) AND info panels (docked side panel, click-only). 5-field hover limit (Builder's editor, not validated), custom HTML templates with inline CSS, what the renderer sanitises out.
 - [`references/sql-parameters.md`](references/sql-parameters.md) — `Category`, `DateRange`, `Numeric`, `NumericRange`. `{{paramName}}` placeholder authoring + provider-native dialect translation.
 - [`references/basemap.md`](references/basemap.md) — write BOTH `basemapConfig.styleId` AND `mapStyle.styleType` to the same value (the screenshot engine + viewer SSR still read `mapStyle` today). CARTO basemaps / Google Maps / custom basemap catalogue.
 - [`references/agent-config.md`](references/agent-config.md) — Agent on a map (opt-in). Organization-status check, model selection, MCP / core tool catalogues, capability-driven activation.
@@ -89,7 +92,7 @@ This phase is a **gate, not a suggestion**. But the order matters: **the data is
 #### Technical preconditions (silent — don't surface unless they fail)
 
 - **Access ready.** On MCP, confirm the map tools are in your tool list (if only `validate_map` / `view_map` show, the session is token-authed — author over the CLI or reconnect over OAuth). On the CLI, run `carto auth status`; if unauthenticated, use `carto auth login --no-launch-browser` and stop. See [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
-- **Organization AI status** (only if the user mentions an Agent on the map). `carto maps agents status` (CLI-only) — if `enabled: false`, drop agent plans and tell the user.
+- **Organization AI status** (only if the user mentions an Agent on the map). `admin_carto` (agents_status) / `carto maps agents status` — if `enabled: false`, drop agent plans and tell the user.
 
 #### Time budget
 
@@ -101,7 +104,7 @@ Read [`references/cartography.md`](references/cartography.md) ahead of writing J
 
 - **Layer type** by data character (point / line / polygon / h3 / quadbin / heatmap / cluster / raster).
 - **Palette family** (qualitative / sequential / diverging) — pick by narrative + basemap, not reflex.
-- **Scale type** — pick by data shape AND meaning, not reflex. Default ladder: bounded with semantic landmarks (0–100 scores, %, ratios) → `quantize` + explicit `colorDomain` matching the natural extent; heavy-tailed across orders of magnitude → `custom` + `uiCustomScaleType: "logarithmic"`; skewed unbounded where viewers care about RANK not magnitude → `quantile` (the genuine use case, not the safe default); categorical-looking integers → cast to STRING + `ordinal`. See `references/cartography.md` §3.2 — `quantile` is NOT the universal safe default; reflex-picking it on bounded scales like ENERGY STAR / age / % is the most common scale-choice error.
+- **Scale type** — pick by data shape AND meaning, not reflex. Default ladder: bounded with semantic landmarks (0–100 scores, %, ratios) → `quantize`, or `custom` + `colorRange.colorMap` on the natural landmarks (`colorDomain` is rejected); heavy-tailed across orders of magnitude → `custom` + `uiCustomScaleType: "logarithmic"`; skewed unbounded where viewers care about RANK not magnitude → `quantile` (the genuine use case, not the safe default); categorical-looking integers → cast to STRING + `ordinal`. See `references/cartography.md` §3.2 — `quantile` is NOT the universal safe default; reflex-picking it on bounded scales like ENERGY STAR / age / % is the most common scale-choice error.
 - **Basemap** (`positron` light default / `dark-matter` / `voyager` / Google variants / custom).
 - **Multi-layer hue separation** when there's more than one layer (palette-family-per-layer, not shades of one ramp).
 
@@ -121,18 +124,18 @@ Reference [`references/configuration-shape.md`](references/configuration-shape.m
 
 ### Phase 4 — Validate offline
 
-`validate_map` (MCP) / `carto maps validate map.json` (CLI). Tier-1 catches shape, types, enum values, cross-references, agent fields, `aggregationExp` coherence, privacy coercion, and the dozen-or-so cross-field rules (canonical visualChannels path, custom-marker pairings, popup hover cap, etc.) — all with zero backend calls. Iterate until clean.
+`validate_map` (MCP) / `carto maps validate map.json` (CLI). Tier-1 catches shape, types, enum values, cross-references, agent fields, `aggregationExp` coherence, privacy coercion, and the dozen-or-so cross-field rules (canonical visualChannels path, custom-marker pairings, popup shape, etc.) — all with zero backend calls. Iterate until clean.
 
 ### Phase 5 — Create + verify
 
-`create_map` (MCP) / `carto maps create < map.json` (CLI). Both run Tier-1 + a `SELECT … WHERE 1=0` source-accessibility probe per dataset BEFORE `POST /maps`, so broken sources never create orphan maps. The probe automatically excludes synthetic `_carto_*` columns and post-aggregation aliases parsed from `aggregationExp`, so legitimate h3 / quadbin / heatmapTile / clusterTile authoring won't trip it. After create, verify visually: on MCP-Apps hosts, `view_map <id>` previews inline; on a shell, `carto maps screenshot <id>` renders a PNG — see the *"Visual verification"* always-on rule for the decision rubric.
+`create_map` (MCP) / `carto maps create < map.json` (CLI). Both run Tier-1 + a `SELECT … WHERE 1=0` source-accessibility probe per dataset BEFORE `POST /maps`, so broken sources never create orphan maps: Tier-1 issues, a `SOURCE_INACCESSIBLE` / `COLUMN_NOT_FOUND` warning that carries a `detail`, and a tile server 4xx on a new dataset all reject the write. The probe automatically excludes synthetic `_carto_*` columns and post-aggregation aliases parsed from `aggregationExp`, so legitimate h3 / quadbin / heatmapTile / clusterTile authoring won't trip it. After create, verify visually: on MCP-Apps hosts, `view_map <id>` previews inline; on a shell, `carto maps screenshot <id>` renders a PNG — see the *"Visual verification"* always-on rule for the decision rubric.
 
 ### Phase 6 — Publish (when ready for viewers)
 
 Create writes a private draft. To make a map visible to the user's intended audience:
 
-- Set `privacy` (`shared` with optional `sharingScope: "organization"` or `"specific"` + `userIds` / `groupIds`, OR `public`).
-- Publish to freeze a snapshot for shared / public viewers: `update_map` (method=publish) / `carto maps publish <id>`, or chained edit-and-publish `carto maps update <id> --publish`.
+- Set `privacy`, preferably as `policies` (`{type:"organization"}`, `{type:"public"}`, `{type:"user"|"group", id}`; `public` also needs `organization`); the legacy `privacy` + `sharingScope` form still works. Send one form, not both.
+- The first share publishes the map; making it private again unpublishes it. Publish to refresh the snapshot shared / public viewers see after later edits: `update_map` (method=publish) / `carto maps publish <id>`, or chained edit-and-publish `carto maps update <id> --publish`.
 
 Tell the user *"it's live for viewers"* after a successful publish; otherwise make clear the edits are visible only to them.
 
@@ -178,7 +181,7 @@ Don't offer them proactively, don't list them in *"what else can I do?"* unless 
 
 | Block | Emit when… |
 |---|---|
-| `agent` | User asks for an Agent on the map. Run `carto maps agents status` first; drop if disabled. |
+| `agent` | User asks for an Agent on the map. Run `admin_carto` (agents_status) / `carto maps agents status` first; drop if disabled. |
 | `privacy` (non-private) | User asks to share. Default stays private. |
 | `tags` / `description` | User supplies them, or the map is being published externally. |
 | `collaborative` | User asks for other org members to edit, not just view. |
@@ -190,7 +193,7 @@ Don't offer them proactively, don't list them in *"what else can I do?"* unless 
 
 What sets the stack depends on the map:
 
-- **`config.layerGrouping` present** (every map saved from Builder has one): the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
+- **`config.layerGrouping` present** (every map saved from Builder has one) the tree's order is the render order, first entry on top. Reordering `visState.layers` alone changes nothing on screen; a layer missing from the tree is appended at the **bottom**. Reorder the tree, and insert a new layer's entry where it should stack.
 - **No `layerGrouping`** (a fresh bundle): `visState.layers` order is the render order.
 
 Keep `visState.layers` in the same order as the tree so both read the same. **Don't emit `visState.layerOrder`.** Builder reads it as layer *indices* (not ids), only when there is no tree, and its presence switches off the CLI's pre-flight stacking warning. That warning only recognises certain geometry pairs and doesn't look at `layerGrouping` — author the order correctly rather than waiting to be corrected. Full rules: [`references/layers.md`](references/layers.md) (layer stack order, first section) and [`references/cartography.md`](references/cartography.md) §1.8.
@@ -218,7 +221,7 @@ Verify what actually renders — Tier-1 and the source/render checks can't catch
 
 ### `keplerMapConfig` is wholesale-replace, not partial-merge
 
-Most top-level fields on an update accept partial patches: `title`, `description`, `tags`, `collaborative`, `privacy`, `agent`, `datasets`. **`keplerMapConfig` does not.** Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport. To change anything inside `keplerMapConfig`, use the read-modify-write cycle: read the full config (`read_maps get` / `carto maps get <id> --json`), edit, send it back (`update_map` / `carto maps update <id>`). Both paths reject wipe-causing partial updates pre-flight; see [`updates.md`](references/updates.md) for the full merge matrix.
+Most top-level fields on an update accept partial patches: `title`, `description`, `tags`, `collaborative`, `agent`, `datasets`. **`keplerMapConfig` does not.** Nor is `privacy` a safe partial patch: any privacy block rewrites the map's sharing, and `{"policies": []}` or `{"privacy": "private"}` revokes every share and unpublishes the map (see [`updates.md`](references/updates.md)). Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport. To change anything inside `keplerMapConfig`, use the read-modify-write cycle: read the full config (`read_maps get` / `carto maps get <id> --json`), edit, send it back (`update_map` / `carto maps update <id>`). Both paths reject wipe-causing partial updates pre-flight; see [`updates.md`](references/updates.md) for the full merge matrix.
 
 ### Don't fabricate a map id from a title
 
@@ -247,7 +250,7 @@ If they say *"show me the JSON"* / *"I'll write it myself"* / *"what's the schem
 | Edit an existing map — add a dataset, update a layer's style, change privacy, rename, swap basemap | `update_map` / `carto maps update <id> < partial.json` (partial PATCH; unmentioned fields preserved — except `keplerMapConfig`, wholesale-replaced) |
 | Duplicate an existing map | Read the config (`read_maps get` / `carto maps get <id> --json`), edit, create it fresh |
 
-> Render + sources + agent checks run automatically on every create / update and surface as warnings — no separate "validate it will render" step needed.
+> Render + sources + agent checks run automatically on every create / update. Most surface as warnings, but a source that fails with a `detail` and a new dataset the tile server rejects block the write — no separate "validate it will render" step needed.
 
 ### Commands you reach for most (CLI; MCP equivalents in the routing table at the top)
 
@@ -258,8 +261,8 @@ carto maps validate [map.json]                     # Tier-1 sanity check (MCP: v
 carto maps create [map.json]                       # new map (MCP: create_map)
 carto maps update <id> [patch.json] [--publish]    # partial update / publish (MCP: update_map)
 carto maps publish <id>                            # freeze a snapshot (MCP: update_map method=publish)
-carto maps schema [section]                        # JSON Schema reference (CLI-only)
-carto maps agents status                           # is CARTO AI enabled? (CLI-only)
+carto maps schema [section]                        # JSON Schema reference (MCP: validate_map method=schema)
+carto maps agents status                           # is CARTO AI enabled? (MCP: admin_carto method=agents_status)
 carto maps screenshot <id>                         # PNG render (CLI-only; MCP-Apps: view_map)
 ```
 
@@ -306,8 +309,8 @@ For longer recipes (full JSON bundles), see [`references/examples.md`](reference
 
 ## When in doubt
 
-- **Field unknown / suspect?** `carto maps schema [section]` returns the authoritative JSON Schema (CLI-only).
+- **Field unknown / suspect?** `validate_map` (schema) / `carto maps schema [section]` returns the authoritative JSON Schema.
 - **Map renders blank / wrong?** [`references/troubleshooting.md`](references/troubleshooting.md) symptom→fix table.
 - **Visual sanity check?** `view_map <id>` inline on MCP-Apps hosts, or `carto maps screenshot <id>` (PNG) on a shell.
-- **AI agent surfaces?** `carto maps agents status` / `models` / `mcp-tools` / `core-tools` (CLI-only).
+- **AI agent surfaces?** `admin_carto` (agents_status \| list_agent_models) and `read_workflows` (list_mcp_tools) on MCP; `carto maps agents status` / `models` / `mcp-tools` / `core-tools` on the CLI (`core-tools` is CLI-only).
 - **Stuck after a write?** Tell the user to reload the Builder tab — Builder doesn't subscribe to server events.

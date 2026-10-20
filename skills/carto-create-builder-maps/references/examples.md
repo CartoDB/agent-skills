@@ -214,7 +214,7 @@ Nothing on the parameter points at the dataset: the `{{date_from}}` / `{{date_to
 
 Use single-select when picking more than one value would make the analysis wrong, not just busier — e.g. a scenario/mode switch, or a value that feeds an index / share-of-total where the selection is a baseline. The picker `values[]` can still list many options; the constraint is on how many the viewer may *select*.
 
-Rules the CLI enforces for `selectionMode: "single"`: `item.value` must contain exactly one value, a top-level `defaultValue` (string) is required, `defaultValue` must be one of `values[]`, and `item.value[0]` must equal `defaultValue`. The source-side SQL is unchanged — a Category parameter is always substituted as an array, so `WHERE col IN {{param}}` still applies (the array just always has one element).
+Rules enforced for `selectionMode: "single"`: `item.value` must contain exactly one value, and a top-level `defaultValue`, when present, must be a string from `values[]`. `defaultValue` is optional (Builder falls back to `values[0]`), and `item.value[0]` does not have to equal it: the live selection is saved separately, which is what makes reset-to-default work. The source-side SQL is unchanged — a Category parameter is always substituted as an array, so `WHERE col IN {{param}}` still applies (the array just always has one element).
 
 ```json
 {
@@ -291,7 +291,7 @@ All seven widget kinds in one map (formula × 2, histogram, category, pie, times
         { "id":"w5","type":"pie","title":"Contributing factor","column":"contributing_factor_vehicle_1","operation":"count","dataSource":"$ref:col","operationColumn":"contributing_factor_vehicle_1","global":false,"isValid":true },
         { "id":"w3","type":"histogram","title":"Injuries distribution","column":"number_of_persons_injured","operation":"count","buckets":20,"formatter":"DECIMAL_SHORT_COMMA","xAxisFormatter":"DECIMAL_SHORT_COMMA","dataSource":"$ref:col","global":false,"isValid":true },
         { "id":"w7","type":"range","title":"Injuries range","column":"number_of_persons_injured","operation":"count","dataSource":"$ref:col","global":true,"isValid":true },
-        { "id":"w6","type":"timeseries","title":"Over time","column":"crash_datetime","operation":"count","stepSize":"month","chartType":"line","dataSource":"$ref:col","operationColumn":"crash_datetime","global":false,"isValid":true,"collapsible":true,"autoCollapse":true,"showControls":false }
+        { "id":"w6","type":"timeseries","title":"Over time","column":"crash_datetime","operation":"count","stepSize":"month","chartType":"line","dataSource":"$ref:col","operationColumn":"crash_datetime","global":false,"isValid":true,"autoCollapse":true,"showControls":false }
       ]
     }
   }
@@ -565,7 +565,8 @@ Patterns bound to a category column. Note all three parts: the range in `visConf
       "filled": true, "stroked": true, "opacity": 0.55, "thickness": 0.8,
       "strokeColor": [108, 124, 140],
       "colorRange": { "name": "Status", "type": "qualitative", "category": "Custom",
-        "colors": ["#C3D2E0", "#C1414B", "#E8A33D"] },
+        "colors": ["#C3D2E0", "#C1414B", "#E8A33D"],
+        "colorMap": [["Adopted", "#C3D2E0"], ["Restricted", "#C1414B"], ["Under review", "#E8A33D"]] },
       "fillPatternEnabled": true,
       "fillPatternDensity": "medium",
       "fillPatternSize": 0.85,
@@ -582,12 +583,11 @@ Patterns bound to a category column. Note all three parts: the range in `visConf
   "visualChannels": {
     "colorField": { "name": "status", "type": "string" },
     "colorScale": "ordinal",
-    "colorDomain": ["Adopted", "Restricted", "Under review"],
     "fillPatternField": { "name": "status", "type": "string" },
     "fillPatternScale": "ordinal"
   }
 }
 ```
 
-- `colorDomain` is pinned because the CLI hydrates it from `/stats` **by frequency**, not by the order of your `colors` array — leave it out and the palette lands on the wrong categories.
+- `colorRange.colorMap` pins each value to its colour, because the domain is hydrated from `/stats` **by frequency**, not by the order of your `colors` array — leave it out and the palette lands on the wrong categories. `visualChannels.colorDomain` is rejected.
 - Colour and pattern read the same column here, so Builder merges them into one legend entry rather than listing `status` twice.

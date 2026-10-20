@@ -1,6 +1,6 @@
 # Map configuration shape — JSON skeleton + dataset reference
 
-The annotated tree below shows every top-level field the map API accepts, plus per-dataset structure and `mapSettings` rules. For the authoritative field-level reference, run `carto maps schema [section]` (sections: `bundle`, `dataset`, `privacy`, `agent`, `mapstate`, `mapstyle`, `mapsettings`, `layer`, etc. — CLI-only). This config is identical whether you send it via `create_map` / `update_map` (MCP) or `carto maps create` / `update` (CLI); "the CLI" coercion and Tier-1 rules noted below run on both paths (the MCP map tools wrap the same pipeline).
+The annotated tree below shows every top-level field the map API accepts, plus per-dataset structure and `mapSettings` rules. For the authoritative field-level reference, run `carto maps schema [section]` (sections: `bundle`, `dataset`, `privacy`, `agent`, `mapstate`, `mapstyle`, `mapsettings`, `layer`, etc.; on MCP, `validate_map` method `schema`). This config is identical whether you send it via `create_map` / `update_map` (MCP) or `carto maps create` / `update` (CLI); "the CLI" coercion and Tier-1 rules noted below run on both paths (the MCP map tools wrap the same pipeline).
 
 ## Top-level structure
 
@@ -71,7 +71,9 @@ The annotated tree below shows every top-level field the map API accepts, plus p
   },
 
   // Privacy — CLI-level; maps to POST /maps/:id/privacy behind the scenes.
-  // Two accepted forms; send ONE, not both.
+  // Two accepted forms; send ONE, not both (a block with both is rejected).
+  // Not a partial patch: the block rewrites the map's sharing. `policies: []` or
+  // `privacy: "private"` revokes every share and unpublishes the map.
   // Preferred — explicit per-grantee policies:
   "privacy": {
     "policies": [                    // {type:"organization"} | {type:"public"}
