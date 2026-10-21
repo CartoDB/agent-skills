@@ -160,6 +160,13 @@
       "dependencies": [],
       "description": "End-to-end ArcGIS Portal / AGOL → CARTO migration. Triggers when the user wants to migrate ArcGIS content to CARTO, plan a migration, asks \"what's in my Portal\", names a Portal/AGOL URL, or asks to migrate the datasets / web maps / simple apps. Runs three phases — discover (enumerate items + write MIGRATION_MANIFEST.md), migrate-data (Hosted Feature Layers / Tables → CARTO tables), migrate-maps (Web Maps + simple Dashboards / Web Experiences / Web Mapping Apps → CARTO Builder maps). Default mode is batch; migrated maps are always tagged `From ArcGIS` and created as private.",
       "path": "skills/carto-arcgis-migration"
+    },
+    {
+      "name": "carto-raster-algebra",
+      "layer": "use-case",
+      "dependencies": ["carto-explore-datawarehouse", "carto-query-datawarehouse", "carto-create-workflow"],
+      "description": "Computes new rasters from existing ones in CARTO with raster algebra (pixel-by-pixel expressions over one or more RaQuet rasters). Triggers when the user wants to subtract, add, compare, combine, threshold or mask rasters, compute band math or spectral indices (NDVI, NDWI, NBR...), change detection or before/after deltas (e.g. signal coverage gained by a new site), map algebra, raster calculator, or \"operations between two raster sources and their bands\" — in the Analytics Toolbox (SQL) or in Workflows.",
+      "path": "skills/carto-raster-algebra"
     }
   ]
 }
