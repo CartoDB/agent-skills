@@ -65,11 +65,11 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 A layer entry can also carry `featureFilterScope`, Builder's "Filter by feature": clicking a feature filters that layer's source, and every widget on it, to the clicked feature. Offer it when the map has widgets and the reader wants to drill into one area (a region, a district, a cell): a popup explains one feature, a click filter makes the whole panel follow it.
 
 ```json
-"popupSettings": { "layers": { "districts": {
+{ "popupSettings": { "layers": { "districts": {
   "enabled": true,
   "featureFilterScope": "same-source",
   "click": { "style": "none", "fields": [] }
-} } }
+} } } }
 ```
 
 - `same-source` is the default choice. `all-layers` also masks every other source to the clicked area: use it only on polygon, h3 or quadbin layers (a territory map with points inside); on point layers it empties the other sources, on lines it acts as `same-source`. `same-layer` is the earlier spelling of `same-source`.
