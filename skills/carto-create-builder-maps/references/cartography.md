@@ -384,16 +384,9 @@ Once the family is right (§4 principle), the specific palette is a fit decision
 - **Colorblind safety.** Use the subset above when audience is public or unknown.
 - **Within-map distinguishability.** Multiple layers in one map need different *families*, not different shades of one (§7.11).
 
-**Default if uncertain — one safe pick per family.** When none of the above factors push you to a specific palette, use these as a fallback. They're colorblind-safe, work on light basemaps (default `positron`), and have neutral connotations that don't impose meaning the data may not carry:
+**No default palette.** There is no fallback pick: decide from the measure, the basemap and what the map already uses. Across one map, each layer gets its own family (§7.11). Across a session, don't repeat the ramp you picked last time unless the user asked for consistency. A named fallback turns into a habit, and every map ends up looking the same.
 
-| Family | Default if uncertain | Why |
-|---|---|---|
-| Sequential — magnitude | `Teal` | Colorblind-safe, calm, dark high-end on light basemap |
-| Diverging — signed | `Temps` (cool ↔ warm) or `Geyser` | Both colorblind-safe; midpoint reads as neutral |
-| Qualitative — 2–6 categories | `Bold` (or `Safe` for colorblind-safety) | Distinct hues, not shades-of-one |
-| Qualitative — 7–12 categories | `Prism` or `Pastel` | More distinct hues; collapse to top-N + `Other` past 12 |
-
-**Don't reach for a named palette by reflex.** "What did I use last time?" is the wrong prompt — the answer should be a fresh fit-by-character each map (§7.10). The defaults above are a *fallback when reasoning gives no preference*, not a reflex.
+**Don't reach for a named palette by reflex.** "What did I use last time?" is the wrong prompt — the answer should be a fresh fit-by-character each map (§7.10).
 
 For categorical data, the goal is **distinct hues**. CARTO qualitative palettes are tuned for that. A custom palette is fine as long as adjacent categories are visually separable; shades of one hue are not (that's a sequential palette, and using it for categories implies an order that isn't there).
 
