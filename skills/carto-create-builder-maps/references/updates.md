@@ -104,6 +104,8 @@ On MCP, the same applies to `update_map`: send `{ "agent": { "config": { "model"
 
 ## Partial updates — merge vs. wholesale-replace
 
+When a change doesn't touch `keplerMapConfig` — a title, description, sharing or agent change — leave `keplerMapConfig` out entirely: the other top-level fields merge on their own. Resending a 5 KB config for a title change only adds ways to fail.
+
 **The headline:** **most top-level configuration fields accept partial updates, but `keplerMapConfig` is replaced wholesale.** Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport from the server — read the current configuration, modify, and resend the full tree.
 
 | Top-level field on `carto maps update <id>` | Merge behaviour |
@@ -151,7 +153,11 @@ The CLI will refuse a partial `keplerMapConfig` update that would wipe existing 
 ---
 
 
+**Publish once.** On MCP, `update_map` takes a `publish` option that publishes after a successful write. Use it on the write that finishes the change; call the separate publish method only to publish without a change. Never both for one edit.
+
 ## Validation levers
+
+**When a write is refused,** fix what the error details say and try again, three attempts at most. If the third is refused too, stop and report what was refused and why, instead of looping on the same bundle.
 
 Every create/update runs these checks:
 
