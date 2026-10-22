@@ -60,6 +60,23 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 
 > **Keyed by layer id, not dataset id.** `popupSettings.layers["foo"]` applies to the *layer* whose top-level `id` is `"foo"` — two layers over the same dataset can have independent tooltips and info panels.
 
+## Click to filter — `featureFilterScope`
+
+A layer entry can also carry `featureFilterScope`, Builder's "Filter by feature": clicking a feature filters that layer's source, and every widget on it, to the clicked feature. Offer it when the map has widgets and the reader wants to drill into one area (a region, a district, a cell): a popup explains one feature, a click filter makes the whole panel follow it.
+
+```json
+"popupSettings": { "layers": { "districts": {
+  "enabled": true,
+  "featureFilterScope": "same-source",
+  "click": { "style": "none", "fields": [] }
+} } }
+```
+
+- `same-source` is the default choice. `all-layers` also masks every other source to the clicked area: use it only on polygon, h3 or quadbin layers (a territory map with points inside); on point layers it empties the other sources, on lines it acts as `same-source`. `same-layer` is the earlier spelling of `same-source`.
+- Needs `enabled: true`. It sits beside `hover` and `click`, and works with `click: { style: "none" }` when the user wants the filter without a card.
+- Not available on raster, heatmapTile, clusterTile, static tilesets, or layers aggregated by geometry.
+- Tell the user that a click now filters, since viewers won't expect it, and that clicking again clears it.
+
 ## HTML popup template — `templateMode: true`
 
 `templateMode: true` + a `template` string switches the popup (tooltip OR info panel — the rendering surface is independent) from a **structured field list** to a **full HTML render surface**. This is much more capable than just "customise the field shape" — the template is the entire DOM tree the popup paints, and arbitrary nested markup + inline CSS works.
