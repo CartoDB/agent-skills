@@ -219,9 +219,13 @@ The CLI auto-fills `enable3d: true` whenever `visualChannels.heightField` is set
 }
 ```
 
-#### Aggregate by geometry — when to bin a row-level source on the fly
+#### Aggregate by geometry — merge rows that share a geometry
 
-Keep the dataset's `geoColumn` as a raw geometry (`"geom"`) but add `dataset.aggregationExp` to tell the tile server to bin rows into spatial cells on the fly. Useful when the source is point-shaped and dense and the narrative is pattern-level rather than feature-level.
+Builder's "Aggregate by geometry" switch keeps the dataset's raw `geoColumn` (`"geom"`) and sets `dataset.aggregationExp` (`1 AS __aggregationValue` to start, plus one term per aggregated channel). Rows with **identical** geometries merge into one feature and channels read their aggregation. It does not bin anything: the geometry stays as it is. Use it when one place has many rows — several readings per sensor, several orders per store — and the map should show one feature per place. Filter by feature can't be applied to a layer aggregated this way.
+
+#### Binning a row-level point source into cells
+
+To bin dense points into cells, point the dataset's `geoColumn` at the geometry with an index prefix (`h3:geom`, `quadbin:geom`) and give it an `aggregationExp`. Points only: polygons and lines fail at tile time. Useful when the source is point-shaped and dense and the narrative is pattern-level rather than feature-level.
 
 **When to apply it.** Reach for aggregate-by-geometry on a `table` / `query` dataset when:
 
@@ -265,13 +269,12 @@ Preserve it as-is on read + update. On new maps go straight to `h3` / `quadbin` 
 
 **Constraints — refuse to author this when:**
 
-- The dataset's connection is **Oracle** — H3 / quadbin aggregation isn't supported on Oracle. Tier-1 rejects.
 - The source is already a **pre-built tileset** (`dataset.type: "tileset"`) — binning is baked at upload time; can't be toggled at render. Inspect tilejson and use the post-aggregation aliases directly.
 - Multiple layers need to share the dataset and render together — an aggregated dataset supports a single layer (mixed geometries don't aggregate together). If the user wants two layers, split the dataset into two sources or render row-level on one and aggregated on the other.
 
 **Side effects when the CLI emits this configuration:**
 
-- `visualChannels.<x>Field` references must point to columns that exist in the *post-aggregation* tile output, NOT the raw source — pair `colorField: { name: "revenue" }` with `colorAggregation: "sum"` and the CLI bridges the `<col>_<agg>` rename in `aggregationExp`.
+- `visualChannels.<x>Field` references must point to columns that exist in the *post-aggregation* tile output, NOT the raw source — pair `colorField: { name: "revenue" }` with `colorAggregation: "sum"` and the CLI bridges the `<col>_<agg>` rename in `aggregationExp`. For a count, bind a real source column with `colorAggregation: "count"` (`colorField: { name: "trip_id" }`), never a hand-made alias such as `COUNT(*) AS point_count`: Builder rebuilds `aggregationExp` from the channels on every style change, so an alias that is not a source column breaks the layer as soon as anyone edits it.
 - Popups (`popupSettings.layers[<id>]`) on the aggregated layer should use `spatialIndexAggregation` on each field — aggregated cells have no per-row identity. See [`popups.md`](popups.md).
 - Timeseries widgets with `showControls: true` won't animate — per-row timestamps are gone once binned. The CLI strips animation on round-trips of aggregated datasets; see [`widgets.md`](widgets.md).
 

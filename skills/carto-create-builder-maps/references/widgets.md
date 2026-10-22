@@ -104,7 +104,7 @@ Widgets sit in `keplerMapConfig.config.widgets[]`. Each targets a `dataSource` (
     { "field": "injuries",          "headerName": "Injured",  "type": "number", "format": ",.0f" },
     { "field": "factor",            "headerName": "Cause",    "type": "string" }
   ],
-  "dense": true, "pageSize": 5,
+  "dense": true,
   "global": false,
   "autoCollapse": true }
 ```

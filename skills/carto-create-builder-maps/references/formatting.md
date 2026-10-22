@@ -31,7 +31,7 @@ Dates in popups and tables take a date pattern on a date or timestamp column: `L
 
 ## 3. Custom HTML popups
 
-A popup template only replaces `{{column}}` with that field's value, already formatted by the field's `format`. It has no conditionals, loops or expressions: `{{#col}}…{{/col}}` or `{{^col}}` print as literal text. So format in the field, never in the template: give the boolean field `yn` and write `{{lots_of_water}}`; give a 0 to 100 field `~%` and don't add a "%" after `{{water_pct}}`. Use plain fields unless the user asks for a custom design.
+A popup template only replaces `{{column}}` with the value. It has no conditionals, loops or expressions: `{{#col}}…{{/col}}` or `{{^col}}` print as literal text. Today Builder does not apply a field's `format` inside a template (fix in progress), so a template shows raw values; use plain fields when number formatting matters, unless the user asks for a custom design.
 
 ## 4. Rules
 
