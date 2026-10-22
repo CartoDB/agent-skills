@@ -173,6 +173,8 @@ See [`examples.md` §D](examples.md#d-widgets-gallery--one-of-each-kind) for a t
 
 ### Cross-filtering — propagating a widget's filter to other datasets
 
+Clicking a feature on the map can filter too: that is click to filter (`featureFilterScope`), set on the layer in `popupSettings`, not a widget. Use it when the reader wants to click a region, district or cell and have the widgets follow; see [`interactions.md`](interactions.md).
+
 By default a widget filters only its own `dataSource`. To filter other datasets that share the same column (e.g., click a severity slice and shrink both the accidents and the accident-buffers datasets), set `crossFilteringDataSourceIds: [<own-dataSource-id>, <other-id>, ...]` on the widget.
 
 **Authoring rule:**

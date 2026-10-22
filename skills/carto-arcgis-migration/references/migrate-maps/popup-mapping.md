@@ -87,7 +87,7 @@ Kepler's `format` is a [d3-format](https://d3js.org/d3-format) (numbers / curren
 | `{ "dateFormat": "shortDateShortTime" }` | `"%-m/%-d/%Y %-I:%M %p"` |
 | `{ "dateFormat": "shortDateLongTime" }` | `"%-m/%-d/%Y %-I:%M:%S %p"` |
 | `null` (string field, no format) | omit `format` (kepler renders as plain string) |
-| `null` with `stringFieldOption: "richtext"` | no field-list equivalent — promote the popup to `templateMode: true` with a `template` HTML string (see `carto-create-builder-maps/references/popups.md`), or drop the formatting and record `Notes: rich-text-collapsed: <field>` |
+| `null` with `stringFieldOption: "richtext"` | no field-list equivalent — promote the popup to `templateMode: true` with a `template` HTML string (see `carto-create-builder-maps/references/interactions.md`), or drop the formatting and record `Notes: rich-text-collapsed: <field>` |
 | (string field that is a URL) | omit `format` — kepler's field-list popup renders bare URLs as text. For clickable links, switch to `templateMode: true` with `<a href="{{field}}">{{field}}</a>` and record `Notes: link-via-template: <field>` |
 
 **URL field detection** — usable signal when deciding whether to promote a popup to template mode: field name matches `_url` / `_link` / `URL` / `link` (case-insensitive), OR the first non-null value in the migrated table starts with `http://` or `https://`. Skip this on fast-path migrations; the user can convert to template mode later if they want clickable links.
@@ -104,7 +104,7 @@ The kepler field-list popup (`templateMode: false`) **does not have a separate t
   template_body = re.sub(r"\{(\w+)\}", r"{{\1}}", arcgis_title_or_description)
   ```
 
-  Then attach `template: "<h3>...</h3><ul>{{#fields}}<li><b>{{label}}:</b> {{value}}</li>{{/fields}}</ul>"` (or just hand-roll the field rows — see `carto-create-builder-maps/references/popups.md` for the full HTML template recipe).
+  Then attach `template: "<h3>...</h3><ul>{{#fields}}<li><b>{{label}}:</b> {{value}}</li>{{/fields}}</ul>"` (or just hand-roll the field rows — see `carto-create-builder-maps/references/interactions.md` for the full HTML template recipe).
 - **Arcade-driven title** — route through `arcade-translation.md`. Plain `$feature.X` translates to `{{X}}` in the template. Per-row math + simple aggregations become a derived SQL field referenced by name. Anything more complex → record `Notes: arcade-skipped: title: <fragment>` and either drop the title or fall back to a plain field reference.
 
 The source `description` follows the same logic — drop if plain, promote to `templateMode: true` if it contains substitutions or Arcade, record `Notes: arcade-skipped:` for any fragment that doesn't translate.

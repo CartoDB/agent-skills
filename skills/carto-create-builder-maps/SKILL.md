@@ -42,7 +42,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 **Per-component — consult on demand while authoring**
 - [`references/layers.md`](references/layers.md) — per-layer-type authoring: `tileset` (point / line / polygon / 3D), `h3`, `quadbin`, `heatmapTile`, `clusterTile`, `raster`. Plus colour ranges (palettes / scales / `/stats`), stroke styles (`lineStyle` solid / dashed / dotted), polygon fill patterns (`fillPatternEnabled` + `fillPattern`) and basemap-aware contrast.
 - [`references/widgets.md`](references/widgets.md) — analytical surface: `formula`, `category`, `pie`, `histogram`, `range`, `timeseries`, `table`. Ordering, collapsibility defaults, cross-filtering across datasets.
-- [`references/popups.md`](references/popups.md) — `popupSettings` covers two interaction surfaces: tooltip popups (hover / click) AND info panels (docked side panel, click-only). 5-field hover limit (Builder's editor, not validated), custom HTML templates with inline CSS, what the renderer sanitises out.
+- [`references/interactions.md`](references/interactions.md) — Builder's Interactions panel: `popupSettings` covers tooltip popups (hover / click), info panels (docked side panel, click-only) and click to filter (`featureFilterScope`). 5-field hover limit (Builder's editor, not validated), custom HTML templates with inline CSS, what the renderer sanitises out.
 - [`references/formatting.md`](references/formatting.md) — number formats: preset ids for widget `formatter`, d3 codes for popup fields and table columns, one table mapping each choice both ways.
 - [`references/sql-parameters.md`](references/sql-parameters.md) — `Category`, `DateRange`, `Numeric`, `NumericRange`. `{{paramName}}` placeholder authoring + provider-native dialect translation.
 - [`references/basemap.md`](references/basemap.md) — write BOTH `basemapConfig.styleId` AND `mapStyle.styleType` to the same value (the screenshot engine + viewer SSR still read `mapStyle` today). CARTO basemaps / Google Maps / custom basemap catalogue.
@@ -118,7 +118,7 @@ Reference [`references/configuration-shape.md`](references/configuration-shape.m
 - `datasets[]` — connection, source, geoColumn, type, format. For h3 / quadbin layers see the source-decision rubric (dynamic binning vs pre-built tileset).
 - `keplerMapConfig.config.visState.layers[]` — type + visualChannels + visConfig (consult [`layers.md`](references/layers.md)).
 - `keplerMapConfig.config.widgets[]` if analytical (consult [`widgets.md`](references/widgets.md)).
-- `keplerMapConfig.config.popupSettings.layers` — emit by default for feature-identifying datasets (consult [`popups.md`](references/popups.md)).
+- `keplerMapConfig.config.popupSettings.layers` — emit by default for feature-identifying datasets (consult [`interactions.md`](references/interactions.md)).
 - `keplerMapConfig.config.sqlParameters[]` if filterable (consult [`sql-parameters.md`](references/sql-parameters.md)).
 - `keplerMapConfig.config.basemapConfig` + `mapStyle` — write both, same value (consult [`basemap.md`](references/basemap.md)).
 - `agent` block only if the user explicitly asked AND organization AI is enabled (consult [`agent-config.md`](references/agent-config.md)).

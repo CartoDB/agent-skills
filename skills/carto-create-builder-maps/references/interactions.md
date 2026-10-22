@@ -1,6 +1,6 @@
-# Map interactions — tooltip popup and info panel
+# Map interactions — popups, info panel and click to filter
 
-`popupSettings` configures **two distinct interaction surfaces** that both live under the same `keplerMapConfig.config.popupSettings.layers[<layerId>]` block:
+`popupSettings` holds everything in Builder's Interactions panel, per layer under `keplerMapConfig.config.popupSettings.layers[<layerId>]`: two popup surfaces, below, and **click to filter** (`featureFilterScope`, see its own section), where clicking a feature filters the layer's source and its widgets.
 
 - **Tooltip popup** — a floating, transient bubble that renders on `hover` (follows the cursor) or `click` (anchors to the clicked feature). Styles: `light`, `lightWithHiFirst`, `dark`, `darkWithHiFirst`. Compact; small fields list. The everyday read-out.
 - **Info panel** — a docked side panel that slides in on `click` only (style: `panel`). Persistent until the user dismisses it; significantly more screen real estate than the tooltip; suitable for long descriptions, multi-image cards, or rich HTML. **`panel` is rejected on `hover`** — the panel would jitter in and out as the cursor moves; Builder's UI only exposes the option under the click event for this reason.
@@ -59,6 +59,23 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 > **Nothing validates the popup's `spatialIndexAggregation`.** The popup surface is deliberately outside the aggregation cross-checks, and its schema accepts the full aggregation list — `median` and `count unique` included. Those two render on no provider, so a popup field carrying one fails silently at render. Stick to `count` / `sum` / `average` / `minimum` / `maximum` / `stdev` / `variance` / `mode` / `any_value` / `custom`.
 
 > **Keyed by layer id, not dataset id.** `popupSettings.layers["foo"]` applies to the *layer* whose top-level `id` is `"foo"` — two layers over the same dataset can have independent tooltips and info panels.
+
+## Click to filter — `featureFilterScope`
+
+A layer entry can also carry `featureFilterScope`, Builder's "Filter by feature": clicking a feature filters that layer's source, and every widget on it, to the clicked feature. Offer it when the map has widgets and the reader wants to drill into one area (a region, a district, a cell): a popup explains one feature, a click filter makes the whole panel follow it.
+
+```json
+{ "popupSettings": { "layers": { "districts": {
+  "enabled": true,
+  "featureFilterScope": "same-source",
+  "click": { "style": "none", "fields": [] }
+} } } }
+```
+
+- `same-source` is the default choice. `all-layers` also masks every other source to the clicked area: use it only on polygon, h3 or quadbin layers (a territory map with points inside); on point layers it empties the other sources, on lines it acts as `same-source`. `same-layer` is the earlier spelling of `same-source`.
+- Needs `enabled: true`. It sits beside `hover` and `click`, and works with `click: { style: "none" }` when the user wants the filter without a card.
+- Not available on raster, heatmapTile, clusterTile, static tilesets, or layers aggregated by geometry.
+- Tell the user that a click now filters, since viewers won't expect it, and that clicking again clears it.
 
 ## HTML popup template — `templateMode: true`
 
