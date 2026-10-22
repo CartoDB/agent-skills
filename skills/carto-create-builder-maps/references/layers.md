@@ -275,7 +275,7 @@ Preserve it as-is on read + update. On new maps go straight to `h3` / `quadbin` 
 **Side effects when the CLI emits this configuration:**
 
 - `visualChannels.<x>Field` references must point to columns that exist in the *post-aggregation* tile output, NOT the raw source — pair `colorField: { name: "revenue" }` with `colorAggregation: "sum"` and the CLI bridges the `<col>_<agg>` rename in `aggregationExp`. For a count, bind a real source column with `colorAggregation: "count"` (`colorField: { name: "trip_id" }`), never a hand-made alias such as `COUNT(*) AS point_count`: Builder rebuilds `aggregationExp` from the channels on every style change, so an alias that is not a source column breaks the layer as soon as anyone edits it.
-- Popups (`popupSettings.layers[<id>]`) on the aggregated layer should use `spatialIndexAggregation` on each field — aggregated cells have no per-row identity. See [`popups.md`](popups.md).
+- Popups (`popupSettings.layers[<id>]`) on the aggregated layer should use `spatialIndexAggregation` on each field — aggregated cells have no per-row identity. See [`interactions.md`](interactions.md).
 - Timeseries widgets with `showControls: true` won't animate — per-row timestamps are gone once binned. The CLI strips animation on round-trips of aggregated datasets; see [`widgets.md`](widgets.md).
 
 ### `type: "h3"` — hex-cell aggregation for H3 datasets

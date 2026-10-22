@@ -1,4 +1,4 @@
-# Map interactions — tooltip popup and info panel
+# Map interactions — popups, info panel and click to filter
 
 `popupSettings` configures **two distinct interaction surfaces** that both live under the same `keplerMapConfig.config.popupSettings.layers[<layerId>]` block:
 
