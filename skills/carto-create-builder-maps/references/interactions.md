@@ -1,6 +1,6 @@
 # Map interactions — popups, info panel and click to filter
 
-`popupSettings` configures **two distinct interaction surfaces** that both live under the same `keplerMapConfig.config.popupSettings.layers[<layerId>]` block:
+`popupSettings` holds everything in Builder's Interactions panel, per layer under `keplerMapConfig.config.popupSettings.layers[<layerId>]`: two popup surfaces, below, and **click to filter** (`featureFilterScope`, see its own section), where clicking a feature filters the layer's source and its widgets.
 
 - **Tooltip popup** — a floating, transient bubble that renders on `hover` (follows the cursor) or `click` (anchors to the clicked feature). Styles: `light`, `lightWithHiFirst`, `dark`, `darkWithHiFirst`. Compact; small fields list. The everyday read-out.
 - **Info panel** — a docked side panel that slides in on `click` only (style: `panel`). Persistent until the user dismisses it; significantly more screen real estate than the tooltip; suitable for long descriptions, multi-image cards, or rich HTML. **`panel` is rejected on `hover`** — the panel would jitter in and out as the cursor moves; Builder's UI only exposes the option under the click event for this reason.
