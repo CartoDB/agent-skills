@@ -32,7 +32,7 @@ Cartographic choices depend on the data and on what story the map tells. Before 
 | What geometry does the dataset carry? | `explore_data describe` / `carto connections describe <conn> <table>` — surfaces the geo column, any spatial index, the shape type |
 | What columns exist, and what types? | Same `describe` call — note numeric vs. string vs. timestamp vs. boolean |
 | Is the measure a count, a rate, a share, a magnitude, a delta, a category? | From the user's prompt + column semantics. Ask if genuinely ambiguous |
-| What's the cardinality / shape of the coloring column? | For string: unique-value count. For numeric: min/max, skew |
+| What's the cardinality / shape of the coloring column? | For string: unique-value count, which values dominate and what each one means — read them before you style, not after. For numeric: min/max, skew |
 
 **Heuristic for skew without running stats:** *counts*, *revenue*, *population*, *incidents*, *visits*, *areas in m²* are almost always right-skewed. *Rates*, *percentages*, *z-scores*, *indices normalised to a population* are usually closer to normal.
 
@@ -114,7 +114,7 @@ Given the layer type is fixed, here's what you can style. **Each geometry has in
 
 ### 1.2 `tileset` — lines
 
-- `thickness` or `sizeField` + `sizeRange`
+- `thickness` or `sizeField` + `sizeRange` — width for magnitude, or for hierarchy on a network (a motorway wider than a track), not colour alone
 - `strokeColor` / `colorField` — the line color *is* the stroke
 - `lineStyle` (`solid` | `dashed` | `dotted`) + `dashArray` `[dash, gap]` — stroke dash pattern, relative to stroke width (see `layers.md`)
 - `opacity` — 0.7–1.0; lines need more opacity than polygons
@@ -123,7 +123,7 @@ Given the layer type is fixed, here's what you can style. **Each geometry has in
 
 **Width encodes magnitude.** Use `sizeField` + `sizeRange` for numeric line measures. Color encodes category or magnitude.
 
-**Dash encodes status, not magnitude.** `dashed` / `dotted` read as provisional, planned, or secondary — use them for draft/proposed routes, boundaries under revision, or to push a reference network behind the main subject. Don't dash the primary data layer of a single-layer map, and don't dash dense networks — at low zoom the dashes fuse into noise. Default stays `solid`.
+**Dash encodes status, not magnitude.** `dashed` / `dotted` read as provisional, planned, or secondary — use them for draft/proposed routes, boundaries under revision, or to push a reference network behind the main subject. A lower class (paths, tracks, service roads) reads the same way. When a styled category means status or a lower class, consider dashes for it from the first version instead of after. Don't dash the primary data layer of a single-layer map, and don't dash dense networks — at low zoom the dashes fuse into noise. Default stays `solid`, and the user's own styling wins when they have one.
 
 ### 1.3 `tileset` — polygons
 
@@ -242,6 +242,8 @@ The cartographic rule: **layers that cover more pixels go to the bottom; sparse 
 **Fix B — multi-layer cascade.** Stack layers over the same data with handoff windows: coarse h3 at zoom 0–7, finer aggregation 7–11, points 11–24. The same source drives multiple layers; the SQL or aggregation differs. Use when the narrative is pattern-level at every zoom.
 
 **Admin-boundary cascade** is the same shape on the polygon side: countries 0–4, states 4–7, counties 7–10, tracts 10–24 — separate boundary tileset per granularity, each with its own `visibilityByZoom` band.
+
+**Dense lines and building footprints overplot too.** A full road network or every building at city zoom is noise. Give the layer a minimum zoom, or split it by importance: the main network always visible, minor roads, paths or small parcels from zoom 12.
 
 **Defaults to author up front:**
 - Point `tileset` over a national / global dataset → `visibilityByZoom: { min: 7, max: 24 }` at minimum, OR pair with a low-zoom aggregation companion.
