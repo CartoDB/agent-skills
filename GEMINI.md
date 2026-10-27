@@ -4,7 +4,7 @@ This file is loaded as context whenever the `carto-skills` extension is active i
 
 ## What's installed
 
-23 skills in three layered tiers — see [`skills/catalog.json`](skills/catalog.json) for the source of truth.
+24 skills in three layered tiers — see [`skills/catalog.json`](skills/catalog.json) for the source of truth.
 
 **Utility tier** — foundational, no dependencies:
 
@@ -37,6 +37,7 @@ This file is loaded as context whenever the `carto-skills` extension is active i
 - `carto-routing-od-analysis` — routing, isolines, OD matrices.
 - `carto-geocoding` — address-to-coordinate geocoding.
 - `carto-composite-scoring` — composite indices, supervised/unsupervised scoring.
+- `carto-raster-algebra`: raster algebra, band math, spectral indices, change detection, masks.
 
 ## Per-skill commands
 

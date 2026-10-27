@@ -1,14 +1,24 @@
 ---
 name: carto-raster-algebra
-description: Computes new rasters from existing ones in CARTO with raster algebra (pixel-by-pixel expressions over one or more RaQuet rasters). Triggers when the user wants to subtract, add, compare, combine, threshold or mask rasters, compute band math or spectral indices (NDVI, NDWI, NBR...), change detection or before/after deltas (e.g. signal coverage gained by a new site), map algebra, raster calculator, or "operations between two raster sources and their bands" — in the Analytics Toolbox (SQL) or in Workflows.
+description: Computes new rasters from existing ones in CARTO with raster algebra, pixel-by-pixel expressions over one or more RaQuet rasters, using the Analytics Toolbox RASTER_ALGEBRA procedure or the Raster Algebra Workflows component (BigQuery, Snowflake). Triggers when the user wants to subtract, add, compare, combine, threshold or mask rasters, compute band math or spectral indices (NDVI, NDWI, NBR...), change detection or before/after deltas (e.g. signal coverage gained by a new site), map algebra, a raster calculator, or operations between two raster sources and their bands.
 license: MIT
 ---
 
 # Raster Algebra
 
-Computes a **new raster** by evaluating an expression pixel by pixel over one or more RaQuet raster tables. Available as the Analytics Toolbox procedure `RASTER_ALGEBRA` (BigQuery, Snowflake) and as the **Raster Algebra** Workflows component. The output is a RaQuet v0.5.0 raster table.
+Computes a **new raster** by evaluating an expression pixel by pixel over one or more RaQuet raster tables. Two ways to run it, same engine and rules:
 
-**Prerequisites**: `carto-explore-datawarehouse` to find the rasters and read their metadata; `carto-query-datawarehouse` to run the procedure (it's DDL — use the async / job path); `carto-create-workflow` when building it as a workflow.
+- The Analytics Toolbox procedure `RASTER_ALGEBRA` (SQL `CALL`), up to 26 inputs.
+- The **Raster Algebra** Workflows component (`carto.rasteralgebra`, group *Raster Operations*), up to 4 inputs.
+
+Providers: BigQuery (including CARTO Data Warehouse) and Snowflake only. Minimum Analytics Toolbox: 1.26.0 on BigQuery, 1.27.0 on Snowflake. The output is a RaQuet v0.5.0 raster table.
+
+**Prerequisites**: `carto-explore-datawarehouse` to find the rasters; `carto-query-datawarehouse` to run SQL (the `CALL` creates a table, so use the async/job path); `carto-create-workflow` to build a workflow.
+
+| Reference | Contents |
+|---|---|
+| [references/expressions.md](references/expressions.md) | Full syntax, output names, nodata rules, recipes, common errors |
+| [references/running.md](references/running.md) | Importing v0.5.0 rasters, options, SQL per provider, the Workflows node, known platform issues, reading the output |
 
 ---
 
@@ -16,72 +26,76 @@ Computes a **new raster** by evaluating an expression pixel by pixel over one or
 
 ### Step 1: Inspect every input raster
 
-Read each input's metadata row:
-
 ```sql bigquery
 SELECT metadata FROM `project.dataset.raster` WHERE block = 0
 ```
 
-Record band names/types, `nodata`, `scale`/`offset`, `tiling` (block size, zooms), `bounds`, `time`.
+On Snowflake the columns are usually upper case (`METADATA`, `BLOCK`). Record per input: `version`, each band's `name`, `type`, `nodata`, `scale`, `offset` and `description`, plus `tiling.block_width`, `tiling.max_zoom`, `bounds`, `time` and `compression`.
 
-**Success**: You know which band holds which variable (see each band's `description`/`colorinterp`) and each input's grid.
+**Success**: You know which band holds which variable, and each input's grid.
 
 ### Step 2: Check the inputs can be combined
 
-Inputs must be **RaQuet v0.5.x** (metadata `file_format: "raquet"`, `version: "0.5.x"`; older RaQuet files and legacy CARTO rasters are rejected) and share **block size** and **native zoom** (`tiling.max_zoom`). Extents may differ — the output covers only the overlap. If they differ in resolution, stop and tell the user: the rasters must be re-imported at a common resolution (automatic resampling is not supported). Rasters with a `time` dimension and JPEG/WebP-compressed rasters are not supported.
+If any check fails, stop and tell the user what to fix. The procedure rejects these cases anyway.
 
-**Success**: Same `block_width` and `max_zoom` for all inputs, overlapping `bounds`.
+- **RaQuet v0.5.0**: `file_format` is `raquet` and `version` is `0.5.x`. Earlier RaQuet versions and legacy CARTO rasters fail with "RaQuet v0.5.0 is required". CARTO imports still write the earlier version by default, so re-import requesting v0.5.0 (see [references/running.md](references/running.md)).
+- **Same grid**: the same `block_width`, `block_height` and `max_zoom` for every input. Rasters are not resampled: re-import them at a common resolution.
+- **Overlap**: extents may differ. Each output band covers the area where the rasters it uses overlap; no overlap is an error.
+- **Not supported**: a `time` dimension, and `jpeg` or `webp` compression (common in RGB imagery).
+
+**Success**: The inputs are compatible, or the user knows what to re-import.
 
 ### Step 3: Write the expression
 
-Inputs are `$a`, `$b`, … in the order passed. Reference bands as `$a.band_1`, by name (`$a.nir`) or index (`$a[4]`); a single-band input is just `$a`. Full syntax and recipes: [`references/expressions.md`](references/expressions.md).
+Inputs are `$a`, `$b`, ... in the order passed (in Workflows, the order connected). Bands are `$a.band_1` (by name) or `$a[1]` (by 1-based index); a bare `$a` works only for a single-band input. Full syntax and recipes: [references/expressions.md](references/expressions.md).
 
-- Several outputs at once: `ndvi = (...); mask = (...)`.
-- Comparisons return 1/0; use `if(cond, a, b)` for conditional values.
-- **Nodata is strict**: an output pixel is nodata if *any* input pixel it references is nodata, or the result is not finite (division by zero, log of a negative). Don't try to "fill" nodata inside the expression — it won't be reached.
-- **Physical vs stored values**: by default bands with `scale`/`offset` are converted to physical values (`value * scale + offset`) before evaluation. Pass `{"apply_scale_offset": false}` to work on stored (DN) values.
+- **Use every input.** In Workflows, also connect `$a`, `$b`, ... in order, without gaps.
+- **Several outputs**: separate them with `;` (line breaks don't separate them). `name = expr` names an output; unnamed ones are `band_1`, `band_2`, ... Names must be unique ignoring case, can't be `block` or `metadata`, and can't end in `_count`, `_min`, `_max`, `_sum`, `_mean` or `_stddev`.
+- **Nodata is strict**: an output pixel is nodata if any input pixel its expression references is nodata, or if the result isn't finite (division by zero, log of a negative). This includes both branches of `if()`, so nodata can't be filled inside the expression.
+- **Physical values**: by default, bands with `scale`/`offset` are converted (`value * scale + offset`) before evaluating. Turn this off to work on stored values.
 
-**Success**: Every input is referenced; every band name exists in the metadata.
+**Success**: Every input is used and every band name exists in its metadata.
 
 ### Step 4: Choose options
 
-Defaults (`float32`, nodata `NaN`, all zoom levels) suit indices and ratios. For masks/classes use an integer `output_type` and set `output_nodata`; use `overviews: none` for exact results of non-linear expressions. Details: [`references/expressions.md`](references/expressions.md).
+| Need | Setting |
+|---|---|
+| Indices, ratios, deltas | Defaults: `float32`, all zoom levels |
+| Masks, classes | An integer type such as `uint8`. Integer types reserve their max (unsigned) or min (signed) value as nodata, e.g. 255 for `uint8`, so a result equal to it becomes nodata |
+| Result only feeds more analysis | `overviews: none` (native resolution only, cheaper) |
+
+`output_nodata` and `compression` exist only in the procedure, not in the component. Details: [references/running.md](references/running.md).
 
 ### Step 5: Run it
 
-SQL (BigQuery shown; Snowflake uses `ARRAY_CONSTRUCT(...)` and `<database>.<schema>` for the Toolbox location):
+SQL on BigQuery (on Snowflake, use `ARRAY_CONSTRUCT(...)` and the toolbox's `<database>.<schema>`):
 
 ```sql bigquery
 CALL `carto-un`.carto.RASTER_ALGEBRA(
   ['project.dataset.coverage_before', 'project.dataset.coverage_after'],
-  'delta = $b - $a; gained = $b > -100 and $a <= -100',
+  'delta = $b - $a; gained = $b >= -100 and $a < -100',
   'project.dataset.coverage_delta',
-  '{"output_type": "float32"}'
+  NULL
 );
 ```
 
-It fails — without creating anything — on a missing band, grid mismatch, unreferenced input, invalid expression, or an existing output table. Report the error message to the user verbatim: it names the band/input/grid property at fault.
+- Use the toolbox project for the data's region: `carto-un` is the US one.
+- It validates everything before writing anything. It fails if the output table already exists or is one of the inputs. Show the user the error as is: it names the input, band or grid property at fault.
 
-In **Workflows**, use the `carto.rasteralgebra` component (group *Raster Operations*):
+In Workflows: one source node per raster, then **Raster Algebra**, then `native.saveastable`. Node shape and CLI limits: [references/running.md](references/running.md).
 
-| Input / param | Value |
-|---|---|
-| `sourcea` … `sourced` | Raster tables for `$a` … `$d`. Connect them in order; every connected raster must be used in the expression. |
-| `expression` | The expression (multiline; `;` separates outputs). |
-| `output_type`, `overviews`, `apply_scale_offset` | As in Step 4 (advanced). |
+**Success**: The output table exists and its metadata row lists the output bands.
 
-The output is a raster table; persist it with `native.saveastable`.
+### Step 6: Check and summarize
 
-**Success**: The output table has one row with `block = 0` whose metadata lists the output bands with `STATISTICS_*` values — quote those to summarize the result.
-
-### Step 6: Summarize
-
-Per-tile statistics columns (`<band>_count`, `_min`, `_max`, `_sum`, `_mean`, `_stddev`) allow cheap summaries without decoding pixels, e.g. area gained = `SUM(gained_sum)` pixels at native zoom times the pixel area.
+- Read the output's metadata row (`block = 0`): each band has `STATISTICS_*` values (min, max, mean, stddev, valid percent) at native resolution.
+- The per-tile columns `<band>_count`, `_min`, `_max`, `_sum`, `_mean` and `_stddev` give cheap aggregates without decoding pixels. Filter to native-resolution blocks first, because overview blocks repeat the data ([references/running.md](references/running.md)).
+- To see the result on a map, save it as a table and open it in Builder.
 
 ---
 
 ## Gotchas
 
-- Overviews computed with `overviews: evaluate` apply the expression to overview (downsampled) pixels — fine for display, approximate for thresholds/ratios. For exact aggregates, filter to the native zoom: `(block >> 52) & 31 = max_zoom` (BigQuery).
-- Output band names must be valid identifiers and not end in `_count`, `_min`, etc.
-- Legacy CARTO rasters (metadata with `block_resolution`) must be re-imported to RaQuet first.
+- With `overviews: evaluate`, overview pixels are computed from the inputs' overview pixels, so non-linear results (ratios, thresholds) are approximate at low zooms. Native-resolution pixels are exact either way.
+- If a "before" raster stores "no signal" as nodata, every pixel that gains coverage is nodata in the result too. The input needs a real value there, not nodata.
+- Never drop an existing output table without asking: choose a new name.

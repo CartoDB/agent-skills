@@ -55,6 +55,7 @@ Recipe skills that compose the platform skills above. Each carries trigger keywo
 | [`carto-geocoding`](skills/carto-geocoding) | Address-to-coordinate geocoding. |
 | [`carto-composite-scoring`](skills/carto-composite-scoring) | Composite indices, supervised/unsupervised scoring. |
 | [`carto-arcgis-migration`](skills/carto-arcgis-migration) | End-to-end ArcGIS Portal / AGOL → CARTO migration (discover, migrate data, migrate maps). |
+| [`carto-raster-algebra`](skills/carto-raster-algebra) | Raster algebra: band math, spectral indices, change detection, masks. |
 
 ## Support
 
