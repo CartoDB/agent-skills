@@ -69,8 +69,8 @@ Each layer is one of these types. Handle the topmost rendering layer (typically 
 | Symbol layer type | Translation |
 |---|---|
 | **`CIMPictureMarker`** | The easy case. Treat like `esriPMS`: extract the `url` (often a `data:image/png;base64,...` URI — see "Picture markers" below), feed into [`marker-upload.md`](marker-upload.md). Single upload per unique icon via multipart `POST /assets`; categorical icons supported when the live kepler schema exposes `customMarkersField` + `customMarkersRange.markerMap[]`. Size from `CIMPictureMarker.size`. |
-| **`CIMVectorMarker`** | Vector graphics with inner CIM symbol layers. Extract the dominant fill color from `markerGraphics[0].symbol.symbolLayers[]` — first `CIMSolidFill`'s `color`. Apply as a colored circle with `radius = CIMVectorMarker.size / 2`. Record `Notes: cim-vector-marker-collapsed-to-circle (color=#<hex>, size=<n>pt)`. Full vector-marker rendering is out of scope — would require a CIM-to-raster renderer this toolchain doesn't have. |
-| **`CIMCharacterMarker`** | Glyph from a font (Esri dingbats, Wingdings, custom symbol font). Extract color from `symbol.symbolLayers[0].color`. Apply as a colored circle with `radius = CIMCharacterMarker.size / 2`. Record `Notes: cim-character-marker-collapsed-to-circle (font=<fontFamilyName>, char=<characterIndex>)`. Font-based glyph rendering is out of scope; collapse is faithful enough for most operational maps. |
+| **`CIMVectorMarker`** | Vector graphics with inner CIM symbol layers. Extract the dominant fill color from `markerGraphics[0].symbol.symbolLayers[]` — first `CIMSolidFill`'s `color`. Apply as a colored circle: the color into `config.color`, `visConfig.radius = CIMVectorMarker.size / 2`. Record `Notes: cim-vector-marker-collapsed-to-circle (color=#<hex>, size=<n>pt)`. Full vector-marker rendering is out of scope — would require a CIM-to-raster renderer this toolchain doesn't have. |
+| **`CIMCharacterMarker`** | Glyph from a font (Esri dingbats, Wingdings, custom symbol font). Extract color from `symbol.symbolLayers[0].color`. Apply as a colored circle: the color into `config.color`, `visConfig.radius = CIMCharacterMarker.size / 2`. Record `Notes: cim-character-marker-collapsed-to-circle (font=<fontFamilyName>, char=<characterIndex>)`. Font-based glyph rendering is out of scope; collapse is faithful enough for most operational maps. |
 
 For a **`CIMPointSymbol` with multiple marker layers** (e.g. a halo stroke + a picture marker + an inner accent), pick the topmost marker (last `CIMPicture/Vector/CharacterMarker` in source order, usually the most visually prominent). Drop the others; record `Notes: cim-multi-layer-collapsed (<N> layers → 1; kept top marker <type>)`.
 
@@ -78,7 +78,7 @@ For a **`CIMPointSymbol` with multiple marker layers** (e.g. a halo stroke + a p
 
 | Symbol layer type | Translation |
 |---|---|
-| `CIMSolidStroke` | `strokeColor` from `color`; `strokeWidth` from `width` (in points; close enough to pixels at typical zoom levels). The common case. |
+| `CIMSolidStroke` | `visConfig.strokeColor` from `color`; `visConfig.thickness` from `width` (in points; close enough to pixels at typical zoom levels). The common case. |
 | `CIMPictureStroke` / `CIMHatchStroke` | Pattern lines. Builder has no line patterns. Collapse to a `CIMSolidStroke` color + width derived from the underlying stroke. Record `Notes: cim-line-pattern-collapsed: <type>`. |
 | `CIMVectorMarker` (as a line ornament — arrow, dash mark) | Line ornaments aren't in Builder. Drop the ornament layer; preserve the line color/width from the other strokes. Record `Notes: cim-line-ornament-dropped`. |
 
@@ -88,8 +88,8 @@ When multiple `CIMSolidStroke` layers are present (e.g. casing + main stroke), p
 
 | Symbol layer type | Translation |
 |---|---|
-| `CIMSolidFill` | `fillColor` from `color`. The most common case. |
-| `CIMSolidStroke` | `strokeColor` + `strokeWidth` from `color` / `width`. |
+| `CIMSolidFill` | `config.color` from `color` — the layer's fill lives there, not in `visConfig`. The most common case. |
+| `CIMSolidStroke` | `visConfig.strokeColor` + `visConfig.thickness` from `color` / `width`. |
 | `CIMPictureFill` / `CIMHatchFill` / `CIMGradientFill` | Patterns and gradients. Builder doesn't support these on polygons. Collapse to a single color: `CIMGradientFill` → midpoint stop color; `CIMHatchFill` → the hatch line color as a flat fill; `CIMPictureFill` → the picture's dominant color (or default grey if unextractable). Record `Notes: cim-fill-pattern-collapsed: <type>`. |
 
 When both `CIMSolidFill` AND `CIMSolidStroke` are present, use both. When only one is present, leave the other unset (kepler's default).

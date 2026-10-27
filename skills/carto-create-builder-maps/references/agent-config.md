@@ -2,7 +2,7 @@
 
 Enables the Agent on the map. **Opt-in** — only include this block when the user explicitly asks for an Agent on the map. Organization must have CARTO AI enabled.
 
-> The `carto maps agents status` / `models` / `mcp-tools` / `core-tools` catalogues are **CLI-only** — no MCP equivalent. On a chat-host MCP session without a shell, you can't run these; emit the `agent` block and let the create/update verify step surface any `agent.issues`, or ask the user to confirm AI is enabled.
+> On MCP, `admin_carto` (agents_status \| list_agent_models) and `read_workflows` (list_mcp_tools) serve the `carto maps agents status` / `models` / `mcp-tools` catalogues. Only `carto maps agents core-tools` is **CLI-only**; without a shell, emit the `agent` block and let the create/update verify step surface any `agent.issues`.
 
 **Check organization AI enablement before emitting an agent block:**
 
@@ -12,9 +12,9 @@ carto maps agents status      # → { enabled, defaultModel, provider config }
 
 If `enabled === false`, do NOT emit `agent` in the configuration — tell the user that CARTO AI is not enabled on this organization and skip. Create/update also soft-strips an `agent` block and warns if it's present on an AI-disabled organization, so the create still succeeds without the assistant — but leading with the check avoids authoring dead config.
 
-**You don't have to pick the model.** Omit `agent.config.model` and the CLI auto-fills it with the organization's `defaultModel` from `/settings/carto-ai` (emits a `→ Using organization default model for agent: …` log). Only set `agent.config.model` explicitly when the user asks for a specific provider or model — then `maps agents models` is the catalogue to pick from. If the organization has neither AI enabled nor a `defaultModel`, the CLI surfaces the missing-model error at Tier-1 so you can act.
+**`agent.config.model` is optional.** A write without one gets the organization's `defaultModel` when it has one; otherwise the agent is saved without a model and Builder flags it until one is picked. To choose one, look an id up rather than composing it: `maps agents models` is the catalogue of what this organization accepts. An empty string is rejected.
 
-Full tree required if `config` is included — Kepler's validator is strict.
+Nothing else in `config` is required either. A new agent gets `tools: []`, `useCase: ""`, `capabilities: { "querySources": false }` and an empty `introduction` for whatever it leaves out. Unknown keys in `config`, `capabilities` or `introduction` are rejected, naming the key and the ones allowed.
 
 ```jsonc
 {
@@ -24,10 +24,11 @@ Full tree required if `config` is included — Kepler's validator is strict.
       "model": "ac_7xhfwyml::anthropic::claude-opus-4-5",
       "tools": [],                                   // workflow UUIDs
       "capabilities": {
-        "querySources": true                         // allow agent to run SQL against datasets
+        "querySources": false                        // true = agent can run SQL; never on public maps
       },
       "useCase": "One-sentence description of what this agent is for.",
       "instructions": "# Context & constraints\n…\n# Behavior\n…\n# Data definition\n…",
+      "semanticModel": "",                           // optional YAML describing the data; see below
       "introduction": {
         "welcome":  "Hi — I can help you explore this map.",
         "starters": [
@@ -40,9 +41,15 @@ Full tree required if `config` is included — Kepler's validator is strict.
 }
 ```
 
+> **Length limits on the agent block.** `config.useCase` ≤ 500 characters; `config.introduction.welcome` ≤ 300; `config.introduction.starters` ≤ 4 entries, each ≤ 100 characters. Exceeding any of them on a write is a rejection, not a warning. Keep `useCase` to one sentence and move detail into `instructions`, which has no cap.
+
 ### Model string grammar
 
-`<source>::<provider>::<model>`. `source` is `carto` for CARTO-managed models or `ac_xxxxxxxx` (organization account id) for "bring your own key" entries. `provider` is `anthropic` / `openai` / `gemini` / `vertex` / `bedrock` / `azure` / etc. Discover what's enabled on this organization: `carto maps agents models` (pretty) or `--json` (structured). Only strings from that list pass server-side validation — anything else silently falls back to the organization default and surfaces as `agent.issues[]`.
+Two id forms are current side by side: **`carto::<model>`** — two parts — for CARTO-hosted models, and **`<account-id>::<provider>::<model>`** — three parts — for "bring your own key" entries, where `<account-id>` is the organization account id (`ac_xxxxxxxx`) and `<provider>` is `anthropic` / `openai` / `gemini` / `vertex` / `bedrock` / `azure` / etc. **Don't compose an id from the parts** — the shape alone doesn't tell you what a tenant accepts. Discover what's enabled on this organization: `carto maps agents models` (pretty) or `--json` (structured). Only strings from that list pass server-side validation — anything else silently falls back to the organization default and surfaces as `agent.issues[]`.
+
+### Semantic model — `config.semanticModel`
+
+Optional YAML that describes the map's data to the agent (entities, measures, relationships). It must parse as YAML or the write is rejected; `""` clears it. It has no length cap.
 
 ### Tools — `config.tools[]` is **MCP UUIDs only**
 
@@ -61,13 +68,17 @@ Full tree required if `config` is included — Kepler's validator is strict.
 - **SQL-parameter-gated:** `set_sql_parameter_*` appear only when a matching parameter kind exists.
 - **Workflow-gated:** `async_workflow_job_*` / `add_source_from_workflows` activate only when `config.tools[]` is non-empty.
 
-> **Implication for authoring.** To give the agent a capability, change the *map shape* — not `agent.config`. "Answer 'top 10 by score'" → include a formula or category widget. "Free-form SQL" → `capabilities.querySources: true`. Don't try to enable tools individually.
+> **Implication for authoring.** To give the agent a capability, change the *map shape* — not `agent.config`. "Answer 'top 10 by score'" → include a formula or category widget. "Free-form SQL" → `capabilities.querySources: true`, only when the user asks for it and never on a public map. Don't try to enable tools individually.
 
 ### Capabilities & server-computed fields
 
 ```jsonc
-"capabilities": { "querySources": true }   // SQL + add/remove_source tools
+"capabilities": { "querySources": false }  // true = SQL + add/remove_source tools
 ```
+
+**Default `querySources` to `false`.** Set it to `true` only when the user asks for the agent to run SQL, and never on a map that is or will be public.
+
+**On an existing agent, send only what changes.** An update merges `agent` over the stored one. Every key you leave out keeps its stored value, inside `capabilities` and `introduction` too, and so does `enabledForViewer`. To clear a value, send `""` or `[]`; `model` cannot be cleared. Sending `introduction.starters` replaces the whole list. The update reports the keys it kept. See "Change only the agent's model" in `updates.md`.
 
 `maps get --json` strips `agent.token` and `agent.issues` so the output can be piped straight back into `create` / `update`. Don't resend them.
 

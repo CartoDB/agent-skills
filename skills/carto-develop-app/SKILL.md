@@ -1,6 +1,6 @@
 ---
 name: carto-develop-app
-description: Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, or M2M).
+description: Generate a working geospatial app powered by CARTO and deck.gl — basemap, layers (vector / H3 / quadbin / raster), widgets, filters, legend, inputs, optional chat-with-map agent, and the right auth strategy (public token, OAuth, SSO, M2M, or CARTO-hosted).
 license: MIT
 ---
 
@@ -27,7 +27,7 @@ Apps follow the [CartoDB/deck.gl-examples](https://github.com/CartoDB/deck.gl-ex
 Run, then write `.env`:
 
 ```bash
-carto auth status --json                  # → apiBaseUrl (from tenant.domain region)
+carto auth status --json                  # → tenant_id (region) → apiBaseUrl
 carto connections list --json             # → connectionName (default: carto_dw)
 
 # One token, ONE grant per source — repeat --connection alongside every --source.
@@ -40,7 +40,7 @@ carto credentials create token --json \
 
 **One token, many grants** — not one token per table. `--connection` and `--source` pair positionally, so repeat `--connection` for every `--source`. Use `--referers` (plural CSV); `--referer` (singular) overwrites if repeated. Referers are wildcard-matched against the browser's full page URL, so end each pattern with `*` (a bare `http://localhost:5173` won't match the `http://localhost:5173/` browsers actually send). `--apis` and grants are independent: `maps` covers sources/layers, `sql` covers `query()`, and a `*QuerySource` needs its query in the grant — see [`auth-public-token.md`](references/auth-public-token.md).
 
-Private apps swap the token command for `carto credentials create spa --json` (OAuth) or `carto credentials create m2m --json` (M2M).
+Private apps swap the token command for `carto credentials create spa --json` (OAuth) or `carto credentials create m2m --json` (M2M). Hosted apps need no credential at all: skip the token step and follow [`auth-hosted.md`](references/auth-hosted.md).
 
 If `carto` isn't on `PATH` or `auth status` fails: say so once and stop — print the missing command. Don't fall back to interviewing. Assumes a working CLI ([`carto-basics`](../carto-basics)).
 
@@ -56,6 +56,7 @@ Only ask what the CLI can't answer: **table name** (if not obvious) and ambiguou
    - "private" / "users log in" / "CARTO login" → OAuth SPA ([`auth-private-oauth.md`](references/auth-private-oauth.md))
    - "SSO" / "Okta" / "Azure AD" / "corporate IdP" → OAuth + SSO ([`auth-private-sso.md`](references/auth-private-sso.md))
    - "backend" / "ETL" / "CI" / "scheduled" → M2M ([`auth-m2m.md`](references/auth-m2m.md))
+   - "hosted on CARTO" / "internal tool" / "for my team" / "no infrastructure" / `carto app deploy` → CARTO-hosted, viewer token at runtime ([`auth-hosted.md`](references/auth-hosted.md)). Needs the Hosted Apps flag; not for anonymous access.
 4. **Data shape?** Source/layer pair from [`data-sources.md`](references/data-sources.md) + [`layers.md`](references/layers.md): points/lines/polygons → vector; H3 → H3; quadbin → quadbin; surfaces → raster. Wire the basemap and view-state sync via [`basemap-and-view.md`](references/basemap-and-view.md).
 
 Then layer in only what was asked for: [widgets](references/widgets.md), [filters](references/filters.md), [inputs](references/inputs-and-parameters.md), [legend](references/legend.md), [SQL/workflows](references/workflows-and-sql.md), [agentic chat](references/agentic-variant.md). Recipes in [`recipes/`](references/recipes/).
@@ -64,7 +65,7 @@ Then layer in only what was asked for: [widgets](references/widgets.md), [filter
 
 ## Always-on guidance
 
-- **`apiBaseUrl`** comes from `carto auth status --json` (`tenant.domain` region). Never hard-code.
+- **`apiBaseUrl`** is `https://<tenant_id>.api.carto.com`, with `tenant_id` (the region, e.g. `gcp-us-east1`) from `carto auth status --json`. `tenant_domain` is the organization's own domain (e.g. `clausa.app.carto.com`) and carries no region. `apis.baseUrl` in `https://<tenant_domain>/config.yaml` is authoritative (self-hosted included). Never hard-code.
 - **`connectionName`** defaults to `carto_dw`; confirm via `carto connections list --json`.
 - **Public tokens** must always pass `--source` and limit `--apis` to `sql,maps`. Never `imports` / `lds` in a public bundle.
 - **Complex analysis is a workflow, not app SQL.** Predicting revenue, composite/suitability scores, segmentation, multi-step joins — build it with [`carto-create-workflow`](../carto-create-workflow); the app then reads its output table or `CALL`s its procedure via the Workflows API (or, if an embedded agent drives it, invokes it as a published **MCP tool**). Heavy logic stays server-side; the app passes parameters. See [`workflows-and-sql.md`](references/workflows-and-sql.md).

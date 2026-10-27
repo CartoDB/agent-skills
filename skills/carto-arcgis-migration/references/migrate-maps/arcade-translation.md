@@ -62,13 +62,17 @@ Translation: not a derived field — these are layer-level aggregates. Translate
 
 ```json
 {
+  "id": "formula-populations-population",
   "type": "formula",
   "title": "<expressionInfo.title or 'Computed'>",
-  "dataId": "<layer-data-id>",
+  "dataSource": "$ref:populations",
   "column": "population",
-  "operation": "sum"
+  "operation": "sum",
+  "isValid": true
 }
 ```
+
+The dataset reference on a widget is **`dataSource`**, not `dataId` (that one belongs to a layer's `config`), and it takes the same `"$ref:<name>"` form. Widget objects are closed: an unknown key is rejected by name, so `dataId` on a widget fails validation rather than being ignored. `id`, `title`, `type` and `dataSource` are required; `isValid` defaults to `true` when omitted.
 
 | Arcade function | Builder formula `operation` |
 |---|---|
@@ -78,7 +82,9 @@ Translation: not a derived field — these are layer-level aggregates. Translate
 | `Sum($feature.X)` | `sum` |
 | `Average($feature.X)` / `Mean($feature.X)` | `avg` |
 
-When `Count($feature)` is used (no field argument), set `column: null` (or whatever Builder's row-count convention is — fetch live via `carto maps schema widgets.formula`).
+Widget `operation` takes the short spelling — `avg`, never `average`. (The long form belongs to the layer channels and to `spatialIndexAggregation`.)
+
+When `Count($feature)` is used (no field argument), **omit `column` entirely**. It is optional on `formula` precisely when `operation` is `count`; `column: null` is rejected, because the field is typed as a string.
 
 These widgets count toward Builder's recommended 6-8 widget panel density. If the source map already has many widgets via other paths (e.g. lots of `expressionInfos[]`), surface a Note about widget density.
 
@@ -161,7 +167,7 @@ Outcome:
 | Expression | Outcome |
 |---|---|
 | `expr1` | Derived SQL field `_density` in layer source query: `(pop / NULLIF(area, 0)) * 1000`. Popup property `_density` of type number. |
-| `expr2` | Builder `formula` widget `{title: "Avg Pop", operation: "avg", column: "pop", dataId: <layer-id>}` added to `widgets[]`. |
+| `expr2` | Builder `formula` widget `{id: "formula-pops-pop", title: "Avg Pop", type: "formula", operation: "avg", column: "pop", dataSource: "$ref:<dataset>"}` added to `widgets[]`. |
 | `expr3` | `Notes: arcade-skipped: expressionInfos[expr3]: IIf($feature.x > 100, 'High', 'Low')`. Popup omits this expression's contribution. |
 
 ## Source-query composition
@@ -175,17 +181,21 @@ SELECT *,
 FROM migrated_fqn
 ```
 
-Reference this query as the layer's `source` in the kepler dataset config:
+Reference this query as the dataset's `source` in the bundle's top-level `datasets[]`:
 
 ```json
 {
-  "$ref": "<layer-data-id>",
+  "$ref": "populations",
   "type": "query",
   "source": "SELECT *, (pop / NULLIF(area, 0)) * 1000 AS _density FROM `demo-bq.shared.populations`",
   "connectionId": "<conn-id>",
+  "geoColumn": "geom",
+  "columns": ["pop", "area", "_density", "geom"],
   "format": "tilejson"
 }
 ```
+
+The layer then binds to it with `config.dataId: "$ref:populations"`. `columns` is the SELECT's output — the base table's columns plus every derived field name.
 
 If the layer has no Arcade expressions to translate, leave the dataset as `type: "table"` referencing the migrated FQN directly — simpler and faster to render.
 

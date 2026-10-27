@@ -28,10 +28,11 @@ This file documents field-level translation, the click-only-by-default rule for 
 
 ## Translated kepler `popupSettings`
 
+`popupSettings` sits on `keplerMapConfig.config`, alongside `visState` — not inside it.
+
 ```json
 {
   "popupSettings": {
-    "coordinates": false,
     "layers": {
       "<layer-id>": {
         "enabled": true,
@@ -53,7 +54,9 @@ This file documents field-level translation, the click-only-by-default rule for 
 }
 ```
 
-The keyed entry is **the layer's own id** (the `id` on `keplerMapConfig.config.visState.layers[]`), NOT the dataset `$ref`. Mixing those up emits a popup that never fires.
+The keyed entry is **the layer's own id** (the `id` on `keplerMapConfig.config.visState.layers[]`), NOT the dataset `$ref`. Mixing those up emits a popup that never fires — Tier-1 catches a key that names a dataset and tells you which layer binds to it.
+
+`coordinates` is a legacy kepler field that nothing in Builder reads; omit it. `enabled` defaults to `true` when the entry has a `hover` or `click` section, so it need not be written by hand.
 
 ## Translation rules
 
@@ -84,7 +87,7 @@ Kepler's `format` is a [d3-format](https://d3js.org/d3-format) (numbers / curren
 | `{ "dateFormat": "shortDateShortTime" }` | `"%-m/%-d/%Y %-I:%M %p"` |
 | `{ "dateFormat": "shortDateLongTime" }` | `"%-m/%-d/%Y %-I:%M:%S %p"` |
 | `null` (string field, no format) | omit `format` (kepler renders as plain string) |
-| `null` with `stringFieldOption: "richtext"` | no field-list equivalent — promote the popup to `templateMode: true` with a `template` HTML string (see `carto-create-builder-maps/references/popups.md`), or drop the formatting and record `Notes: rich-text-collapsed: <field>` |
+| `null` with `stringFieldOption: "richtext"` | no field-list equivalent — promote the popup to `templateMode: true` with a `template` HTML string (see `carto-create-builder-maps/references/interactions.md`), or drop the formatting and record `Notes: rich-text-collapsed: <field>` |
 | (string field that is a URL) | omit `format` — kepler's field-list popup renders bare URLs as text. For clickable links, switch to `templateMode: true` with `<a href="{{field}}">{{field}}</a>` and record `Notes: link-via-template: <field>` |
 
 **URL field detection** — usable signal when deciding whether to promote a popup to template mode: field name matches `_url` / `_link` / `URL` / `link` (case-insensitive), OR the first non-null value in the migrated table starts with `http://` or `https://`. Skip this on fast-path migrations; the user can convert to template mode later if they want clickable links.
@@ -101,7 +104,7 @@ The kepler field-list popup (`templateMode: false`) **does not have a separate t
   template_body = re.sub(r"\{(\w+)\}", r"{{\1}}", arcgis_title_or_description)
   ```
 
-  Then attach `template: "<h3>...</h3><ul>{{#fields}}<li><b>{{label}}:</b> {{value}}</li>{{/fields}}</ul>"` (or just hand-roll the field rows — see `carto-create-builder-maps/references/popups.md` for the full HTML template recipe).
+  Then attach `template: "<h3>...</h3><ul>{{#fields}}<li><b>{{label}}:</b> {{value}}</li>{{/fields}}</ul>"` (or just hand-roll the field rows — see `carto-create-builder-maps/references/interactions.md` for the full HTML template recipe).
 - **Arcade-driven title** — route through `arcade-translation.md`. Plain `$feature.X` translates to `{{X}}` in the template. Per-row math + simple aggregations become a derived SQL field referenced by name. Anything more complex → record `Notes: arcade-skipped: title: <fragment>` and either drop the title or fall back to a plain field reference.
 
 The source `description` follows the same logic — drop if plain, promote to `templateMode: true` if it contains substitutions or Arcade, record `Notes: arcade-skipped:` for any fragment that doesn't translate.
@@ -131,7 +134,9 @@ Plain `{name}`-style brace substitutions are NOT Arcade — they're ArcGIS's sim
 
 ## Empty popups — omit `popupSettings` entirely
 
-If **no** source layer has a populated `popupInfo`, **do not emit `keplerMapConfig.config.visState.popupSettings` at all** — the key is absent from `visState` entirely. Not `{}`, not `{layers: {}}`, not `{layers: []}`, not `{coordinates: false, layers: {}}`. All those empty-shape forms have been observed crashing Builder's loader on initial load. Verified against a manually-created Builder map with no popups — Builder UI doesn't write the key either.
+If **no** source layer has a populated `popupInfo`, **do not emit `keplerMapConfig.config.popupSettings` at all** — the key is absent from `config` entirely. Not `{}`, not `{layers: {}}`, not `{layers: []}`, not `{coordinates: false, layers: {}}`. All those empty-shape forms have been observed crashing Builder's loader on initial load. Verified against a manually-created Builder map with no popups — Builder UI doesn't write the key either.
+
+Omitting the key has one consequence to handle at the same time: with no `popupSettings`, Builder converts the legacy `visState.interactionConfig` into one on load. Set that tooltip's `enabled` to `false` so the conversion produces nothing — see [`mapconfig-defaults.md`](mapconfig-defaults.md) "`interactionConfig` is the legacy popup path".
 
 This **deliberately overrides** `carto-create-builder-maps`'s "Popups — emit by default" guidance, which is a fresh-authoring rule (the agent is helping the user start a new map and end users can't otherwise inspect features). For migration, the user's prior decision is the source of truth.
 

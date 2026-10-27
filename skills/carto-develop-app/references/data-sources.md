@@ -45,7 +45,7 @@ const a = vectorTableSource({
 const b = vectorQuerySource({
   ...cartoConfig,
   sqlQuery: 'SELECT * FROM demo.public.stores WHERE region = @region',
-  queryParameters: { region: 'NY' },    // see inputs-and-parameters.md
+  queryParameters: { region: 'NY' },    // BigQuery form — see inputs-and-parameters.md
 });
 
 const c = h3TableSource({
@@ -90,6 +90,7 @@ Table for a plain read; Query when you need `WHERE` / `JOIN` / `CASE` / computed
 ## Gotchas
 
 - **`tableName` is fully-qualified** — `project.dataset.table` (BigQuery), `DATABASE.SCHEMA.TABLE` (Snowflake), `schema.table` (Postgres / Redshift), `catalog.schema.table` (Databricks). Match the warehouse syntax exactly.
+- **`queryParameters` is not one shape.** The `@name` + named dict above is BigQuery; Databricks spells it `:name`; Postgres, Snowflake, Redshift and Oracle are positional and take an array. Full table in [`inputs-and-parameters.md`](inputs-and-parameters.md).
 - **`columns` reduces wire bytes** for large tables — pass it whenever you don't need every column.
 - **Widget calls share the source's filters** automatically when you pass the same `filters` object. Don't pass it twice; pass it once and let the widget read it through `widgetSource`.
 - **Switching source type means switching layer type.** A `vectorTableSource` only works with `VectorTileLayer`, etc. See [`layers.md`](layers.md).

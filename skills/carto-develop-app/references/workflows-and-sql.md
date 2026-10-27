@@ -60,6 +60,8 @@ const result = await query({
 
 Always wire abort signals when calls might race (typing in a search box, panning the map).
 
+**Identical in-flight `query()` calls share one request.** The client caches requests by URL and parameters, not by `signal`, so aborting one call rejects every caller of the same query. React StrictMode trips this in dev: the effect runs, its cleanup aborts, and the second run gets the aborted promise (`signal is aborted without reason`). In React effects, set a stale flag in the cleanup and drop the late result instead of aborting.
+
 ## Calling a workflow from the app (Workflows API)
 
 Two shapes, depending on whether the workflow runs ahead of time or on demand.

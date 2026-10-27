@@ -9,6 +9,19 @@ Use both together when needed.
 
 ## Parameterized SQL
 
+**The placeholder syntax and the `queryParameters` container are both fixed by the provider — pick the pair before you write the query:**
+
+| Provider | Placeholder in `sqlQuery` | `queryParameters` |
+|---|---|---|
+| BigQuery | `@name` | named dict, keyed by the name |
+| Databricks | `:name` | named dict, keyed by the name |
+| Postgres, Snowflake, Redshift | `$1`, `$2`, … | positional array, in placeholder order |
+| Oracle | `:1`, `:2`, … | positional array, in placeholder order |
+
+Named on a positional provider (or the reverse) is not a stylistic slip — the warehouse can't bind it and the query fails.
+
+BigQuery:
+
 ```ts
 import { vectorQuerySource } from '@carto/api-client';
 
@@ -31,7 +44,26 @@ const dataSource = vectorQuerySource({
 });
 ```
 
-Parameters are referenced in SQL with `@name`. Values are typed (string, number, boolean, ISO date string). To re-fetch with new values, re-call the source factory with a new `queryParameters` — the source result is keyed by the full options bag, so different params = different fetch.
+The same query on Postgres or Snowflake — placeholders numbered, values in an array in that order:
+
+```ts
+const dataSource = vectorQuerySource({
+  ...cartoConfig,
+  sqlQuery: `
+    SELECT s.id, s.geom, s.revenue, s.category
+    FROM demo.public.stores s
+    JOIN demo.public.regions r ON s.region_id = r.id
+    WHERE r.name = $1
+      AND s.year = $2
+      AND s.revenue BETWEEN $3 AND $4
+  `,
+  queryParameters: ['NY', 2025, 0, 1_000_000],
+});
+```
+
+Values are typed (string, number, boolean, ISO date string). To re-fetch with new values, re-call the source factory with a new `queryParameters` — the source result is keyed by the full options bag, so different params = different fetch.
+
+The examples below are BigQuery. On a positional provider, swap the placeholders for `$1`, `$2` and the dict for an array.
 
 ## Wiring a dropdown (vanilla)
 
@@ -118,36 +150,42 @@ For a slider, debounce the *re-fetch*, not the input — display the current val
 
 ## Multi-select
 
-For `IN` lists, build the parameter as an array and use the warehouse's array-membership syntax. **The exact predicate is dialect-specific.**
+For `IN` lists, the bound value is the array itself. **Both the predicate and the placeholder are dialect-specific** — the placeholder follows the table at the top of this page.
 
-BigQuery / Snowflake — `IN UNNEST(...)`:
+BigQuery — `IN UNNEST(...)`, named:
 
 ```sql bigquery
 SELECT * FROM demo.public.stores
 WHERE category IN UNNEST(@categories)
 ```
 
-Postgres / Redshift — `= ANY(...)`:
-
-```sql postgres
-SELECT * FROM demo.public.stores
-WHERE category = ANY(@categories)
+```ts
+queryParameters: { categories: ['retail', 'wholesale'] }
 ```
 
-Databricks — `IN (...)` with array literal:
+Databricks — `array_contains(...)`, named with `:`:
 
 ```sql databricks
 SELECT * FROM demo.public.stores
-WHERE array_contains(@categories, category)
+WHERE array_contains(:categories, category)
 ```
-
-The query parameter is the array itself:
 
 ```ts
 queryParameters: { categories: ['retail', 'wholesale'] }
 ```
 
-Confirm dialect-specific syntax via the `carto-query-datawarehouse` skill — different warehouses spell list parameters differently.
+Postgres / Redshift — `= ANY(...)`, positional. The array of values holds one entry, and that entry is itself the list:
+
+```sql postgres
+SELECT * FROM demo.public.stores
+WHERE category = ANY($1)
+```
+
+```ts
+queryParameters: [['retail', 'wholesale']]
+```
+
+Snowflake and Oracle are positional too (`$1` and `:1`). Confirm each warehouse's array-membership predicate via the `carto-query-datawarehouse` skill — different warehouses spell list parameters differently.
 
 ## When to use parameterized SQL vs `filters`
 
@@ -161,6 +199,6 @@ Confirm dialect-specific syntax via the `carto-query-datawarehouse` skill — di
 ## Gotchas
 
 - **Re-creating the source on every keystroke** is the killer perf bug. Debounce input, then memoize.
-- **Parameter names are positional in some dialects** — but `@name` style works on BigQuery, Snowflake, and Postgres via the SQL API. Stick to named.
+- **Named vs positional is the provider's call, not yours.** `@name` is BigQuery and `:name` is Databricks, both with a named dict; Postgres, Snowflake and Redshift take `$1`, `$2` and Oracle `:1`, `:2`, all with a positional array. Copying a BigQuery snippet onto Snowflake is the most common way to get a query that never binds.
 - **Don't string-concatenate user input into `sqlQuery`** — that's SQL injection. Always use `queryParameters`.
 - **A `vectorQuerySource` with no filters runs the full query** every tile fetch. The warehouse caches well, but watch quotas on big datasets — consider a tileset (`vectorTilesetSource`) for >10M-row read-only datasets.

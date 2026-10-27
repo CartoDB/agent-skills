@@ -1,21 +1,21 @@
-# Map interactions — tooltip popup and info panel
+# Map interactions — popups, info panel and click to filter
 
-`popupSettings` configures **two distinct interaction surfaces** that both live under the same `keplerMapConfig.config.popupSettings.layers[<layerId>]` block:
+`popupSettings` holds everything in Builder's Interactions panel, per layer under `keplerMapConfig.config.popupSettings.layers[<layerId>]`: two popup surfaces, below, and **click to filter** (`featureFilterScope`, see its own section), where clicking a feature filters the layer's source and its widgets.
 
 - **Tooltip popup** — a floating, transient bubble that renders on `hover` (follows the cursor) or `click` (anchors to the clicked feature). Styles: `light`, `lightWithHiFirst`, `dark`, `darkWithHiFirst`. Compact; small fields list. The everyday read-out.
 - **Info panel** — a docked side panel that slides in on `click` only (style: `panel`). Persistent until the user dismisses it; significantly more screen real estate than the tooltip; suitable for long descriptions, multi-image cards, or rich HTML. **`panel` is rejected on `hover`** — the panel would jitter in and out as the cursor moves; Builder's UI only exposes the option under the click event for this reason.
 
 Both surfaces share the same `fields[]` schema and the same `templateMode`-based custom HTML rendering — the choice between them is purely UX (transient bubble vs. docked panel) and which event triggers them (hover vs. click).
 
-> **Author popups by default — they are the only per-feature read-out.** Widgets answer *aggregate* questions (viewport stats, global counts, distributions); popups answer *"what is this one feature?"*. Add them wherever the rows carry something worth reading, which is most of the time. Skip them when the dataset has nothing meaningful per row, or when the layer is `heatmapTile` (see *"Layer-type support"* below — heatmapTile does not support interactions). Default authoring: at least `hover` with 2–3 identifying fields (name, key metric) per layer. **More than 5 fields means `click`, not `hover`** — hover is hard-capped at 5 (see below). Once you are on `click`, the surface is a second, separate choice: a floating tooltip or the docked info panel.
+> **Author popups by default — they are the only per-feature read-out.** Widgets answer *aggregate* questions (viewport stats, global counts, distributions); popups answer *"what is this one feature?"*. Add them wherever the rows carry something worth reading, which is most of the time. Skip them when the dataset has nothing meaningful per row, or when the layer is `heatmapTile` (see *"Layer-type support"* below — heatmapTile does not support interactions). Default authoring: at least `hover` with 2–3 identifying fields (name, key metric) per layer. **More than 5 fields means `click`, not `hover`** — Builder's editor caps hover at 5 (see below). Once you are on `click`, the surface is a second, separate choice: a floating tooltip or the docked info panel.
 
 > **Choosing the surface for a `click` popup — `templateMode` does not imply `panel`.** Both click surfaces render a custom HTML template identically: the floating tooltip (`light` / `lightWithHiFirst` / `dark` / `darkWithHiFirst`) and the docked info panel (`panel`). The template is the whole DOM either way, so pick by how much room the content needs. **Default to a tooltip.** The info panel docks beside the map, covers part of the canvas, and the viewer has to dismiss it, so reserve it for content that genuinely needs the room: long prose, multiple images, or a long field list. A compact card — a coloured header and a handful of rows — belongs in a tooltip. Reaching for `panel` because the popup happens to be HTML is the common authoring error, and it produces a "FEATURE DETAILS" side panel where the author expected a bubble.
 
 > **Layer-type support — `heatmapTile` is the one exception.** Builder hard-disables the popup card on `heatmapTile` (tooltip in the layer panel: *"Interactions are not supported for Heatmap layer type."*). The layer is not pickable at runtime, so any `popupSettings.layers[<heatmapId>]` you ship is silently ignored — the popup never fires. **Tier-1 rejects this combination.** All other allowed layer types (`tileset`, `h3`, `quadbin`, `clusterTile`, `raster`) support popups; `clusterTile` works but picks resolve to the quadbin cell, not a row, so author popup fields with `spatialIndexAggregation` (see field options below).
 
-> **Hard cap: hover = 5 fields per layer, click = unlimited.** Builder's UI enforces `MAX_HOVER_FIELDS = 5` — the "add field" button disappears at 5. Tier-1 in the CLI rejects configurations with 6+ hover fields pre-flight. Move overflow fields to `click` (no cap) when you need to show more context. Authored a hover popup with 6+ fields and wondering why `maps create` fails? This is why.
+> **Keep `hover` to 5 fields per layer; `click` has no cap.** Builder's editor enforces `MAX_HOVER_FIELDS = 5` — the "add field" button disappears at 5 — so a popup carrying more cannot be added to from the UI afterwards. Nothing rejects the longer list: every field named is requested and rendered whatever the count. Move overflow fields to `click` when you need to show more context.
 
-> ⚠️ **Anti-pattern: `items[]` with `{ field, label }`.** The canonical shape is `fields[]` with `{ name, customName }`. The popup schema accepts unknown keys (`additionalProperties: true`), so `items[]` / `field` / `label` passes structural validation but Builder's renderer **only reads `fields[]` / `name`**. Result on map open: empty popup; on some layer shapes the Builder app shell crashes with HTTP 500. The CLI's Tier-1 now rejects this shape, but the rejection happens *after* an authoring round trip — and the rename is mechanical: `items` → `fields`, `field` → `name`, `label` → `customName`. **Don't author the popup block from memory.** Run `carto maps schema popupSettings --json` and copy the shape from there.
+> ⚠️ **Anti-pattern: `items[]` with `{ field, label }`.** The canonical shape is `fields[]` with `{ name, customName }`. Every popup schema is a sealed object (`additionalProperties: false`), but the bundle's config node is loose and never applies it to this branch — so without a dedicated rule `items[]` / `field` / `label` would reach Builder untouched, and Builder's renderer **only reads `fields[]` / `name`**. Result on map open: empty popup; on some layer shapes the Builder app shell crashes with HTTP 500. That dedicated rule does reject the legacy shape, but the rejection happens *after* an authoring round trip — and the rename is mechanical: `items` → `fields`, `field` → `name`, `label` → `customName`. **Don't author the popup block from memory.** Run `carto maps schema popupSettings --json` and copy the shape from there.
 
 Popups are keyed by **layer id**, not dataset id. Each layer can have independent `hover` and `click` settings.
 
@@ -28,7 +28,7 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
         "style": "light",                // floating tooltip on hover
         "fields": [
           { "name": "name" },
-          { "name": "alcoholic_bev_euro", "format": "$,.2f", "customName": "Spend (€)" },
+          { "name": "alcoholic_bev_euro", "format": ",.2f", "customName": "Spend (€)" },
           { "name": "total_cap", "format": ".3~s", "customName": "Total capacity",
             "spatialIndexAggregation": "sum" }
         ],
@@ -54,9 +54,28 @@ Popups are keyed by **layer id**, not dataset id. Each layer can have independen
 | `panel` | **Info panel** (docked side panel) | **click only** |
 | `none` | Disabled | hover, click |
 
-**Field options:** `name` (dataset column, required), `customName` (display override), `isExpression: true` if `name` is SQL not a column, `format` (d3-format spec — `"$,.2f"` currency, `",.0f"` integer, `".3~s"` SI-short, `"%"` percent, `"%Y-%m-%d"` dates), `spatialIndexAggregation` (**required** on h3 / quadbin / clusterTile layers — see [`layers.md`](layers.md) *"h3 / quadbin aggregation restrictions"* for the long-form alias rule and column-type gating; same enum as layer aggregations).
+**Field options:** `name` (dataset column, required — the only required key), `customName` (display override), `isExpression: true` if `name` is SQL not a column, `format` (a code, not a preset id: matched against Builder's preset codes first, otherwise a d3 code on number columns or a date pattern such as `"LL"` on date columns — `"$,.2f"` dollars, `",.0f"` integer, `".3~s"` SI-short, `".2%"` share of 1, `"~%"` already 0–100; see [`formatting.md`](formatting.md)), `spatialIndexAggregation` (long-form aggregation for h3 / quadbin / clusterTile layers — see [`layers.md`](layers.md) *"h3 / quadbin aggregation restrictions"* for column-type gating), `customExpression` (the SQL aggregation expression that goes with `spatialIndexAggregation: "custom"`, distinct from `isExpression`).
+
+> **Nothing validates the popup's `spatialIndexAggregation`.** The popup surface is deliberately outside the aggregation cross-checks, and its schema accepts the full aggregation list — `median` and `count unique` included. Those two render on no provider, so a popup field carrying one fails silently at render. Stick to `count` / `sum` / `average` / `minimum` / `maximum` / `stdev` / `variance` / `mode` / `any_value` / `custom`.
 
 > **Keyed by layer id, not dataset id.** `popupSettings.layers["foo"]` applies to the *layer* whose top-level `id` is `"foo"` — two layers over the same dataset can have independent tooltips and info panels.
+
+## Click to filter — `featureFilterScope`
+
+A layer entry can also carry `featureFilterScope`, Builder's "Filter by feature": clicking a feature filters that layer's source, and every widget on it, to the clicked feature. Offer it when the map has widgets and the reader wants to drill into one area (a region, a district, a cell): a popup explains one feature, a click filter makes the whole panel follow it.
+
+```json
+{ "popupSettings": { "layers": { "districts": {
+  "enabled": true,
+  "featureFilterScope": "same-source",
+  "click": { "style": "none", "fields": [] }
+} } } }
+```
+
+- `same-source` is the default choice. `all-layers` also masks every other source to the clicked area: use it only on polygon, h3 or quadbin layers (a territory map with points inside); on point layers it empties the other sources, on lines it acts as `same-source`. `same-layer` is the earlier spelling of `same-source`.
+- Needs `enabled: true`. It sits beside `hover` and `click`, and works with `click: { style: "none" }` when the user wants the filter without a card.
+- Not available on raster, heatmapTile, clusterTile, static tilesets, or layers aggregated by geometry.
+- Tell the user that a click now filters, since viewers won't expect it, and that clicking again clears it.
 
 ## HTML popup template — `templateMode: true`
 
@@ -143,18 +162,13 @@ Builder paints its own close ✕ on top of the popup template — a fixed, absol
 
 **Authoring rule:** on `panel` and `click` tooltip templates, reserve roughly **28–32 px of right padding** on the outermost container, or keep the top-right ~32 × 32 px region empty of content (no critical text or interactive elements there). Hover tooltips render with no close ✕ — the rule applies to click-anchored surfaces only. Headroom on the outer `<div>` is the simplest fix and is reflected in the recipe below.
 
-### Concrete recipe — facility card with solid header + rating bar + mailto
+### Set a background on the outer wrapper
 
-Source SQL pre-bakes the per-row colour:
+Tooltip surfaces (`light` / `dark` / `*WithHiFirst`) suppress their card chrome when `templateMode: true` — the template IS the whole popup. Set `background: #fff` (or `#1d2733` for dark styles) on the outermost `<div>` or the body renders transparently over the basemap. The `panel` surface paints its own chrome and masks this — a template that "works" inside `panel` may show transparent text the moment you switch its click style to `light`.
 
-```sql
-SELECT
-  *,
-  CASE WHEN category = 'hospital' THEN '#3969AC'
-       WHEN category = 'school'   THEN '#F2B701'
-       ELSE                            '#7F3C8D' END AS header_color
-FROM facilities
-```
+### Concrete recipe — facility card with solid header + rating + mailto
+
+This is a `click` card, so its styling stays static (see the rule above): the header colour is fixed and the category is said in words. Per-row colours from a pre-baked SQL column like `header_color` belong on `hover` templates only.
 
 Layer `popupSettings.layers["facilities"].click`:
 
@@ -163,18 +177,17 @@ Layer `popupSettings.layers["facilities"].click`:
   "style": "panel",
   "templateMode": true,
   "templateEdited": true,
-  "template": "<div style=\"font-family: -apple-system, system-ui, sans-serif; max-width: 320px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.12);\">  <div style=\"background: {{header_color}}; color: #fff; padding: 12px 32px 12px 16px;\">    <div style=\"font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85;\">{{category}}</div>    <div style=\"font-size: 16px; font-weight: 600; margin-top: 2px;\">{{name}}</div>  </div>  <div style=\"padding: 12px 16px; color: #1d2733; font-size: 13px; line-height: 1.4;\">    <div style=\"margin-bottom: 8px;\"><strong>{{address}}</strong></div>    <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 8px;\">      <span style=\"font-size: 11px; color: #6b7785; min-width: 48px;\">Rating</span>      <div style=\"flex: 1; background: #eef0f2; border-radius: 4px; height: 6px; overflow: hidden;\">        <div style=\"width: {{rating}}%; height: 100%; background: {{header_color}};\"></div>      </div>      <span style=\"font-size: 11px; color: #1d2733; min-width: 28px; text-align: right;\">{{rating}}%</span>    </div>    <a href=\"mailto:{{email}}\" style=\"color: {{header_color}}; text-decoration: none; font-weight: 500;\">Contact →</a>  </div></div>",
+  "template": "<div style=\"font-family: -apple-system, system-ui, sans-serif; max-width: 320px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.12);\">  <div style=\"background: #3969AC; color: #fff; padding: 12px 32px 12px 16px;\">    <div style=\"font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85;\">{{category}}</div>    <div style=\"font-size: 16px; font-weight: 600; margin-top: 2px;\">{{name}}</div>  </div>  <div style=\"padding: 12px 16px; color: #1d2733; font-size: 13px; line-height: 1.4;\">    <div style=\"margin-bottom: 8px;\"><strong>{{address}}</strong></div>    <div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 8px;\">      <span style=\"font-size: 11px; color: #6b7785; min-width: 48px;\">Rating</span>      <span style=\"font-size: 13px; color: #1d2733; font-weight: 600;\">{{rating}}%</span>    </div>    <a href=\"mailto:{{email}}\" style=\"color: #3969AC; text-decoration: none; font-weight: 500;\">Contact →</a>  </div></div>",
   "fields": [
     { "name": "name" },
     { "name": "category" },
     { "name": "address" },
     { "name": "rating" },
-    { "name": "email" },
-    { "name": "header_color" }
+    { "name": "email" }
   ]
 }
 ```
 
-Note the header band uses `padding: 12px 32px 12px 16px` — the extra 32 px of right padding keeps `{{name}}` from sliding under Builder's close ✕. **Leave room at the bottom-right too**: the popup carries a resize grip in that corner, so give the card body extra bottom padding (≈20 px) and keep the last row clear of the right edge, or the grip lands on top of your final value. The header itself is a solid `{{header_color}}` fill (no gradient), so the card reads as a single deliberate accent colour against the flat panel chrome.
+The outer `<div>` sets `background: #fff`, so the body renders on a card, not over the map. The header band uses `padding: 12px 32px 12px 16px` — the extra 32 px of right padding keeps `{{name}}` from sliding under Builder's close ✕. **Leave room at the bottom-right too**: the popup carries a resize grip in that corner, so give the card body extra bottom padding (≈20 px) and keep the last row clear of the right edge, or the grip lands on top of your final value. The header itself is a solid static fill (no gradient), so the card reads as a single deliberate accent colour against the flat panel chrome. Together these make the recipe portable across `light`, `dark`, and `panel` without edits.
 
 Even with `templateMode: true`, every column referenced as `{{name}}` must still appear in `fields[]` — that's how the renderer knows to fetch them per feature.

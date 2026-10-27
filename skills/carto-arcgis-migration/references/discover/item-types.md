@@ -12,9 +12,9 @@ When the source portal returns a `type` not in this table, classify the entry as
 | `Feature Collection` | In-memory features stored on the item. Migrate as a one-shot table. |
 | `CSV Collection` / `CSV` | Tabular data; no geometry. Migrate as a table. |
 | `Microsoft Excel` | Tabular; sheet 0 by default. Confirm with user if multi-sheet. |
-| `Shapefile` | Already a file; download and feed to `carto imports create`. |
+| `Shapefile` | Already a file; download and feed to `carto import`. |
 | `File Geodatabase` | Multi-layer; expand into one DW table per feature class. |
-| `GeoPackage` | OGC GeoPackage file. Download via the item's attachment URL → `carto imports create --file <path>`. Multi-layer `.gpkg` files: expand into one DW table per layer (mirror the File Geodatabase flow), or pick the primary layer if the user prefers. |
+| `GeoPackage` | OGC GeoPackage file. Download via the item's attachment URL → `carto import --file <path>`. Multi-layer `.gpkg` files: expand into one DW table per layer (mirror the File Geodatabase flow), or pick the primary layer if the user prefers. |
 | `GeoJson` | Single-table source. Stream straight to import. |
 | `KML Collection` / `KML` | Convert to GeoJSON before import. |
 | `Service Definition` | Underlying source data only — usually paired with a Feature Service item; classify the SD as a gap (the Feature Service is what gets migrated). |

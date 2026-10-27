@@ -134,12 +134,13 @@ Both share the same `queryParameters` shape, so the parameter contract is in one
 
 ## Extending
 
-- **Multi-region select** → swap `region = @region` for `region IN UNNEST(@regions)` (BigQuery / Snowflake) or `region = ANY(@regions)` (Postgres). Pass an array.
+- **Multi-region select** → on BigQuery, swap `region = @region` for `region IN UNNEST(@regions)` and bind an array. On Postgres it is `region = ANY($1)` with `queryParameters: [[...]]`.
 - **Date range** → add two date inputs and `created_at BETWEEN @start AND @end`.
 - **Save query as a workflow** → see [`workflows-and-sql.md`](../workflows-and-sql.md) — call the workflow's stored proc instead of inlining SQL.
 
 ## Gotchas
 
+- **This recipe is written for BigQuery.** `@name` placeholders with a named `queryParameters` dict bind on BigQuery (and, spelled `:name`, on Databricks). Postgres, Snowflake, Redshift and Oracle are positional — `$1` / `:1` with a positional array. See [`inputs-and-parameters.md`](../inputs-and-parameters.md).
 - **Don't string-concat user input into `sqlQuery`** — use `queryParameters`. The temptation is real because it feels simpler; it's also a SQL injection foot-gun.
 - **Source recreation triggers a full re-fetch.** Throttle aggressive inputs (sliders, search-as-you-type) with a 150–250 ms debounce.
 - **`query()` row limits** — the SQL API caps result size. For counts and small results it's fine; for large data you want a query source, not `query()`.

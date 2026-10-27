@@ -18,7 +18,7 @@ Same as [`../migrate-data/lessons.md`](../migrate-data/lessons.md) "CARTO sessio
 
 ### Never hardcode kepler schema — the validator is the gate
 
-The keplerMapConfig schema evolves. Always fetch live with `carto maps schema [section]` before composing (`layer.tileset`, `visualChannels`, `visConfig`, `popupSettings`, `widgets.formula`, `basemap`, `dataset`). If a reference in this skill disagrees with the live schema, **the schema wins**, and `carto maps validate` is the authoritative gate. Run `validate` after every meaningful edit, not just before `create` — it's a fast Tier-1 offline check and most renderer-translation bugs surface there.
+The keplerMapConfig schema evolves. Always fetch live with `carto maps schema <section>` before composing. The sections that exist are `bundle`, `dataset`, `privacy`, `agent`, `kepler`, `mapstate`, `mapstyle`, `mapsettings`, `layer`, `layers`, `widgets`, `sqlparameters`, `popupsettings`, `uistate`, `legendsettings`, `layergrouping`, `layer.tileset`, `layer.h3`, `layer.quadbin`, `layer.heatmaptile`, `layer.clustertile`, `layer.raster`, `enums`, `example` and `palettes` — anything else returns `Unknown section`. In particular there is no `visualChannels`, `visConfig`, `basemap`, `bookmarks` or `widgets.formula`: the visual channels live under `layer`, each subtype's visConfig under `layer.<subtype>`, the basemap under `kepler` (`config.basemapConfig`) and `mapstyle`, and every widget type under `widgets`. If a reference in this skill disagrees with the live schema, **the schema wins**, and `carto maps validate` is the authoritative gate. Run `validate` after every meaningful edit, not just before `create` — it's a fast Tier-1 offline check and most renderer-translation bugs surface there.
 
 ### `validate` accepts shapes that `create` quietly rejects
 
@@ -41,17 +41,19 @@ dataset["columns"] = ["direction", "rte_run", "route", "status", "objectid", "sh
 Builder's loader iterates many `keplerMapConfig.config` / `visState` fields during initial load and crashes (full-page 500) when they're `null` / `{}` / absent, even though the schema marks them optional. `validate`, `create`, and the `light`-engine screenshot all pass; only Builder breaks, only at view time. **Never compose `keplerMapConfig` from scratch using only the schema's `required` fields — start from a manually-created Builder map's known-good structure.** The canonical Python helper is in [`mapconfig-defaults.md`](mapconfig-defaults.md); the fields it guards (all verified missing-field crashes on MCIL2 / TfL Bus Routes):
 
 - `config.uiState` — `{commentsVisible, controlsPaneOpen, descriptionOpen, descriptionPreview}`. Empty `{}` crashes panel init.
-- `config.filters` — **object keyed by dataset `$ref`** with `{}` values (`{ds["$ref"]: {} for ds in datasets}`), NOT the kepler-legacy array `[]`. Builder iterates `Object.keys(...)`; the array form crashes the loader. Tolerated by `validate` + `fetchMap`.
+- `config.filters` — **object keyed by dataset id** with `{}` values, NOT the kepler-legacy array `[]`. Builder iterates `Object.keys(...)`; the array form crashes the loader. Tolerated by `validate` + `fetchMap`.
 - `config.spatialFilter` — explicit `null`, **never `{}`**. See dedicated lesson below.
 - `visState.animationConfig` — `{currentTime: null, speed: 1}`.
 - `visState.filters` — `[]` (legacy array form inside visState — **different** from `config.filters`; both must exist).
-- `visState.interactionConfig` — `{brush, coordinate, geocoder, tooltip}` with default sub-objects.
+- `visState.interactionConfig` — `{brush, coordinate, geocoder, tooltip}` with default sub-objects; `tooltip` is mandatory whenever the object is present. Keep `tooltip.enabled` false on a map that emits no `popupSettings` — this is the legacy popup path and Builder converts it into `popupSettings` on load when the map has none.
 - `visState.layerBlending` — `"normal"`. `visState.splitMaps` — `[]`.
-- `basemapConfig` — see [`basemap-mapping.md`](basemap-mapping.md) and [`mapconfig-defaults.md`](mapconfig-defaults.md) for the current `type`/`styleId` shape.
+- `basemapConfig` — `{styleId}` only; there is no `type` field. See [`basemap-mapping.md`](basemap-mapping.md) and [`mapconfig-defaults.md`](mapconfig-defaults.md).
 
-### Layer `visConfig` has its own non-null requirements
+### Layer styling has its own non-null requirements — and its own wrong-field trap
 
-Same "schema-optional, runtime-required" pattern inside `visState.layers[].config.visConfig`: `initialStrokeColor` / `initialFillColor` must be RGB int arrays (default to `strokeColor` / `fillColor`); `opacity` / `radius` / `thickness` must be numbers, not `null`. Verified: a uniqueValue-rendered map screenshotted correctly but Builder 500'd — only `initialStrokeColor: null` differed from a manual map. Canonical `normalize_layer_defaults` helper in [`renderer-mapping.md`](renderer-mapping.md) "Required non-null layer-config fields".
+Same "schema-optional, runtime-required" pattern on the layer: `config.color` (the fill, an RGB int array), `visConfig.strokeColor`, and `visConfig.opacity` / `radius` / `thickness` as numbers, not `null`.
+
+The trap is that the fill color is `config.color`, **not** `visConfig.fillColor` — and `initialFillColor` / `initialStrokeColor` are not fields at all. `visConfig` is passthrough, so all three validate cleanly, are stored, and are read by nothing: the layer renders in Builder's default color and the mis-set field gives no hint why. Canonical `normalize_layer_defaults` helper in [`renderer-mapping.md`](renderer-mapping.md) "Required non-null layer-config fields".
 
 ### `spatialFilter: {}` crashes Builder even with zero datasets
 
@@ -142,9 +144,9 @@ ArcGIS Feature Services don't always report geometry type at the layer level, an
 
 ## Color scales — numeric categoricals need `custom` colorMap, not `ordinal`
 
-When the source renderer is `uniqueValue` on a column the warehouse types as numeric (`integer`/`real`), **do not use `colorScale: "ordinal"`.** The schema accepts ordinal (so `validate` passes and the map renders at create-time), BUT Builder's Style panel exposes only continuous scales for numeric color fields (`quantile`/`quantize`/`logarithmic`/`custom`). The instant a user opens the Style panel, Builder silently re-fits the binding — the pinned value→color mapping is gone. `custom` is the only scale Builder's numeric-UI offers with per-bin pinning.
+When the source renderer is `uniqueValue` on a column the warehouse types as numeric (`integer`/`real`), **do not use `colorScale: "ordinal"`.** Tier-1 rejects it outright, naming the field and its numeric type, because Builder's Style panel exposes only continuous scales for numeric color fields (`quantile`/`quantize`/`custom`). The instant a user opens the Style panel, Builder silently re-fits the binding — the pinned value→color mapping is gone. `custom` is the only scale Builder's numeric-UI offers with per-bin pinning.
 
-**Correct shape** — thresholds live in `colorRange.colorMap` (a list of `[upper_threshold, color]` pairs, **N entries**, last threshold `null` = "no upper bound"). `colorDomain` is **omitted entirely** — Builder doesn't read it for custom scale. For integer values `1..N`, thresholds at `[1.5, 2.5, …]`:
+**Correct shape** — thresholds live in `colorRange.colorMap` (a list of `[upper_threshold, color]` pairs, **N entries**, last threshold `null` = "no upper bound"). `colorDomain` is **omitted entirely** — it is rejected under `visualChannels` and dropped under `visConfig`. For integer values `1..N`, thresholds at `[1.5, 2.5, …]`:
 
 ```python
 values = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -154,7 +156,7 @@ color_map = [[v + 0.5, c] for v, c in zip(values[:-1], colors_hex[:-1])] + [[Non
 
 layer["config"]["visConfig"]["colorRange"] = {
     "name": "PTAL bands (ArcGIS)",
-    "type": "qualitative",   # colorRange.type enum is sequential/qualitative/diverging — NOT "custom"
+    "type": "qualitative",   # palette family: sequential | qualitative | diverging
     "category": "Custom", "colors": colors_hex,
     "colorMap": color_map,
 }
@@ -168,7 +170,7 @@ Each entry reads "if `value < upper_threshold`, render `color`"; the `null` entr
 
 Established on the TfL Average PTAL LSOA migration (`average_ptal_2023_num`, integer 1..8): (1) `colorField` typed `"string"` → all polygons grey; (2) `"integer"` + `ordinal` + `colorMap` → rendered correctly until the user opened Style panel, binding gone; (3) `custom` + `colorDomain` (N+1) → Builder crashed; (4) `custom` + `colorRange.colorMap`, no `colorDomain` → working. Detect via `renderer.type == "uniqueValue"` AND warehouse col type numeric.
 
-**Anti-patterns**: `ordinal` on a numeric field (breaks on first edit); `colorDomain` populated under `custom` (crashes or ignored); `colorRange.type: "custom"` (not in the enum — use `qualitative`); swapping to a string sibling column (doesn't generalize). **String columns are safe with `ordinal`** — Builder's UI for string color fields exposes ordinal as primary; use `colorRange.colorMap` of `[value, color]` pairs, all values present, no `null` sentinel. The trap is exclusively numeric columns.
+**Anti-patterns**: `ordinal` on a numeric field (rejected); `colorDomain` anywhere (rejected under `visualChannels`, silently dropped under `visConfig`); swapping to a string sibling column (doesn't generalize). **String columns are safe with `ordinal`** — Builder's UI for string color fields exposes ordinal as primary; use `colorRange.colorMap` of `[value, color]` pairs, all values present, no `null` sentinel. The trap is exclusively numeric columns.
 
 **Caveat** — Builder's legend shows the threshold ranges (`< 1.5`, `1.5 – 2.5`, …) not the source `uniqueValueInfos[].label` strings. No JSON-level fix ships both correct binning AND source labels on a numeric color field; binding is the correctness gate, labels are a manual follow-up.
 
@@ -208,7 +210,7 @@ The full detect → acquire → dedup → upload → reference → fallback flow
 - **Prefer `imageData` over `url`** on `esriPMS` — always reachable, no auth/network dependency. `CIMPictureMarker` URLs are usually `data:` URIs — decode the base64 directly (no HTTP fetch).
 - **Content-hash dedup** (`out/markers/.cache.json`, sha256 16-char prefix) uploads each unique icon once across layers and survives re-runs. CIM- and `esriPMS`-extracted icons with the same bytes → same hash → same single upload.
 - **Header-sniff before trusting `contentType`** — ArcGIS sometimes mislabels (National Rail's PNG was declared `image/jpeg`; the workspace-api 400s on the mismatch). Sniff `\x89PNG` / `<svg` / `\xff\xd8\xff`.
-- **`radius` is the rendered icon-size knob when `customMarkers: true`**, NOT `customMarkerSize` (a legacy mirror current Builder ignores). Set both, `radius` as source of truth. Symptom: `customMarkerSize: 24` renders at ~12 px (the leftover `radius` default). Verified on TfL PTAL LSOA.
+- **`radius` is the rendered icon-size knob when `customMarkers: true`.** `customMarkerSize` is not a schema field at all — it validates (visConfig is passthrough) and sizes nothing, so `customMarkerSize: 24` renders at ~12 px, the leftover `radius` default. Set `radius` and only `radius`. Verified on TfL PTAL LSOA.
 - **Multi-color icons need BOTH `customMarkersId` (uploaded asset) AND `visConfig.filled: false`.** Kepler's TileLayer applies its `getFillColor` tint only when `filled` is truthy; with `filled: true` every non-transparent pixel is replaced by `layer.config.color` and the icon collapses to one shade. Either fix alone still renders monochromatic. Brand color goes in `strokeColor` (Builder's sidebar chip uses it when fill is off). TfL PTAL LSOA rounds 5–7 established this (round 6 proved it's a color REPLACE, not a multiplicative tint).
 - **Pad non-square PNGs to square at acquisition time** (transparent fill, `max(w,h)`) — kepler's icon layer has a single size knob, so deck.gl squashes a 2560×1611 PNG into a 24×24 box. Compute the content-hash AFTER padding. PIL helper in [`marker-upload.md`](marker-upload.md); fall back to raw bytes + a `Notes:` if PIL is missing.
 - **Categorical icon binding isn't universal** — fetch `carto maps schema layer.tileset --json` and check for `customMarkersField` + `customMarkersRange.markerMap[]` before emitting. When absent, collapse to a single icon and record `Notes: uniqueValue-icons-collapsed-to-single (<N> distinct)`.
@@ -303,7 +305,7 @@ The keyed `layers.<id>` is the **layer's own id**, not the dataset `$ref`. `cart
 
 ### Click-only by default; source with no `popupInfo` → no popup
 
-ArcGIS Web Maps are click-only (no hover-popup concept) — emit click config only, leave hover empty (`hover.enabled: false`). If a source layer has no `popupInfo`, **emit no popup** (leave it out of `popupSettings.layers.<id>` entirely — not an `enabled: false` entry, which still registers a click handler). Migration reproduces source behavior; the absence of `popupInfo` IS the prior config.
+ArcGIS Web Maps are click-only (no hover-popup concept) — emit click config only and leave hover empty (`hover: {style: "none", fields: []}`). `enabled` lives at the **layer** level, `popupSettings.layers[<id>].enabled`; putting it on the hover or click section is rejected, and the renderer reads only the layer-level flag anyway. If a source layer has no `popupInfo`, **emit no popup** (leave it out of `popupSettings.layers.<id>` entirely — not an `enabled: false` entry, which still registers a click handler). Migration reproduces source behavior; the absence of `popupInfo` IS the prior config.
 
 This **deliberately overrides** `carto-create-builder-maps`'s "emit popups by default" and its "5-field hover cap" — those are fresh-authoring rules. Adding hover behavior the user didn't configure changes the interaction model and backfires. Both were real v0.1.7 bugs (a one-layer Web Map got a hover popup); fixed v0.1.8. Rare exception: source `popupInfo` with explicit `popupShowsAt: "hover"` — detect that signal explicitly, else default click-only.
 
@@ -318,13 +320,13 @@ ArcGIS single-brace `{name}` → kepler double-brace `{{name}}`: run `re.sub(r"\
 Supported subset and full translation flow in [`arcade-translation.md`](arcade-translation.md). Lessons:
 
 - **`sqlglot` validation** catches most per-row-math translation bugs cheaply (`sqlglot.parse_one(sql, dialect=...)`). If not installed, continue and rely on `carto maps validate` — flag a one-line warning at start.
-- **`Count($feature)`** is the only aggregation with no field argument (counts rows) → Builder `formula` widget with `column: null` (verify via `carto maps schema widgets.formula`). Don't translate as `Count($feature.OBJECTID)`.
+- **`Count($feature)`** is the only aggregation with no field argument (counts rows) → Builder `formula` widget with `operation: "count"` and **no `column` key at all** (`column: null` is rejected — the field is typed as a string). Don't translate as `Count($feature.OBJECTID)`.
 
 ---
 
 ## Basemaps
 
-Full mapping in [`basemap-mapping.md`](basemap-mapping.md). Note the ongoing `type`-discriminator question: earlier `basemap-mapping.md` revisions recommended `google-satellite` (non-canonical) and omitted the provider `type`; the canonical Google styleIds are 1-word (`roadmap`, `satellite`, `hybrid`, `terrain`) plus the `google-positron`/`google-dark-matter`/`google-voyager` CARTO-on-Google blends. **Neither `validate` nor `create` catches a wrong basemap shape** — they render as a blank/fallback canvas at view time. `--render-engine light` is MapLibre-only and shows a CARTO fallback for ANY Google config; verify with `--render-engine full` and look for the Google logo + "Imagery © …" attribution. Google basemaps work without an org-level API key in current orgs — don't preemptively swap to `voyager`. Reconcile the `type` field against [`mapconfig-defaults.md`](mapconfig-defaults.md) and treat `carto-create-builder-maps/references/basemap.md` as the final source of truth.
+Full mapping in [`basemap-mapping.md`](basemap-mapping.md). `basemapConfig` is `{styleId}` — there is no provider `type` field, and an earlier revision of this skill that told you to pair one was wrong. The canonical Google styleIds are 1-word (`roadmap`, `satellite`, `hybrid`, `terrain`), plus the `google-positron`/`google-dark-matter`/`google-voyager` CARTO-on-Google blends and `google-3d`; `google-satellite` is not one of them. **`validate` flags only a styleId that is a near-miss of a canonical value** — an id resembling nothing canonical passes and renders positron at view time. `--render-engine light` is MapLibre-only and shows a CARTO fallback for ANY Google config; verify with `--render-engine full` and look for the Google logo + "Imagery © …" attribution. Google basemaps work without an org-level API key in current orgs — don't preemptively swap to `voyager`.
 
 ---
 
@@ -348,13 +350,16 @@ Full handling in [`cim-symbols.md`](cim-symbols.md). Lessons:
 
 ## Widget composition
 
-`carto maps schema widgets --json` returns each type's properties but **doesn't mark `isValid`, `buckets`, or the column-entry shape as required** — they're cross-field rules `carto maps validate` enforces separately, and they bite on first authoring of any histogram/table widget (caught on the first TfL Dashboard migration):
+`carto maps schema widgets --json` returns each type's properties. Four things bite on first authoring of any widget (caught on the first TfL Dashboard migration):
 
-1. **Every widget needs `"isValid": true`** — without it Builder hides the widget and the panel shows *"select a field"*.
-2. **`histogram` needs `"buckets": <int>`** (default `30`) — the tick loop `for (let i = 1; i < widget.buckets; i++)` renders empty when undefined.
-3. **`table.columns` is `[{"field": "<col>"}, …]` objects, not bare strings** — bare strings round-trip through the API but the renderer throws on mount.
+1. **The dataset reference is `dataSource`, not `dataId`.** `dataId` is the layer's field; on a widget it is rejected by name, because widget objects are closed. It takes the same `"$ref:<name>"` form.
+2. **`id`, `title`, `type` and `dataSource` are required on every widget**, whatever the type. `pie` additionally requires `operationColumn`, `table` requires `columns`.
+3. **`operation` uses the short spelling** — `avg`, not `average`, which is the layer/`spatialIndexAggregation` vocabulary. On `formula` with `operation: "count"`, `column` is **omitted**; `column: null` is rejected.
+4. **`table.columns` is `[{"field": "<col>"}, ...]` objects, not bare strings** — bare strings round-trip through the API but the renderer throws on mount, and Tier-1 now says so by name.
 
-The [`app-absorption.md`](app-absorption.md) widget table carries these as a "Required boilerplate" column. Always run `carto maps validate` after composition — the validator is the source of truth. Detection: `issues[]` paths like `…widgets[<i>].isValid` / `.buckets` / `.columns[<j>]`.
+`isValid` and histogram `buckets` do **not** need writing by hand: both are filled when omitted (`true` and `30`). An explicit `isValid` other than `true` is refused — Builder renders such a widget as an inert placeholder and drops it on the next save.
+
+Always run `carto maps validate` after composition — the validator is the source of truth. Detection: `issues[]` paths like `keplerMapConfig.config.widgets[<i>].dataSource` / `.operation` / `.columns[<j>]`.
 
 ---
 

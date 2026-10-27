@@ -1,6 +1,6 @@
 # Cross-profile map copy
 
-> **CLI-only.** `maps copy` / `maps clone` and the `--profile` / `--source-profile` / `--dest-profile` flags have no MCP equivalent — cross-org promotion runs on the CLI. On a token-authed or sandboxed-chat MCP session, there's no way to do this; use the CLI.
+> **CLI-only.** `maps copy` and the `--profile` / `--source-profile` / `--dest-profile` flags have no MCP equivalent — cross-org promotion runs on the CLI. On a token-authed or sandboxed-chat MCP session, there's no way to do this; use the CLI.
 
 `maps copy` duplicates a map across CARTO profiles. The destination gets a new map ID, fresh per-org metadata, and a fresh share state. Source content (datasets, layers, styles, AI-agent config) transfers; share links, comments, and collaboration state do not.
 
@@ -111,13 +111,13 @@ carto maps copy <map-id> --dest-profile prod --title "Production Sales Dashboard
 carto maps copy <map-id> --dest-profile prod --keep-privacy
 ```
 
-## Same-org clone
+## Same-org duplication
 
-`maps clone` is the same-org variant — duplicates within the current profile, no `--dest-profile`:
+There is no `maps clone`. The same-org case is `maps copy` pointed back at the profile it reads from — `--dest-profile` is required either way:
 
 ```bash
-carto maps clone <map-id>
-carto maps clone <map-id> --title "Sales Dashboard (experimental)"
+carto maps copy <map-id> --dest-profile <current-profile>
+carto maps copy <map-id> --dest-profile <current-profile> --title "Sales Dashboard (experimental)"
 ```
 
 Useful when you want to branch off a working map for further edits without touching the original. All the copy semantics (what transfers, what doesn't) apply identically.

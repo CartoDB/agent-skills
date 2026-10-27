@@ -51,6 +51,7 @@ carto admin transfer
 | `org stats` and quota monitoring | [references/org-and-quotas.md](references/org-and-quotas.md) |
 | `users` lifecycle: list, invite, role changes, deletion with handoff | [references/users-and-invites.md](references/users-and-invites.md) |
 | `admin` superadmin ops: bulk list, batch delete, resource transfer | [references/admin-bulk-ops.md](references/admin-bulk-ops.md) |
+| AI providers (BYOK models): add, validate, disable via `admin settings` / `admin_carto` | [references/ai-providers.md](references/ai-providers.md) |
 | Activity event-type catalog (150+ events; full reference) | [references/activity-event-reference.md](references/activity-event-reference.md) |
 | Advanced activity analyses (success rates, trends, by-category) | [references/advanced-analyses.md](references/advanced-analyses.md) |
 | Activity-data troubleshooting (DuckDB install, plan gates, TLS) | [references/activity-troubleshooting.md](references/activity-troubleshooting.md) |

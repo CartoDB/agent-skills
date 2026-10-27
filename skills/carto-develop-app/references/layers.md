@@ -62,18 +62,18 @@ new H3TileLayer({
   data: dataSource,                          // h3TableSource(...) with aggregationExp
   pickable: true,
   filled: true,
-  extruded: true,
+  extruded: false,                           // the default is true: 3D columns
   getFillColor: (d) => colorBins({
     attr: 'population',
     domain: [0, 100, 1000, 10000],
     colors: 'Sunset',
   })(d),
-  getElevation: (d) => d.properties.population / 10,
-  elevationScale: 1,
 });
 ```
 
 The feature object has `.properties.<aliased aggregation column>` — match the alias used in `aggregationExp`.
+
+**Set `extruded` explicitly.** `H3TileLayer` draws with `H3HexagonLayer`, which defaults to `extruded: true` with a 1000 m elevation, so leaving it out turns a flat choropleth into columns as soon as the view is pitched or zoomed in. For 3D on purpose, set `extruded: true` with `getElevation: (d) => d.properties.population / 10`.
 
 ## QuadbinTileLayer
 
@@ -131,6 +131,8 @@ new VectorTileLayer({ /* ... */ getFillColor: fill });
 ```
 
 Domain is **bin edges** for `colorBins` and **discrete values** for `colorCategories`. Pair the same domain + palette with the legend in [`legend.md`](legend.md).
+
+**A string `attr` reads `d.properties.<attr>`**, which is how tile layers shape features. Client-side layers fed plain rows (`H3HexagonLayer`, `ScatterplotLayer` over `query()` results) have no `properties`, so every feature gets the fallback gray with no error. Pass an accessor there instead: `colorBins({ attr: (d) => d.count, domain, colors })`.
 
 ## Common props worth knowing
 
