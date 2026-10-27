@@ -120,9 +120,30 @@ def write_gemini_extension() -> None:
     _write_json(GEMINI_EXTENSION_PATH, manifest)
 
 
+_TOML_ESCAPES = {"\\": "\\\\", '"': '\\"', "\b": "\\b", "\n": "\\n", "\f": "\\f", "\r": "\\r"}
+
+
+def _toml_basic_string(value: str) -> str:
+    """Quote a value as a TOML basic string, escaping what the spec requires."""
+    out = []
+    for ch in value:
+        if ch in _TOML_ESCAPES:
+            out.append(_TOML_ESCAPES[ch])
+        elif (ord(ch) < 0x20 and ch != "\t") or ord(ch) == 0x7F:
+            out.append(f"\\u{ord(ch):04X}")
+        else:
+            out.append(ch)
+    return '"' + "".join(out) + '"'
+
+
+def gemini_command_description(skill: SkillEntry) -> str:
+    """The `description` a skill's Gemini command should have (unescaped)."""
+    return skill.description.rstrip(".") + " (carto-skills)"
+
+
 def _gemini_command_toml(skill: SkillEntry) -> str:
     """Render a Gemini command TOML for one skill."""
-    description = skill.description.rstrip(".") + " (carto-skills)"
+    description = _toml_basic_string(gemini_command_description(skill))
     skill_md = (REPO_ROOT / skill.path / "SKILL.md").relative_to(REPO_ROOT)
     prompt = (
         f"Apply the `{skill.name}` skill from the carto-skills catalog "
@@ -135,11 +156,11 @@ def _gemini_command_toml(skill: SkillEntry) -> str:
         f"different skill, say which one and stop.\n"
         f"- For machine-parseable CLI output, always pass `--json`.\n"
     )
-    # TOML escape: double quotes inside triple-double-quoted strings need care.
-    # Use unescaped triple-quoted literals; backslashes are not interpreted in
-    # TOML's basic strings, but we use literal triple-quotes to avoid escaping.
+    # The prompt is a multi-line basic string. It only interpolates skill names
+    # and paths, which never contain backslashes or quotes, so it is not escaped.
+    # validate_skills.py parses every TOML, so a bad prompt would still fail CI.
     return (
-        f'description = "{description}"\n\n'
+        f"description = {description}\n\n"
         f'prompt = """\n{prompt}"""\n'
     )
 

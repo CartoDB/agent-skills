@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import sys
+import tomllib
 from pathlib import Path
 
 from _lib.catalog import (
@@ -20,6 +21,7 @@ from _lib.catalog import (
     load_catalog,
     parse_frontmatter,
 )
+from sync_manifests import gemini_command_description
 
 CLAUDE_PLUGIN_PATH = (
     REPO_ROOT / "plugins" / "carto-skills-claude" / ".claude-plugin" / "plugin.json"
@@ -189,6 +191,17 @@ def check_gemini_commands(cat: Catalog, errors: list[str]) -> None:
         _err(errors, f"gemini commands missing TOML for skill: {missing}")
     for extra in actual - expected:
         _err(errors, f"gemini commands has unexpected TOML: {extra}")
+    for s in cat.skills:
+        path = GEMINI_COMMANDS_DIR / f"{s.name}.toml"
+        if not path.exists():
+            continue
+        try:
+            command = tomllib.loads(path.read_text())
+        except tomllib.TOMLDecodeError as e:
+            _err(errors, f"gemini command {path.name} is invalid TOML: {e}")
+            continue
+        if command.get("description") != gemini_command_description(s):
+            _err(errors, f"gemini command {path.name} description does not match catalog.json (run `make sync`)")
 
 
 def check_reference_integrity(cat: Catalog, errors: list[str]) -> None:

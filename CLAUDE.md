@@ -26,4 +26,4 @@ cd scripts && python3 validate_skills.py          # just the skills check
 python3 tests/validate_snippets.py                # just snippet linting
 ```
 
-Snippet validation needs `pip install pyyaml sqlglot` — both ship in CI but a fresh local checkout may need them installed.
+The skills check needs Python 3.11+ (it parses the Gemini command TOMLs with `tomllib`). Snippet validation needs `pip install pyyaml sqlglot` — both ship in CI but a fresh local checkout may need them installed.
