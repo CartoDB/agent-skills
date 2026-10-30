@@ -366,11 +366,7 @@ Default to **5**. Drop to 3 for overview / executive maps. Up to 7 for detailed 
 
 ### 4.1 CARTO palette families
 
-**Qualitative (unordered categories — distinct hues):** `Antique`, `Bold`, `Pastel`, `Prism`, `Safe`, `Vivid`
-
-**Sequential (magnitude — ordered):** `Burg`, `BurgYl`, `RedOr`, `OrYel`, `Peach`, `PinkYl`, `Mint`, `BluGrn`, `DarkMint`, `Emrld`, `BluYl`, `Teal`, `TealGrn`, `Purp`, `PurpOr`, `Sunset`, `Magenta`, `SunsetDark`, `BrwnYl`, `Gray`
-
-**Diverging (signed):** `ArmyRose`, `Fall`, `Geyser`, `Temps`, `TealRose`, `Tropic`, `Earth`
+Palette names, their family (`type`) and their colors come from the map schema: `carto maps schema palettes` (MCP: `validate_map` method `schema`, section `palettes`). Read them there rather than from a list.
 
 **Colorblind-safe subset** (recommended when audience is public or unknown):
 - Qualitative: `Safe`, `Vivid`
