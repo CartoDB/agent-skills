@@ -6,9 +6,9 @@ license: MIT
 
 # carto-import-export-data
 
-Move data **into** the warehouse from local files / URLs, pull data **out**, transfer tables between connections, and **prepare tilesets** for performant rendering of large geospatial datasets.
+Move data **into** the warehouse from local files / URLs, pull data **out**, and **prepare tilesets** for performant rendering of large geospatial datasets.
 
-> **Access-path routing.** With the CARTO MCP server attached (OAuth session), route interactive moves through `import_data`, `export_data`, and `transfer_data` (each `method: submit|status`), and materialize tilesets with `execute_async_query`. Fall back to the `carto import` / `carto sql job` CLI for scripted/bulk loads, headless pipelines, or when the server isn't attached — and note that over a **token-authenticated** MCP session the import/export/transfer tools are hidden (read/discovery subset only), so authoring moves there go via the CLI too. `carto activity export` (usage data → local disk) is CLI-only, no MCP equivalent. Format, size-limit, and destination-syntax guidance below applies on every path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** With the CARTO MCP server attached (OAuth session), route interactive moves through `import_data` and `export_data` (each `method: submit|status`), and materialize tilesets with `execute_async_query`. Fall back to the `carto import` / `carto sql job` CLI for scripted/bulk loads, headless pipelines, or when the server isn't attached — and note that over a **token-authenticated** MCP session the import/export/transfer tools are hidden (read/discovery subset only), so authoring moves there go via the CLI too. `carto activity export` (usage data → local disk) is CLI-only, no MCP equivalent. Format, size-limit, and destination-syntax guidance below applies on every path. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 ## When to use this skill
 
@@ -26,7 +26,6 @@ MCP (OAuth session) — submit then poll:
 ```
 import_data   { method: "submit", source: {url|file}, connection, destination, overwrite? }
 export_data   { method: "submit", ... }   → status with the returned job id
-transfer_data { method: "submit", source_connection, destination_connection, ... }
 ```
 
 CLI fallback (scripted / headless / no server / token session):
@@ -42,7 +41,7 @@ carto import --file ./data.csv --connection carto_dw --destination project.datas
 |---|---|
 | Importing — `import_data` / `carto import` flags, formats, size limits, async | [references/imports.md](references/imports.md) |
 | Tileset preparation for large maps | [references/tilesets.md](references/tilesets.md) |
-| Exporting & transferring: warehouse-native unloads, `export_data`/`transfer_data`, `activity export` | [references/exports.md](references/exports.md) |
+| Exporting: warehouse-native unloads, `export_data`, `activity export` | [references/exports.md](references/exports.md) |
 
 ## Always-on guidance
 
