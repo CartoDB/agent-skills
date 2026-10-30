@@ -8,7 +8,7 @@ Three distinct jobs, three paths:
 | Copy a table between two connections | — | `carto import` from a staged unload |
 | Dump CARTO activity / API-usage data to disk | — (no MCP equivalent) | `carto activity export` |
 
-`export_data` is hidden on token-authenticated MCP sessions — use the CLI / warehouse-native path there. Warehouse-native unloads stay valuable even with MCP attached: they run **inside** the warehouse (10–100× faster for large data) using the *user's* warehouse credentials, and preserve every engine's partitioning/compression fidelity.
+`export_data` isn't offered to Viewers, and on an API-token session it needs the Exports API in the token's Allowed APIs; otherwise use the CLI / warehouse-native path. Warehouse-native unloads stay valuable even with MCP attached: they run **inside** the warehouse (10–100× faster for large data) using the *user's* warehouse credentials, and preserve every engine's partitioning/compression fidelity.
 
 ## `carto activity export` — CARTO activity data only (CLI-only)
 

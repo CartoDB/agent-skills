@@ -1,6 +1,6 @@
 # Subscribing to a Data Observatory dataset
 
-Subscribing gives the organization a **BigQuery view of the dataset in the CARTO Data Warehouse**, named `` `carto-data`.<account-id>.<view-name> ``. Querying it is a normal read on the `carto_dw` connection (`execute_query` / `carto sql query carto_dw`). Subscribing needs a CARTO Data Warehouse connection in the organization.
+Subscribing gives the organization a **BigQuery view of the dataset in the CARTO Data Warehouse**, in a dataset named after the organization's account id (on CARTO SaaS, `` `carto-data`.<account-id>.<view-name> ``). Querying it is a normal read on the `carto_dw` connection (`execute_query` / `carto sql query carto_dw`). Subscribing needs a CARTO Data Warehouse connection in the organization.
 
 Subscribe over MCP with `manage_data_observatory_subscriptions` (`method: subscribe|unsubscribe|list`) — this needs an **OAuth** session; on a token-authenticated session the tool is hidden, so use the `carto do` CLI instead. Discovery (`search_data_observatory`) works on either session — see [data-observatory.md](data-observatory.md).
 
@@ -31,7 +31,7 @@ To **enrich** the user's internal data with DO data, spatial-join in SQL — see
 
 ## Unsubscribing
 
-`manage_data_observatory_subscriptions` `method: "unsubscribe"` with the dataset `id`, or `carto do unsubscribe <dataset-id>` (`--yes` skips the confirmation). This can't be undone.
+`manage_data_observatory_subscriptions` `method: "unsubscribe"` with the dataset `id`, or `carto do unsubscribe <dataset-id>` (`--yes` skips the confirmation). It needs Admin permissions and can't be undone.
 
 ## Common errors
 

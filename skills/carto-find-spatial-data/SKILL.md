@@ -36,7 +36,7 @@ CLI fallback (no server / scripted / token-session subscribe):
 ```bash
 carto do search --keyword "census" --country usa --json
 carto do get <dataset-id> --json
-carto do subscriptions list --json
+carto do subscriptions --json
 carto do subscribe <dataset-id>       # prints the view to query on carto_dw
 ```
 
