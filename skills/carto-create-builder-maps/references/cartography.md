@@ -693,7 +693,7 @@ Three archetypal recipes. Every field name is real. Widget composition is out of
 - Classification: `custom` with colorMap pinning 0 at palette centre.
 - Channel: `colorField: "revenue_change_pct"`.
 - Classes: 7 (nuance both sides of zero).
-- Palette: diverging from the colorblind-safe subset (e.g. `TealRose` or `Temps`) — re-fit each time per §4.
+- Palette: diverging from the colorblind-safe subset (e.g. `Geyser` or `Temps`) — re-fit each time per §4.
 - Basemap: `positron`.
 - Legend: on, percentage format.
 - Popup: hover `postcode` + `revenue_change_pct`; click full breakdown.
