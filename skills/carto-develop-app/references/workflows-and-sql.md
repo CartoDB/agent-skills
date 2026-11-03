@@ -99,23 +99,23 @@ The public token that powers the app must grant **both** the procedure FQN and e
 
 ## Workflow as an MCP tool (agent-driven apps)
 
-When the app has an **embedded agent** ([`agentic-variant.md`](agentic-variant.md)) and that agent needs to run the analysis, don't hand it raw SQL — publish the workflow as an **MCP tool** and register it alongside the agent's other tools. The agent calls it by name with typed inputs; the procedure runs server-side and returns rows. Same compiled procedure as the API path above, just discovered and invoked through MCP instead of a hard-coded `CALL`.
+When the app has an **embedded agent** ([`agentic-variant.md`](agentic-variant.md)) and that agent needs to run the analysis, don't hand it raw SQL — enable the workflow as an **MCP tool** and register it alongside the agent's other tools. The agent calls it by name with typed inputs; the procedure runs server-side and returns rows. Same compiled procedure as the API path above, just discovered and invoked through MCP instead of a hard-coded `CALL`.
 
 ```bash
 # In carto-create-workflow: shape the workflow with a native.mcptooloutput
-# terminal node + variables scoped to `mcptool`, then publish (CLI-only):
-carto workflows mcp publish <id> --name predict_revenue \
+# terminal node + variables scoped to `mcptool`, then enable it:
+carto workflows mcp enable <id> --name predict_revenue \
   --description "Predict revenue for a candidate site given catchment inputs"
 ```
 
 Read back the tool name, inputs, and `CALL` signature with `carto workflows mcp describe <id>` on the CLI, or `read_workflows` (method `get_mcp_tool`) over an attached MCP session.
 
-The agent's tool result is rows; map them to a layer spec (or a new `vectorQuerySource` over the output table) and apply via the agent's `set-deck-state` path. Full publish requirements — the `native.mcptooloutput` node, `mcptool`-scoped variables, per-input descriptions, the `Number → FLOAT64`/`LIMIT` gotcha — are in [`carto-create-workflow`'s mcp-and-api-publish.md](../../carto-create-workflow/references/mcp-and-api-publish.md). Author the workflow first with [`carto-create-workflow`](../../carto-create-workflow).
+The agent's tool result is rows; map them to a layer spec (or a new `vectorQuerySource` over the output table) and apply via the agent's `set-deck-state` path. Full MCP tool requirements — the `native.mcptooloutput` node, `mcptool`-scoped variables, per-input descriptions, the `Number → FLOAT64`/`LIMIT` gotcha — are in [`carto-create-workflow`'s mcp-and-api-publish.md](../../carto-create-workflow/references/mcp-and-api-publish.md). Author the workflow first with [`carto-create-workflow`](../../carto-create-workflow).
 
 ## Async / long-running queries
 
 `query()` waits for the SQL API to return. For genuinely long jobs (minutes), consider:
-- Materializing the result into a table on a schedule (workflow + `schedule add`), then point a `vectorQuerySource` at the materialized table — the app stays fast.
+- Materializing the result into a table on a schedule (workflow + `schedule create`), then point a `vectorQuerySource` at the materialized table — the app stays fast.
 - Or fire the long query from a backend M2M client ([`auth-m2m.md`](auth-m2m.md)) and have the app poll a small status table.
 
 Don't hold a UI loading state for >10 s; the user assumes it's broken.

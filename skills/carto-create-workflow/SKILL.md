@@ -12,7 +12,7 @@ CARTO Workflows is a visual DAG authoring app that compiles to warehouse SQL. Ea
 
 For one-off ad-hoc SQL, use [`carto-query-datawarehouse`](../carto-query-datawarehouse) — workflows are for repeatable, scheduled, multi-step DAGs.
 
-> **Access-path routing.** The interactive lifecycle maps to MCP tools on an OAuth-authenticated MCP session: `create_workflow`, `update_workflow` (method=update|share|unshare|publish|unpublish), `validate_workflow` (method=validate|verify|to_sql), `read_workflows` (method=list|get|list_mcp_tools|get_mcp_tool), `run_workflow` (method=run|status|results), `schedule_workflow` (method=add|update|remove), and `read_workflow_components` (method=list|get — the component catalog). The phases below apply on either path — where a step names a `carto workflows` command, substitute the matching MCP tool (e.g. `verify-remote` → `validate_workflow method=verify`). Stay on the CLI for scripting/CI, bundle-schema introspection (`carto workflows schema` — no MCP equivalent), cross-profile copy (`carto workflows copy` — CLI-only), and usage-log auditing (`carto activity query` — CLI-only). Fall back to the CLI when the server isn't attached, or when the MCP session is **token**-authenticated — authoring/admin tools are hidden there; only `run_workflow` and `validate_workflow` remain. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
+> **Access-path routing.** The interactive lifecycle maps to MCP tools on an OAuth-authenticated MCP session: `create_workflow`, `update_workflow` (method=update|share|unshare|publish|enable_mcp_tool|disable_mcp_tool|enable_api|disable_api), `validate_workflow` (method=validate|verify|to_sql), `read_workflows` (method=list|get|list_mcp_tools|get_mcp_tool), `run_workflow` (method=run|status|results), `schedule_workflow` (method=create|update|delete), and `read_workflow_components` (method=list|get — the component catalog). The phases below apply on either path — where a step names a `carto workflows` command, substitute the matching MCP tool (e.g. `verify-remote` → `validate_workflow method=verify`). Stay on the CLI for scripting/CI, bundle-schema introspection (`carto workflows schema` — no MCP equivalent), cross-profile copy (`carto workflows copy` — CLI-only), and usage-log auditing (`carto activity query` — CLI-only). Fall back to the CLI when the server isn't attached, or when the MCP session is **token**-authenticated — authoring/admin tools are hidden there; only `run_workflow` and `validate_workflow` remain. Detection signals: [`carto-basics/references/access-paths.md`](../carto-basics/references/access-paths.md).
 
 Bundle structure, component schemas, input formats, and gotchas are all served live — by the CLI (`carto workflows schema` / `components`) or, on the MCP path, by `read_workflow_components` (method=list|get). **Never hardcode or assume them.** Live introspection is the source of truth.
 
@@ -35,7 +35,7 @@ References (only for what live introspection doesn't serve):
 - [`references/canvas-notes.md`](references/canvas-notes.md) — documenting the canvas with `type: "note"` nodes, including section containers that enclose the nodes they describe. Live introspection serves no schema for notes, and the visible card is `data.width`/`data.height` (node-level width/height are `data + 160`/`+ 128`) — getting that inverted renders every card too small.
 - [`references/providers/`](references/providers/) — per-warehouse details (BigQuery, Snowflake, Databricks): identifier quoting, column casing, AT path.
 - [`references/scheduling.md`](references/scheduling.md) — `add` vs `update` semantics, bundle-level schedule warning, activity-log verification.
-- [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — publishing a workflow as an MCP tool or callable API endpoint (MCP: `update_workflow method=publish`): bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
+- [`references/mcp-and-api-publish.md`](references/mcp-and-api-publish.md) — enabling a workflow as an MCP tool or callable API endpoint (MCP: `update_workflow method=enable_mcp_tool` / `enable_api`): bundle requirements (`native.mcptooloutput` + scoped variables + draft descriptions), `{{@var}}` vs `@var` substitution syntax, `Number → FLOAT64` `LIMIT` gotcha, post-publish verification.
 - [`references/cross-profile-copy.md`](references/cross-profile-copy.md) — `workflows copy` mechanics (CLI-only), connection mapping, `--skip-source-validation`, why copies are always new workflows.
 - [`references/schedule-readd.md`](references/schedule-readd.md) — schedules don't transfer across `workflows copy`; how to re-add them, including dialect translation when source and destination engines differ.
 
@@ -205,14 +205,15 @@ Different warehouses have different SQL dialects, table-naming conventions, and 
 
 ## Operating a workflow (after it's built)
 
-Once a workflow exists in CARTO, both paths expose CRUD, run, and schedule management. MCP: `read_workflows` (list|get), `update_workflow` (update|share|unshare|publish|unpublish), `run_workflow` (run|status|results), `schedule_workflow` (add|update|remove), `delete kind=workflow`. CLI quick reference:
+Once a workflow exists in CARTO, both paths expose CRUD, run, and schedule management. MCP: `read_workflows` (list|get), `update_workflow` (update|share|unshare|publish|enable_mcp_tool|disable_mcp_tool|enable_api|disable_api), `run_workflow` (run|status|results), `schedule_workflow` (create|update|delete), `delete kind=workflow`. CLI quick reference:
 
 ```bash
 carto workflows list --json                                   # list / inspect
 carto workflows get <id>
 carto workflows update <id> --file workflow.json              # update (replaces whole DAG)
-carto workflows schedule add <id> --expression "every day 08:00"
-carto workflows schedule remove <id>
+carto workflows publish <id>                                   # publish the current version to everyone it's shared with
+carto workflows schedule create <id> --expression "every day 08:00"
+carto workflows schedule delete <id>
 ```
 
 Always-on guidance:

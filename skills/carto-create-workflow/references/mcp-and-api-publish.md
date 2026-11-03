@@ -1,26 +1,28 @@
-# Publishing a workflow as an MCP tool or callable API endpoint
+# Enabling a workflow as an MCP tool or callable API endpoint
 
 The same compiled stored procedure powers both surfaces:
 
-- **MCP**: agent-facing. Discovered via the workflow's `mcpTool` block; invoked through an MCP client. Once published, it registers as its own dynamic MCP tool.
+- **MCP**: agent-facing. Discovered via the workflow's `mcpTool` block; invoked through an MCP client. Once enabled, it registers as its own dynamic MCP tool.
 - **API**: programmatic-caller-facing. Same procedure FQN, called via the CARTO SQL API with an API access token.
 
-> **API publishing is not yet exposed on either path.** Today only publish/unpublish is wired up. To enable API access, toggle "Enable API access" in the Workflows UI — the procedure can then be *called* (see [Calling the procedure via API](#calling-the-procedure-via-api)), but neither MCP nor CLI can enable, disable, or describe the API endpoint itself.
+> **The API endpoint is MCP-only.** On an OAuth MCP session, `update_workflow` method=enable_api|disable_api turns it on or off. The CLI has no API command, so there toggle "Enable API access" in the Workflows UI. Either way, the procedure can then be *called* (see [Calling the procedure via API](#calling-the-procedure-via-api)).
+>
+> Not to be confused with `carto workflows publish` / `update_workflow` method=publish, which publishes the workflow's current version to the people it's shared with (the editor's **Publish updates**).
 
-**Path routing.** On an OAuth MCP session, publish/unpublish and metadata reads map to `update_workflow` (method=publish|unpublish) and `read_workflows` (method=list_mcp_tools|get_mcp_tool). On the CLI (or a token MCP session, where authoring tools are hidden), use `carto workflows mcp` (full flags in `--help`):
+**Path routing.** On an OAuth MCP session, enabling, disabling and metadata reads map to `update_workflow` (method=enable_mcp_tool|disable_mcp_tool) and `read_workflows` (method=list_mcp_tools|get_mcp_tool). On the CLI (or a token MCP session, where authoring tools are hidden), use `carto workflows mcp` (full flags in `--help`):
 
 ```bash
-carto workflows mcp publish <id> [--name <s>] [--description <s>] [--output-description <s>]
-carto workflows mcp unpublish <id>
+carto workflows mcp enable <id> [--name <s>] [--description <s>] [--output-description <s>]
+carto workflows mcp disable <id>
 carto workflows mcp describe <id>
 carto workflows mcp list
 ```
 
-Publishing is one-shot end-to-end: it compiles the workflow into a stored procedure (`wfproc_mcptool_<wfHash>` in `<billing>.carto_workspace`), creates that procedure on the warehouse, and PATCHes the full MCP metadata onto the workflow. After it returns, an agent can invoke the tool against real data — no Workflows UI step required. The same procedure is callable directly via SQL API for non-agent code paths (see [Calling the procedure via API](#calling-the-procedure-via-api) below).
+Enabling is one-shot end-to-end: it compiles the workflow into a stored procedure (`wfproc_mcptool_<wfHash>` in `<billing>.carto_workspace`), creates that procedure on the warehouse, and PATCHes the full MCP metadata onto the workflow. After it returns, an agent can invoke the tool against real data — no Workflows UI step required. The same procedure is callable directly via SQL API for non-agent code paths (see [Calling the procedure via API](#calling-the-procedure-via-api) below).
 
 ## Bundle requirements
 
-The workflow must be **MCP-shaped** before publishing — `mcp publish` exits with an error otherwise. Three things:
+The workflow must be **MCP-shaped** before enabling — `mcp enable` exits with an error otherwise, and it refuses PostgreSQL and Databricks cluster connections, as Builder does. Three things:
 
 1. **Terminal `native.mcptooloutput` node** fed by at least one upstream node. Marks the workflow's output. Fetch its spec with `carto workflows components get native.mcptooloutput --connection <conn> --json` — the `mode` input takes `"sync"` (procedure SELECTs the temp result) or `"async"` (job metadata returned).
 2. **At least one variable in `config.variables[]` with `mcptool` in `scopes[]`.** These become the tool's inputs. Each variable's `value` is the default the procedure uses when an agent omits that parameter.
@@ -45,7 +47,7 @@ The agent-facing descriptions (tool description, output description, **per-input
 }
 ```
 
-`--name`, `--description`, and `--output-description` flags override their respective draft fields at publish time.
+`--name`, `--description`, and `--output-description` flags override their respective draft fields when you enable the tool.
 
 ## Referencing variables from a node's `value`
 
@@ -73,7 +75,7 @@ Same constraint applies to anywhere BigQuery requires INT64 (e.g. `OFFSET`, arra
 
 ## Verifying
 
-After publishing, three things should hold (metadata read via `carto workflows mcp describe <id>` or `read_workflows method=get_mcp_tool`; SQL via `carto sql query` or `execute_query`):
+After enabling, three things should hold (metadata read via `carto workflows mcp describe <id>` or `read_workflows method=get_mcp_tool`; SQL via `carto sql query` or `execute_query`):
 
 ```bash
 # 1. Tool metadata is populated.
@@ -88,7 +90,7 @@ carto sql query <conn> "SELECT routine_name FROM \`<billing>.carto_workspace.INF
 carto sql query <conn> "CALL \`<billing>.carto_workspace.wfproc_mcptool_<wfHash>\`(<args>)"
 ```
 
-If step 2 returns 0 rows, the publish silently failed compilation — re-run with `--debug` and inspect.
+If step 2 returns 0 rows, enabling silently failed compilation — re-run with `--debug` and inspect.
 
 ## Calling the procedure via API
 
@@ -124,6 +126,6 @@ The token's `--source` grant must include the procedure FQN **and** every table 
 
 ## Operating notes
 
-- **CLI-only publish flags:** `--draft-only` flips `enabled`/`name`/`description` and skips compile (tool appears published but is **not callable** — for staging metadata early); `--file <path>` PATCHes the file's JSON as the full `mcpTool` block, skipping compilation (for applying a hand-crafted block, e.g. copied from another workflow).
+- **`mcp enable` always compiles and syncs the procedure.** The `--draft-only`, `--file` and `--from-file` flags were removed in CLI 0.14.0, and passing one is an error.
 - **Tool names must be unique within the org.** If a name is taken, the server appends `_1`, `_2`, etc. — pass `--name` (or the `update_workflow` name field) to control this.
-- **Republishing recompiles** (`CREATE OR REPLACE PROCEDURE`, idempotent). **`unpublish` keeps metadata** — re-publishing later just flips `enabled` back to true.
+- **Re-enabling recompiles** (`CREATE OR REPLACE PROCEDURE`, idempotent). **`disable` keeps the tool config** — it drops the procedure, so enabling again later is fast.

@@ -1,6 +1,6 @@
 # Scheduling workflows
 
-On an OAuth MCP session, scheduling maps to `schedule_workflow` (method=add|update|remove). On the CLI (or a token MCP session) use `carto workflows schedule`. Command surface and per-engine expression dialects are documented in the CLI itself:
+On an OAuth MCP session, scheduling maps to `schedule_workflow` (method=create|update|delete). On the CLI (or a token MCP session) use `carto workflows schedule`. Command surface and per-engine expression dialects are documented in the CLI itself:
 
 ```bash
 carto workflows --help        # see "Schedule Expression Formats" footer
@@ -9,9 +9,11 @@ carto workflows schema schedule
 
 This file only covers what live introspection doesn't: behavioural quirks and verification.
 
-## `add` vs. `update`
+## `create` vs. `update`
 
-Adding errors if a schedule already exists; updating replaces it. To safely set or re-set, prefer `update` — it's idempotent on existing schedules and creates one when none exists.
+`create` errors if a schedule already exists; `update` replaces an existing one.
+
+`create` refuses what Builder's scheduler refuses: a workflow that has never run (run it once first; `carto workflows run` records the run), Redshift connections, BigQuery OAuth connections without BigQuery Data Transfer, and connections whose warehouse permissions don't allow scheduled queries.
 
 ```bash
 carto workflows schedule update <id> --expression "0 8 * * *"
@@ -22,7 +24,7 @@ carto workflows schedule update <id> --expression "0 8 * * *"
 `config.schedule` (see `carto workflows schema schedule`) is **declarative metadata only**. Adding it to a bundle on `create`/`update` does not register a warehouse cron — the CLI emits a `SCHEDULE_NOT_ACTIVATED` warning. The schedule fires only after running:
 
 ```bash
-carto workflows schedule add <id> --expression <expr>
+carto workflows schedule create <id> --expression <expr>
 ```
 
 ## Picking the dialect
@@ -49,7 +51,7 @@ For a curated success-rate query, see [`../../carto-query-datawarehouse/referenc
 ## Removing a schedule
 
 ```bash
-carto workflows schedule remove <id>
+carto workflows schedule delete <id>
 ```
 
-Removes the schedule but keeps the workflow definition — you can run it manually or re-add a schedule later.
+Deletes the schedule but keeps the workflow definition — you can run it manually or create a schedule again later.
