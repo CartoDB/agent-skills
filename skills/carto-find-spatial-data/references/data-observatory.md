@@ -62,4 +62,4 @@ If any don't fit, surface that explicitly — pushing a dataset that "almost wor
 
 ## Listing your subscriptions
 
-`manage_data_observatory_subscriptions` `method: "list"` (OAuth session), or `carto do subscriptions list --json`. Shows datasets already subscribed, with status (`active`, `expired`, `pending`), destination table, and last refresh timestamp.
+`manage_data_observatory_subscriptions` `method: "list"` (OAuth session), or `carto do subscriptions --json`. Shows the datasets the organization is subscribed to and where each one is available (`availableIn`).

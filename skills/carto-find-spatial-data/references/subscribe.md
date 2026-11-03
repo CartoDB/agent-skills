@@ -1,68 +1,42 @@
 # Subscribing to a Data Observatory dataset
 
-Subscription **materializes** the dataset into the user's warehouse as a regular table. Once subscribed, querying is just a normal warehouse read (`execute_query` / `carto sql query`).
+Subscribing gives the organization access to a Data Observatory dataset. Where the user can then use the data depends on their data warehouse, so check which connections they work with before recommending a subscription:
+
+- **CARTO Data Warehouse:** the data is ready to use right after subscribing, in Data Explorer, Workflows and Builder, and in SQL on the `carto_dw` connection.
+- **BigQuery:** CARTO hosts the data in BigQuery's US multi-region and shares it with the user's BigQuery connections. To use it in another BigQuery location, an Admin requests a transfer, as below.
+- **Snowflake, Databricks, Redshift, PostgreSQL or Oracle:** the data isn't in the user's warehouse yet. An Admin requests a transfer from **Settings > Data Observatory** with the warehouse's details. Once it's delivered, the user queries it on their own connection like any other table. See [Accessing your subscriptions from your data warehouse](https://docs.carto.com/carto-user-manual/data-observatory/accessing-your-subscriptions-from-your-data-warehouse).
+
+Some Self-Hosted deployments run without the CARTO Data Warehouse. There the user can still subscribe, but to use the data an Admin requests a transfer to their warehouse from the Data Observatory settings.
 
 Subscribe over MCP with `manage_data_observatory_subscriptions` (`method: subscribe|unsubscribe|list`) — this needs an **OAuth** session; on a token-authenticated session the tool is hidden, so use the `carto do` CLI instead. Discovery (`search_data_observatory`) works on either session — see [data-observatory.md](data-observatory.md).
 
 ## Subscribing
 
-- **MCP:** `manage_data_observatory_subscriptions` `method: "subscribe"` with `dataset_id`, `connection`, `destination`, optional `overwrite`, `refresh_schedule`, `variables`.
+- **MCP:** `manage_data_observatory_subscriptions` `method: "subscribe"` with `body: { source, filter?, filterColumns? }`. `source` is the dataset id, slug or fully-qualified name.
 - **CLI:**
 
 ```bash
-carto do subscribe <dataset-id> --connection <connection-name> --destination <fully-qualified-table>
+carto do subscribe <dataset-id>
+carto do subscribe <dataset-id> --filter "WHERE country_iso = 'US'"   # Partial subscription
+carto do subscribe <dataset-id> --columns "geoid, population, geom"   # Specific columns only
 ```
 
-Required: `connection` (name from `explore_data` `list_connections` / `carto connections list` — determines which warehouse the data lands in) and `destination` (target table FQN, created/overwritten by the subscription).
+Only **public** datasets can be subscribed self-service. Premium datasets need a commercial agreement with CARTO: `get_dataset` / `carto do get` shows the license, and the user should contact data-sales@carto.com.
 
-Optional:
+## Using the data
 
-- `overwrite` / `--overwrite` — overwrite existing destination table.
-- `refresh_schedule` / `--refresh-schedule <cron>` — auto-refresh (cron/Quartz/natural-language per engine; same dialect rules as workflow scheduling).
-- `variables` / `--variables <json>` — for parameterized DO datasets (e.g. year selection for ACS data).
-
-```bash
-# Free dataset, one-time materialization
-carto do subscribe usa.census.tracts.acs5_2022 \
-  --connection carto_dw --destination my_project.do.acs_tracts_2022
-
-# Premium dataset, monthly refresh
-carto do subscribe spatial-ai.poi.us \
-  --connection carto_dw --destination my_project.do.poi_us \
-  --refresh-schedule "0 0 1 * *"
-```
-
-## Subscription cost dimensions
-
-Three places cost can accrue — surface all three before subscribing to a premium dataset:
-
-1. **CARTO subscription fee** — paid datasets are charged per dataset per period, usually negotiated upfront in the CARTO contract. `get_dataset` / `carto do get` surfaces the pricing tier.
-2. **Warehouse storage** — the materialized table consumes space on the user's warehouse, billed by the warehouse provider. Demographics tables are usually small (≤100 MB per country); mobility/POI tables can be 10–100 GB.
-3. **Warehouse compute** — refresh runs spawn warehouse jobs; factor this in for frequent schedules.
-
-## Refresh
-
-- **One-time** (default, no `refresh_schedule`) — materialized once. Static datasets (ACS for a fixed year) usually need only this.
-- **Scheduled** — pass `refresh_schedule` / `--refresh-schedule "0 0 1 * *"`. CARTO drives it server-side; the expression follows the warehouse's dialect (see [`carto-create-workflow/references/scheduling.md`](../../carto-create-workflow/references/scheduling.md)).
-- **Manual** — re-subscribe with `overwrite` / `--overwrite` to replace the table on demand.
-
-## Querying after subscribe
-
-The destination is just a warehouse table. Read it with `execute_query`, or:
-
-```bash
-carto sql query carto_dw "SELECT geoid, total_pop FROM my_project.do.acs_tracts_2022 LIMIT 10"
-```
+- **CARTO Data Warehouse:** `carto do subscribe` prints the table to query on `carto_dw`, and `carto do subscriptions --json` lists every subscription with its `tableName` and the warehouses and regions where it's available (`availableIn`). Query it with `execute_query` or `carto sql query carto_dw`.
+- **Other warehouses:** once CARTO has delivered the data, query the shared tables on the user's own connection, not through the Data Observatory tabs in Data Explorer, Workflows or Builder.
 
 To **enrich** the user's internal data with DO data, spatial-join in SQL — see the dialect-specific examples in [`carto-query-datawarehouse`](../../carto-query-datawarehouse).
 
 ## Unsubscribing
 
-`manage_data_observatory_subscriptions` `method: "unsubscribe"` with the subscription id, or `carto do subscriptions unsubscribe <subscription-id>`. This stops future refreshes but **does not delete the destination table** — drop it manually (`execute_async_query` / `carto sql job`) if no longer needed.
+`manage_data_observatory_subscriptions` `method: "unsubscribe"` with the dataset `id`, or `carto do unsubscribe <dataset-id>` (`--yes` skips the confirmation). It needs Admin permissions and can't be undone.
 
 ## Common errors
 
 - **`Dataset not found`** — typo in the ID, or the dataset is regional and not visible from the user's contracted region.
 - **`License not available for your org`** — paid dataset; needs adding to the contract by CARTO sales.
-- **`Permission denied`** on the destination — connection's credential lacks write permission. Fix in warehouse-side IAM.
-- **`Spatial extension required`** — destination warehouse needs the CARTO spatial extension installed. Admin task; outside this skill.
+- **Already subscribed** (HTTP 409): the organization already has the dataset, so use the existing subscription.
+- **`No CARTO Data Warehouse connection found`** (from `carto do subscribe`): the CLI checks for a CARTO Data Warehouse connection before subscribing, but an organization without one can still subscribe. Subscribe over MCP or in CARTO instead, then have an Admin request a transfer to the user's warehouse from the Data Observatory settings. See [Accessing your subscriptions from your data warehouse](https://docs.carto.com/carto-user-manual/data-observatory/accessing-your-subscriptions-from-your-data-warehouse).
