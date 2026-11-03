@@ -40,4 +40,3 @@ To **enrich** the user's internal data with DO data, spatial-join in SQL — see
 - **`License not available for your org`** — paid dataset; needs adding to the contract by CARTO sales.
 - **Already subscribed** (HTTP 409): the organization already has the dataset, so use the existing subscription.
 - **`No CARTO Data Warehouse connection found`** (from `carto do subscribe`): the CLI checks for a CARTO Data Warehouse connection before subscribing, but an organization without one can still subscribe. Subscribe over MCP or in CARTO instead, then have an Admin request a transfer to the user's warehouse from the Data Observatory settings. See [Accessing your subscriptions from your data warehouse](https://docs.carto.com/carto-user-manual/data-observatory/accessing-your-subscriptions-from-your-data-warehouse).
-- **`The current account cannot subscribe to public datasets`**: public subscriptions aren't enabled for the organization. The user contacts CARTO support.
