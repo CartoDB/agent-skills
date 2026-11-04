@@ -11,7 +11,7 @@ Computes a **new raster** by evaluating an expression pixel by pixel over one or
 - The Analytics Toolbox procedure `RASTER_ALGEBRA` (SQL `CALL`), up to 26 inputs.
 - The **Raster Algebra** Workflows component (`carto.rasteralgebra`, group *Raster Operations*), up to 4 inputs.
 
-Providers: BigQuery (including CARTO Data Warehouse) and Snowflake only. Minimum Analytics Toolbox: 1.26.0 on BigQuery, 1.27.0 on Snowflake; use 1.28.0 or later on Snowflake (see Gotchas). The output is a RaQuet v0.5.0 raster table.
+Providers: BigQuery (including CARTO Data Warehouse) and Snowflake only. Minimum Analytics Toolbox: 1.26.0 on BigQuery, 1.28.0 on Snowflake. The output is a RaQuet v0.5.0 raster table.
 
 **Prerequisites**: `carto-explore-datawarehouse` to find the rasters; `carto-query-datawarehouse` to run SQL (the `CALL` creates a table, so use the async/job path); `carto-create-workflow` to build a workflow.
 
@@ -99,4 +99,4 @@ In Workflows: one source node per raster, then **Raster Algebra**, then `native.
 - With `overviews: evaluate`, overview pixels are computed from the inputs' overview pixels, so non-linear results (ratios, thresholds) are approximate at low zooms. Native-resolution pixels are exact either way.
 - If a "before" raster stores "no signal" as nodata, every pixel that gains coverage is nodata in the result too. The input needs a real value there, not nodata.
 - Never drop an existing output table without asking: choose a new name.
-- On Snowflake, toolbox 1.27.0 fails with `Return value is not an ARRAY` when a block computes to all nodata (e.g. `sqrt($a.band_1 - 40)` over low values), and adds about 16 KB of library source to every error message. 1.28.0 fixes both.
+- On Snowflake, the procedure already exists in toolbox 1.27.0, but it fails with `Return value is not an ARRAY` when a block computes to all nodata (e.g. `sqrt($a.band_1 - 40)` over low values), and adds about 16 KB of library source to every error message. 1.28.0 fixes both, and the Workflows component requires it.

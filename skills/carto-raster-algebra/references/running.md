@@ -73,7 +73,7 @@ CALL CARTO.CARTO.RASTER_ALGEBRA(
 
 ## Workflows
 
-Component `carto.rasteralgebra` (title Raster Algebra, group Raster Operations). Read its spec with `carto workflows components get carto.rasteralgebra --connection <connection> --json` (or MCP `read_workflow_components`). If it isn't found, the organization doesn't have it enabled yet, or the connection's toolbox is older than the minimum version: use the SQL procedure.
+Component `carto.rasteralgebra` (title Raster Algebra, group Raster Operations). Read its spec with `carto workflows components get carto.rasteralgebra --connection <connection> --json` (or MCP `read_workflow_components`). If it isn't found, the organization doesn't have it enabled yet, or the connection's toolbox is older than the minimum version. Then use the SQL procedure, except on a Snowflake toolbox older than 1.28.0: update the toolbox first (see the Snowflake note in SKILL.md).
 
 | Input | Type | Value |
 |---|---|---|
