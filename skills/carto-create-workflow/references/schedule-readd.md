@@ -8,10 +8,10 @@ Schedules execute *inside* the destination warehouse, in that warehouse's schedu
 
 ## Re-adding after copy
 
-`workflows copy` is CLI-only, but the re-add itself can go through MCP `schedule_workflow method=add` against the destination workflow, or the CLI:
+`workflows copy` is CLI-only, but the re-add itself can go through MCP `schedule_workflow method=create` against the destination workflow, or the CLI:
 
 ```bash
-carto workflows schedule add <new-wf-id> \
+carto workflows schedule create <new-wf-id> \
   --expression "every day 08:00" \
   --profile prod
 ```
@@ -25,8 +25,9 @@ The expression syntax depends on the **destination** warehouse engine, not the s
 | Destination engine | Expression dialect |
 |---|---|
 | BigQuery / CARTO DW | natural language: `"every day 08:00"`, `"every 2 hours"` |
-| Snowflake / Postgres / Redshift | standard 5-field cron: `"0 8 * * *"` |
-| Databricks | Quartz cron (6-field): `"0 0 8 * * ?"` |
+| Snowflake / PostgreSQL / Oracle / Databricks Warehouse | standard 5-field cron: `"0 8 * * *"` |
+| Databricks clusters | Quartz cron (6-field): `"0 0 8 * * ?"` |
+| Redshift | can't be scheduled |
 
 For full dialect detail and examples, see [`scheduling.md`](scheduling.md) — that doc owns scheduling depth; this one just calls out the cross-profile-copy gotcha.
 
