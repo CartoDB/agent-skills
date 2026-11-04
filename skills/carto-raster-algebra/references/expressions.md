@@ -68,3 +68,4 @@ The procedure reports the cause, and parse errors include the position in the ex
 | `Output band name 'x_min' clashes with a reserved column name` | Rename the output. |
 | `Inputs $a and $b are not on the same grid: ...` | Re-import at a common block size and resolution. |
 | `Input $a is ...; RaQuet v0.5.0 is required` | Re-import as v0.5.0 ([running.md](running.md)). |
+| `Return value is not an ARRAY` (Snowflake) | Toolbox 1.27.0 fails when a block computes to all nodata. Update the toolbox to 1.28.0 or later. |

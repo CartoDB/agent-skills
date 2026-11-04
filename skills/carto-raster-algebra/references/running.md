@@ -104,16 +104,11 @@ The node's output handle is `result`; connect it to `native.saveastable` to keep
 
 - Edges go from each source node's `out` handle to `sourcea`, `sourceb`, ..., and from `result` to the save node's `source`.
 - The component checks the expression against the connected inputs: missing or unused rasters, connection order, band names, output names and missing `;`.
-- Offline `carto workflows validate` can't resolve the toolbox. Run `carto workflows verify-remote --connection <connection>` (MCP `validate_workflow method=verify`).
+- Raster source nodes are `ReadTable` source nodes with `data.type: "raster"`, which makes their Map tab show the raster. The CLI accepts it from version 0.14.0; earlier versions reject it in `workflows validate`.
+- `carto workflows validate` checks the bundle's structure and components, not the data. Run `carto workflows verify-remote --connection <connection>` (MCP `validate_workflow method=verify`) to check the workflow against the warehouse before running it.
 - Workflow variables are not expanded in the expression or the options.
 - The component replaces its own output on every run, unlike the procedure.
 
-### Known platform issues (October 2026)
-
-- **CLI raster sources**: `carto workflows validate` accepts only `type: "table"` on `ReadTable` source nodes. Point a plain table source at the raster table: the workflow runs, but that node doesn't show the raster on its Map tab.
-- **CLI on non-US tenants**: `carto workflows run` and `carto workflows to-sql` call the US toolbox (`carto-un.carto`) on every tenant, so on non-US tenants the run fails with "Procedure is not found". Run the workflow from the Workflows editor, or call the procedure with SQL against the regional toolbox.
-- **Map preview**: the Workflows Map tab doesn't preview the component's output yet. Save it as a table and open the table in Builder.
-- **Unverified**: with toolbox 1.26.0 on BigQuery, Get Values from Raster and Intersect and Aggregate Raster (`RASTER_VALUES`, `RASTER_AGG_VALUES`) may fail on a Raster Algebra output because of its per-band statistics columns. Summarize with the statistics columns instead (below).
 
 ## Output
 
@@ -156,4 +151,4 @@ WHERE t.BLOCK != 0
 
 For a band's mean over the whole raster, use `STATISTICS_MEAN` from the metadata, or `SUM(<band>_sum) / SUM(<band>_count)` over native-resolution blocks.
 
-To show the result, open the table in Builder as a raster layer (see `carto-create-builder-maps`).
+In Workflows, the Map tab previews the output. To show it in a map, open the table in Builder as a raster layer (see `carto-create-builder-maps`).
