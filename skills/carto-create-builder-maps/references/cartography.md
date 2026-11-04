@@ -368,10 +368,10 @@ Default to **5**. Drop to 3 for overview / executive maps. Up to 7 for detailed 
 
 Palette names, their family (`type`) and their colors come from the map schema: `carto maps schema palettes` (MCP: `validate_map` method `schema`, section `palettes`). Read them there rather than from a list.
 
-**Colorblind-safe subset** (recommended when audience is public or unknown):
-- Qualitative: `Safe`, `Vivid`
-- Sequential: `Teal`, `Purp`, `Mint`, `Emrld`, `BluYl`, `DarkMint`
-- Diverging: `Temps`, `Geyser`, `Tropic`
+**Colorblind-safe subset** (recommended when audience is public or unknown). Checked against simulated protanopia and deuteranopia, the red-green deficiencies about 8% of men have:
+- Qualitative: `Safe`, the only palette CARTOColors tags colorblind-safe. Keep categories few; past five or six, add a second cue (labels, icons).
+- Sequential: `Teal`, `Purp`, `Mint`, `Emrld`, `BluYl`, `DarkMint`. They change lightness, which survives every deficiency.
+- Diverging: `Geyser`. `Temps`, `Tropic` and `TealRose` look safe but their two ends nearly merge for red-green readers.
 
 ### 4.2 Fit the palette to the measure
 
@@ -648,7 +648,7 @@ Supported only on polygon tilesets, h3, quadbin. Points and rasters have no extr
 Past ~7 classes on a sequential ramp the eye can't pair ramp position with legend bin. Cap at 7; default 5.
 
 ### 7.5 Red/green as the only encoding
-~8% of men have deuteranopia / protanopia — red and green collapse to the same yellow-brown. **Fix:** blue-red diverging (`Temps`, `Tropic`) or `TealRose`. If the design requires red/green, pair with shape/icon as redundant encoding.
+~8% of men have deuteranopia / protanopia — red and green collapse to the same yellow-brown. **Fix:** `Geyser`, teal to orange; `Temps`, `Tropic` and `TealRose` collapse too. If the design requires red/green, pair with shape/icon as redundant encoding.
 
 ### 7.6 Quantile on bimodal distributions
 Quantile assumes unimodal. Bimodal data gets chopped into classes that match neither mode. Pull a histogram before committing; if bimodal, switch to `custom` with breakpoints at the modes, or `quantize` to keep modes separated.
@@ -693,7 +693,7 @@ Three archetypal recipes. Every field name is real. Widget composition is out of
 - Classification: `custom` with colorMap pinning 0 at palette centre.
 - Channel: `colorField: "revenue_change_pct"`.
 - Classes: 7 (nuance both sides of zero).
-- Palette: diverging from the colorblind-safe subset (e.g. `Geyser` or `Temps`) — re-fit each time per §4.
+- Palette: diverging from the colorblind-safe subset (`Geyser`) — re-fit each time per §4.
 - Basemap: `positron`.
 - Legend: on, percentage format.
 - Popup: hover `postcode` + `revenue_change_pct`; click full breakdown.
