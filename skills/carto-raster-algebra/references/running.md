@@ -1,28 +1,10 @@
 # Running raster algebra
 
-## Inputs: get RaQuet v0.5.0 rasters
+## Inputs: RaQuet v0.5.0 rasters
 
-Check `version` in each input's metadata row. Rasters written by the [raquet](https://github.com/CartoDB/raquet) tools are v0.5.0. Rasters imported into CARTO (Data Explorer, Imports API) are still written in the earlier RaQuet version by default, and raster algebra rejects them.
+Check `version` in each input's metadata row. Rasters written by the [raquet](https://github.com/CartoDB/raquet) tools are v0.5.0. Rasters imported into CARTO before RaQuet v0.5.0 was enabled for the organization are in the earlier version, and raster algebra rejects them.
 
-The Imports API can write v0.5.0 when asked. `carto import` has no option for it, so call the API directly with a `config` field, which is a JSON **string**:
-
-```bash
-API_BASE="https://<tenant_id>.api.carto.com"   # tenant_id from: carto auth status --json
-TOKEN="<CARTO token>"                          # e.g. the CLI profile token in ~/.carto_credentials.json
-
-curl -X POST "${API_BASE}/v3/imports" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "connection": "<connection name>",
-    "destination": "<project>.<dataset>.<table>",
-    "url": "<URL of the GeoTIFF>",
-    "config": "{\"raquetVersion\":\"0.5.0\"}"
-  }'
-# Returns a jobId. Poll GET ${API_BASE}/v3/imports/<jobId> until status is success or failure.
-```
-
-Then read the new table's metadata row and confirm `version` is `0.5.0`.
+If an input is in the earlier version, tell the user to import it again, then confirm `version` is `0.5.0` in the new table's metadata row. If a new import is still in the earlier version, RaQuet v0.5.0 isn't enabled for the organization yet: the user can write the raster with the raquet tools, or ask their CARTO contact.
 
 Inputs must also share block size and native resolution (`tiling.max_zoom`). Rasters are never resampled: resample the source files to a common resolution before importing them.
 
@@ -116,33 +98,24 @@ The node's output handle is `result`; connect it to `native.saveastable` to keep
 - Metadata row (`block = 0`): RaQuet v0.5.0 metadata, with `STATISTICS_*` per band computed at native resolution, `tiling.max_zoom` and `tiling.pixel_zoom`, and `processing.expression` and `processing.inputs`.
 - `<band>_count` is the number of valid (not nodata) pixels in the tile; `_sum` of a 1/0 mask is the number of pixels where it is 1.
 
-The table also holds overview blocks (with `overviews: evaluate`), so filter to native-resolution blocks before adding up. Pixel count and area of a `gained` mask, BigQuery:
+The table also holds overview blocks (with `overviews: evaluate`), so filter to native-resolution blocks before adding up: their quadbin resolution equals `tiling.max_zoom`. Pixels where a `gained` mask is 1:
 
 ```sql bigquery
-WITH m AS (
-  SELECT
-    CAST(JSON_VALUE(metadata, '$.tiling.max_zoom') AS INT64) AS max_zoom,
-    CAST(JSON_VALUE(metadata, '$.tiling.pixel_zoom') AS INT64) AS pixel_zoom
-  FROM `project.dataset.coverage_delta`
-  WHERE block = 0
-)
-SELECT
-  SUM(t.gained_sum) AS gained_pixels,
-  -- Web Mercator pixel side in meters shrinks with the cosine of the latitude
-  SUM(t.gained_sum * POW(40075016.686 * COS(ST_Y(`carto-un`.carto.QUADBIN_CENTER(t.block)) * ACOS(-1) / 180) / POW(2, m.pixel_zoom), 2)) AS gained_m2
+SELECT SUM(t.gained_sum) AS gained_pixels
 FROM `project.dataset.coverage_delta` AS t
-CROSS JOIN m
 WHERE t.block != 0
-  AND (t.block >> 52) & 31 = m.max_zoom
+  AND `carto-un`.carto.QUADBIN_RESOLUTION(t.block) = (
+    SELECT CAST(JSON_VALUE(metadata, '$.tiling.max_zoom') AS INT64)
+    FROM `project.dataset.coverage_delta`
+    WHERE block = 0
+  )
 ```
-
-Snowflake (pixel count):
 
 ```sql snowflake
 SELECT SUM(t.GAINED_SUM) AS GAINED_PIXELS
 FROM MYDB.MYSCHEMA.COVERAGE_DELTA AS t
 WHERE t.BLOCK != 0
-  AND BITAND(BITSHIFTRIGHT(t.BLOCK, 52), 31) = (
+  AND CARTO.CARTO.QUADBIN_RESOLUTION(t.BLOCK) = (
     SELECT PARSE_JSON(METADATA):tiling.max_zoom::INT
     FROM MYDB.MYSCHEMA.COVERAGE_DELTA
     WHERE BLOCK = 0

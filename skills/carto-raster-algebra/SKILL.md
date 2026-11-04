@@ -18,7 +18,7 @@ Providers: BigQuery (including CARTO Data Warehouse) and Snowflake only. Minimum
 | Reference | Contents |
 |---|---|
 | [references/expressions.md](references/expressions.md) | Full syntax, output names, nodata rules, recipes, common errors |
-| [references/running.md](references/running.md) | Importing v0.5.0 rasters, options, SQL per provider, the Workflows node, known platform issues, reading the output |
+| [references/running.md](references/running.md) | Getting v0.5.0 rasters, options, SQL per provider, the Workflows node, reading the output |
 
 ---
 
@@ -38,7 +38,7 @@ On Snowflake the columns are usually upper case (`METADATA`, `BLOCK`). Record pe
 
 If any check fails, stop and tell the user what to fix. The procedure rejects these cases anyway.
 
-- **RaQuet v0.5.0**: `file_format` is `raquet` and `version` is `0.5.x`. Earlier RaQuet versions and legacy CARTO rasters fail with "RaQuet v0.5.0 is required". CARTO imports still write the earlier version by default, so re-import requesting v0.5.0 (see [references/running.md](references/running.md)).
+- **RaQuet v0.5.0**: `file_format` is `raquet` and `version` is `0.5.x`. Earlier RaQuet versions and legacy CARTO rasters fail with "RaQuet v0.5.0 is required". Rasters imported into CARTO before RaQuet v0.5.0 was enabled for the organization are in the earlier version: import them again (see [references/running.md](references/running.md)).
 - **Same grid**: the same `block_width`, `block_height` and `max_zoom` for every input. Rasters are not resampled: re-import them at a common resolution.
 - **Overlap**: extents may differ. Each output band covers the area where the rasters it uses overlap; no overlap is an error.
 - **Not supported**: a `time` dimension, and `jpeg` or `webp` compression (common in RGB imagery).
@@ -99,4 +99,4 @@ In Workflows: one source node per raster, then **Raster Algebra**, then `native.
 - With `overviews: evaluate`, overview pixels are computed from the inputs' overview pixels, so non-linear results (ratios, thresholds) are approximate at low zooms. Native-resolution pixels are exact either way.
 - If a "before" raster stores "no signal" as nodata, every pixel that gains coverage is nodata in the result too. The input needs a real value there, not nodata.
 - Never drop an existing output table without asking: choose a new name.
-- On Snowflake, the procedure already exists in toolbox 1.27.0, but it fails with `Return value is not an ARRAY` when a block computes to all nodata (e.g. `sqrt($a.band_1 - 40)` over low values), and adds about 16 KB of library source to every error message. 1.28.0 fixes both, and the Workflows component requires it.
+- On Snowflake, use toolbox 1.28.0 or later, which the Workflows component requires. The procedure already exists in 1.27.0, but it fails with `Return value is not an ARRAY` when a whole tile of the result is empty, for example where a threshold excludes every pixel.
