@@ -56,7 +56,7 @@ CALL `acme-catalog`.`<at_schema>`.ENRICH_POLYGONS_WEIGHTED(...)
 
 ## Schedule Expressions
 
-Databricks uses **Quartz cron** expressions (6 fields, with seconds and a `?` placeholder for day-of-week / day-of-month):
+Databricks **cluster** connections use **Quartz cron** expressions (6 fields, with seconds and a `?` placeholder for day-of-week / day-of-month):
 
 ```
 "0 0 8 * * ?"       # Daily at 08:00:00
@@ -64,7 +64,7 @@ Databricks uses **Quartz cron** expressions (6 fields, with seconds and a `?` pl
 "0 0 */2 * * ?"     # Every 2 hours
 ```
 
-Standard 5-field cron (`0 8 * * *`) will fail at `schedule add` time — Databricks only accepts Quartz syntax. See `carto workflows --help` for the full dialect-per-engine table.
+On a cluster, standard 5-field cron (`0 8 * * *`) fails at `schedule create` time. Databricks Warehouse connections take standard 5-field cron instead. See `carto workflows --help` for the full dialect-per-engine table.
 
 ---
 
