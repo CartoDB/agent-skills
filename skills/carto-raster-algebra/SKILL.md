@@ -41,7 +41,7 @@ If any check fails, stop and tell the user what to fix. The procedure rejects th
 - **RaQuet v0.5.0**: `file_format` is `raquet` and `version` is `0.5.x`. Earlier RaQuet versions and legacy CARTO rasters fail with "RaQuet v0.5.0 is required". Rasters imported into CARTO before RaQuet v0.5.0 was enabled for the organization are in the earlier version: import them again (see [references/running.md](references/running.md)).
 - **Same grid**: the same `block_width`, `block_height` and `max_zoom` for every input. Rasters are not resampled: re-import them at a common resolution.
 - **Overlap**: extents may differ. Each output band covers the area where the rasters it uses overlap; no overlap is an error.
-- **Not supported**: a `time` dimension, and `jpeg` or `webp` compression (common in RGB imagery).
+- **Not supported**: a `time` dimension, and `jpeg` or `webp` compression. CARTO imports RGB images this way: to analyze one, the source file must be imported again without its color tags (see [references/running.md](references/running.md)).
 
 **Success**: The inputs are compatible, or the user knows what to re-import.
 

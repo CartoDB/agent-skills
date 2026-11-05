@@ -6,6 +6,20 @@ Check `version` in each input's metadata row. Rasters written by the [raquet](ht
 
 If an input is in the earlier version, tell the user to import it again, then confirm `version` is `0.5.0` in the new table's metadata row. If a new import is still in the earlier version, RaQuet v0.5.0 isn't enabled for the organization yet: the user can write the raster with the raquet tools, or ask their CARTO contact.
 
+### RGB images
+
+When a raster with exactly three 8-bit bands tagged red, green and blue is imported into CARTO, it is stored as an image: `band_layout` is `interleaved`, `compression` is `webp` (lossy), and the table has a single `pixels` column instead of one column per band. Raster algebra can't read it, and neither can `RASTER_VALUES` or `RASTER_AGG_VALUES`.
+
+To analyze it, tell the user to clear the color tags in the source file and import it again. The pixel values don't change:
+
+```bash
+gdal_translate -colorinterp undefined,undefined,undefined input.tif output.tif
+```
+
+The new table has one column per band and lossless compression. Confirm it in its metadata row before running raster algebra.
+
+### Grid
+
 Inputs must also share block size and native resolution (`tiling.max_zoom`). Rasters are never resampled: resample the source files to a common resolution before importing them.
 
 ## Options
