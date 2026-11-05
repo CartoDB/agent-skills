@@ -2,6 +2,17 @@
 
 Let users change a filter and re-query live — Builder renders the parameter as a viewer-side control, the warehouse re-runs the query on each change. Four parameter kinds: `Category`, `DateRange`, `Numeric`, `NumericRange`. The canonical authoring shape is simple:
 
+## Pick the linking mode first
+
+A control is linked in one of two ways:
+
+| Mode | Types | How it filters | Use it when |
+| --- | --- | --- | --- |
+| **Source column** | `SourceCategory` (text), `SourceDateRange` (dates) | Filters one column of one `table` or `query` dataset, like a widget does. Values are read live from the data, with no cap. The SQL is not touched | The user wants to filter by a column: "add a filter by region", "let viewers pick a date range" |
+| **SQL placeholder** | `Category`, `DateRange`, `Numeric`, `NumericRange` | Fills `{{sqlName}}` in the dataset SQL and re-runs the query in the warehouse | The value must change the query itself: an aggregation, a scenario switch, a threshold inside custom SQL. Numeric controls exist only in this mode |
+
+Default to **Source column** for text and date filters on a column. Use a SQL placeholder only when the value has to go inside the SQL. The rest of this file covers SQL placeholders; [Source column controls](#source-column-controls) is at the end.
+
 **Write `{{paramName}}` in `dataset.source`.** The CLI auto-translates that into whatever the warehouse expects. The SQL around the placeholder is yours and runs on the dataset's connection, so write it in that provider's dialect (quoting, functions, dates, spatial calls). NAMED placeholders: `@paramName` on BigQuery (and the BigQuery-backed `carto` / `carto_dw`, with `UNNEST(...)` for arrays), `:paramName` on `databricksRest` / `databricksWarehouse` and Fabric. POSITIONAL: `$1` / `$2` on Postgres and Redshift, `:1` / `:2` on Oracle, and `?` on Snowflake. The CLI fetches the dataset's connection `provider_id` and picks the right dialect at translate time; a provider outside this list throws instead of writing broken SQL.
 
 **What ends up persisted** (what you'll see on a configuration read back via `get --json`):
@@ -61,7 +72,7 @@ Minimal valid `keplerMapConfig.config.sqlParameters[]` entry per kind. Run `cart
 ```
 
 ```jsonc
-// DateRange — start + end date pickers. ISO-8601 YYYY-MM-DD only (no relative dates).
+// DateRange — start + end date pickers. ISO-8601 YYYY-MM-DD. A relative `default` rule is allowed, anchored on today only (see Source column controls).
 // Source-side: WHERE col >= {{date_from}} AND col <= {{date_to}}
 {
   "id": "p-date",
@@ -107,7 +118,7 @@ Run `carto maps schema sqlparameters` for the authoritative discriminated schema
 | Kind | Source-side syntax | Value shape | Notes |
 |---|---|---|---|
 | `Category` | `WHERE col IN {{name}}` | `item: { value: [...], sqlName }` + `values: [...]` (picker options) + `selectionMode: "multi"` (default) \| `"single"` | `multi` empty selection filters to zero rows on BigQuery; for `multi` only, the CLI coerces an unset / empty `item.value` to a copy of `values` ("all selected") to prevent silent-blank legends. `single` requires `item.value` of length 1; the top-level `defaultValue` is optional (Builder resolves the effective default as `defaultValue ?? values[0]`) but when present must be a string drawn from `values[]`. Optional `orderBy` (same enum as category widgets). |
-| `DateRange` | `WHERE col >= {{from}} AND col <= {{to}}` | `start: { value, sqlName }` + `end: { value, sqlName }` (ISO-8601 `YYYY-MM-DD`, no relative dates) | Builder validates `end >= start` at save. `allowedRange` is **deprecated** — preserved on read but no longer enforced; omit on new maps. |
+| `DateRange` | `WHERE col >= {{from}} AND col <= {{to}}` | `start: { value, sqlName }` + `end: { value, sqlName }` (ISO-8601 `YYYY-MM-DD`; optional `default` rule anchored on `today`) | Builder validates `end >= start` at save. `allowedRange` is **deprecated** — preserved on read but no longer enforced; omit on new maps. |
 | `Numeric` | `WHERE col = {{name}}` | scalar `value` + `sqlName` + top-level `defaultValue`, `min`, `max`, optional `step` | Single value picker. |
 | `NumericRange` | `WHERE col BETWEEN {{from}} AND {{to}}` | `start` / `end`, each `{ value, sqlName }`, + required top-level `min` / `max` and optional `step` bounding both ends | Range slider. |
 
@@ -128,3 +139,41 @@ Run `carto maps schema sqlparameters` for the authoritative discriminated schema
 
 ---
 
+## Source column controls
+
+A Source column control names the column it filters with `binding`. It has no `item`, `values`, `start` or `end`, and the dataset SQL does not change.
+
+```json
+{"id": "c-region", "name": "Region", "type": "SourceCategory",
+ "binding": {"datasetId": "<dataset id>", "column": "region"},
+ "selectionMode": "multi", "orderBy": "frequency_desc"}
+```
+
+```json
+{"id": "c-date", "name": "Date", "type": "SourceDateRange",
+ "binding": {"datasetId": "<dataset id>", "column": "event_date"},
+ "default": {"kind": "relative", "direction": "last", "count": 30, "unit": "day", "anchor": "data"}}
+```
+
+Rules:
+
+- `binding.datasetId` is the id of a `table` or `query` dataset on the map, or the `$ref:` of a dataset in the same bundle. Never a `raster` or `tileset` dataset. `binding.column` is a text column for `SourceCategory` and a date or timestamp column for `SourceDateRange`; check the column type before writing it.
+- Never mix wirings: a control with `binding` carries no `item`, `values`, `start` or `end`, and a SQL placeholder control carries no `binding`.
+- Don't list values. The control reads them from the column every time the map opens.
+- `SourceCategory` `selection` is optional. Leave it out to open on all values. Otherwise it is `"all"`, a list such as `["West", "North"]`, or `{"except": ["Ferry"]}` for every value but those (multi only). `null` in a list stands for rows with no value.
+- `SourceCategory` single-select: `selectionMode: "single"`. It opens on `defaultValue` when set, else on the first value in `orderBy` order. Only set `defaultValue` to a value you have seen in the column.
+- `orderBy` is `frequency_desc` (default), `frequency_asc`, `alphabetical_asc` or `alphabetical_desc`.
+- `SourceDateRange` `default` is a rule, never resolved dates, so the window moves forward on its own:
+  - `{"kind": "all"}`: every date with data.
+  - `{"kind": "fixed", "start": "2024-01-01", "end": "2024-12-31"}`.
+  - `{"kind": "relative", "direction": "last" | "next", "count": N, "unit": "day" | "month" | "year", "anchor": "today" | "data"}`. `next` takes the `today` anchor only. N is a whole number up to 365 days, 120 months or 50 years.
+  - `{"kind": "from", "start": "2024-01-01", "anchor": "today" | "data"}`: from a date to today, or to the last day with data.
+- Use the `data` anchor for batch-loaded data that stops some days before today; `today` for live event data.
+- Don't write `selection` on a `SourceDateRange` unless the user asks for a fixed window. A stored `selection` replaces the `default`, so a live default stops moving.
+- `sqlParameterControls: true` applies the same way: viewers see the control only with it.
+
+**Add one.** Add the entry to `sqlParameters[]` in `maps create` / `maps update` (or `update_map` on MCP). No dataset change is needed.
+
+**Remove one.** Drop the entry from `sqlParameters[]`. No SQL to clean up.
+
+**Switch a SQL placeholder control to a Source column one.** Take the placeholder out of every dataset that uses it first, then replace the entry. A placeholder left with no control is refused.
