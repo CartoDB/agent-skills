@@ -2,7 +2,7 @@
 
 CRUD operations for an existing map (read → modify → write), the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), and the validation levers available pre-create. For starting-from-scratch JSON templates, see `examples.md`.
 
-> Recipes are shown as `carto maps` commands; on MCP substitute `read_maps get` (read), `update_map` (update / update_dataset / publish), `create_map` (create), `delete` (kind=map). The merge/wipe rules and validation levers below hold on both paths — `update_map` replaces `keplerMapConfig` wholesale exactly as the CLI does.
+> Recipes are shown as `carto maps` commands; on MCP substitute `read_maps get` + `read_maps list_datasets` (read — `get` returns the stored record, with no datasets and `privacy` as a string), `update_map` (update / update_dataset / publish), `create_map` (create), `delete` (kind=map). The merge/wipe rules and validation levers below hold on both paths — `update_map` replaces `keplerMapConfig` wholesale exactly as the CLI does.
 
 ## Recipes
 
@@ -24,6 +24,14 @@ carto maps get <source-map-id> --json \
 
 carto maps create < new-map.json
 ```
+
+On MCP, build the bundle from two reads: `read_maps get` returns the stored record, which has no datasets and carries `privacy` as a string that `create_map` refuses.
+
+1. `read_maps get` (method `get`, `id`): keep `description`, `keplerMapConfig` and `agent`; set a new `title`; leave out `id`, `privacy` and every other field.
+2. `read_maps list_datasets` (same `id`): put the array it returns in the bundle as `datasets`. `create_map` accepts it as returned, read-only fields such as `connectionName` and `providerId` included.
+3. `create_map` with that bundle. Each new dataset gets a new id and the layers' `dataId` and widgets' `dataSource` are rewritten to it.
+
+Skip step 2 and every layer and widget of the copy points at a dataset of the source map that the new map doesn't have, so it renders nothing.
 
 > **Strip the server-computed dataset fields before re-posting a bundle you read.** `mapId`, `connectionName`, `connectionViewerCredentials`, `connectionViewerCredentialsAttached`, `providerId`, `sourceWorkflowId`, `sourceWorkflowNodeId`, `createdAt` and `updatedAt` are decorations the server adds on read; no write route accepts any of them back, and both create and update reject unknown params outright — one left in is a 400. Pre-flight validation will NOT catch it: the dataset node is deliberately permissive so that round-tripped bundles, which legitimately carry these, still parse. The same strip applies to every `get → edit → update` recipe below.
 

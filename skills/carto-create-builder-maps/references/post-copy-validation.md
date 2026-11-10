@@ -18,22 +18,22 @@ A copy can succeed at the API level while datasets fail to resolve in the destin
 ```bash
 carto maps get <new-map-id> --profile prod --json | jq '.datasets'
 
-# Connection names per dataset
+# Connection per dataset
 carto maps get <new-map-id> --profile prod --json \
-  | jq '.datasets[] | {id, connectionName, source}'
+  | jq '.datasets[] | {id, connectionId, source}'
 ```
 
-If a dataset's `connectionName` is `null` or missing, the connection mapping didn't resolve. Fix with another copy specifying `--connection-mapping`, or — for a one-off — `carto maps update <new-map-id>` with a corrected dataset block.
+`maps get --json` prints datasets in their writable shape, so it carries `connectionId` and never `connectionName`. If a dataset's `connectionId` is not one of the destination's connections (next section), the connection mapping didn't resolve. Fix with another copy specifying `--connection-mapping`, or — for a one-off — `carto maps update <new-map-id>` with a corrected dataset block.
 
 ## Verify connections resolve
 
 ```bash
 # What connections does the destination have?
-carto connections list --profile prod --json | jq '[.[].name]'
+carto connections list --profile prod --json | jq '[.[].id]'
 
 # What connections does the copied map reference?
 carto maps get <new-map-id> --profile prod --json \
-  | jq '[.datasets[].connectionName] | unique'
+  | jq '[.datasets[].connectionId] | unique'
 ```
 
 Every connection in the second list must appear in the first.
@@ -42,10 +42,12 @@ Every connection in the second list must appear in the first.
 
 ```bash
 # Top-level agent block
-carto maps get <new-map-id> --profile prod --json | jq '.map.agent'
+carto maps get <new-map-id> --profile prod --json | jq '.agent'
 
-# Issues that need manual Builder intervention
-carto maps get <new-map-id> --profile prod --json | jq '.map.agent.issues'
+# Issues that need manual Builder intervention (`maps get --json` drops agent.issues; verify-remote re-reads them)
+carto maps get <new-map-id> --profile prod --json \
+  | carto maps verify-remote --profile prod --json \
+  | jq '[.tier2[] | select(.code == "AGENT_ISSUE")]'
 ```
 
 `[]` means the agent migrated cleanly. Anything else points at `UNAVAILABLE_MODEL` / `UNAVAILABLE_TOOL` — see [agent-migration-caveats.md](agent-migration-caveats.md).
@@ -68,7 +70,7 @@ carto auth status --profile prod
 
 ## End-to-end smoke
 
-Four checks, all `carto maps get <new-map-id> --profile prod --json | jq …` (commands above): (1) `.title` matches; (2) `[.datasets[] | select(.connectionName == null)] | length` is `0`; (3) `.map.agent.issues // [] | length` is `0` (unless the source had agents — then fix in Builder); (4) open `https://$(carto auth status --profile prod --json | jq -r '.tenant')/builder/<new-map-id>`. All pass ⇒ the copy is good; hand the URL over.
+Four checks, built on `carto maps get <new-map-id> --profile prod --json` (commands above): (1) `.title` matches; (2) every `.datasets[].connectionId` is in the destination's `carto connections list --json | jq '[.[].id]'`; (3) the `AGENT_ISSUE` list from `verify-remote` above is empty (unless the source had agents — then fix in Builder); (4) open `https://$(carto auth status --profile prod --json | jq -r '.tenant')/builder/<new-map-id>`. All pass ⇒ the copy is good; hand the URL over.
 
 ## When something's wrong
 
@@ -76,6 +78,6 @@ Four checks, all `carto maps get <new-map-id> --profile prod --json | jq …` (c
 |---|---|---|
 | `connection X not found` during copy | Connection name mismatch | `--connection-mapping` (see [cross-profile-copy.md](cross-profile-copy.md)) |
 | Datasets present but render errors | Source table not in destination warehouse | Seed the data, or use `--skip-source-validation` and seed later |
-| `.map.agent.issues` non-empty | Agent model/tool refs from source | Manual Builder fix (see [agent-migration-caveats.md](agent-migration-caveats.md)) |
+| `verify-remote` reports `AGENT_ISSUE` | Agent model/tool refs from source | Manual Builder fix (see [agent-migration-caveats.md](agent-migration-caveats.md)) |
 | Map URL hits 404 | Wrong tenant — used `workspace-...` instead of actual tenant | Re-derive URL from `auth status --profile prod` |
-| Privacy unexpected | `--keep-privacy` interaction | `carto maps update <new-id> '{"privacy": "shared"}'` |
+| Privacy unexpected | `--keep-privacy` interaction | `carto maps update <new-id> '{"privacy": {"policies": [{"type": "organization"}]}}'` |

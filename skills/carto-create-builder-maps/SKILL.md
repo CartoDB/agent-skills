@@ -61,7 +61,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 
 ## Authoring process
 
-Follow these phases in order for every "create a map" request. Skipping a phase is the most common cause of *"the map looks broken in Builder"*. Commands are shown as `carto …` for concreteness; when the MCP server is attached, use the equivalent tool from the routing table above (`create_map` / `update_map` / `validate_map` / `read_maps`, `explore_data`, `execute_query`, `import_data`) — the JSON payload is the same.
+Follow these phases in order for every "create a map" request. Skipping a phase is the most common cause of *"the map looks broken in Builder"*. Commands are shown as `carto …` for concreteness; when the MCP server is attached, use the equivalent tool from the routing table above (`create_map` / `update_map` / `validate_map` / `read_maps`, `explore_data`, `execute_query`, `import_data`) — the JSON payload is the same. Reads are the exception: `read_maps get` returns the stored record (no datasets, `privacy` as a string), not the round-trippable bundle `carto maps get --json` prints — see *Duplicate an existing map* below.
 
 ### Phase 1 — Gather context (intake gate)
 
@@ -250,7 +250,7 @@ If they say *"show me the JSON"* / *"I'll write it myself"* / *"what's the schem
 |---|---|
 | Create a map from a natural-language request (the common path) | Elicit the required inputs (Phase 1), emit a configuration with just those → `create_map` / `carto maps create < map.json` |
 | Edit an existing map — add a dataset, update a layer's style, change privacy, rename, swap basemap | `update_map` / `carto maps update <id> < partial.json` (partial PATCH; unmentioned fields preserved — except `keplerMapConfig`, wholesale-replaced) |
-| Duplicate an existing map | Read the config (`read_maps get` / `carto maps get <id> --json`), edit, create it fresh |
+| Duplicate an existing map | Read the config (`read_maps get` + `read_maps list_datasets` / `carto maps get <id> --json`), edit, create it fresh |
 
 > Render + sources + agent checks run automatically on every create / update. Most surface as warnings, but a source that fails with a `detail` and a new dataset the tile server rejects block the write — no separate "validate it will render" step needed.
 
@@ -278,6 +278,8 @@ carto maps get <source-map-id> --json \
   > new-map.json
 carto maps create < new-map.json
 ```
+
+On MCP, `read_maps get` has no datasets: add the ones `read_maps list_datasets` returns and leave `id` and `privacy` out — recipe in [`references/updates.md`](references/updates.md) (*Duplicate an existing map*). Without them every layer and widget of the copy points at nothing.
 
 **Update only the title** (partial PATCH):
 
