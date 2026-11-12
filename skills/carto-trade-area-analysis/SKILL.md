@@ -24,13 +24,13 @@ Candidate Locations → (Filter) → Catchment Areas → Spatial Index → Enric
 
 ### Step 1: Load Candidate Locations
 
-Use `native.gettablebyname` to load stores, billboards, POIs, or any point dataset representing candidate locations.
+Load stores, billboards, POIs, or any point dataset representing candidate locations as a `ReadTable` source node (see `carto-create-workflow`). Source nodes and `native.gettablebyname` both emit on handle `out`, not `result`.
 
 **Success**: Node outputs a table with a geometry column (e.g. `geom`) and a unique location identifier.
 
 ### Step 2: Filter/Limit Candidates (optional)
 
-Use `native.wheresimplified` to narrow candidates (e.g. specific city, category). Use `native.orderby` + `native.limit` for top-N by a metric (e.g. top 50 by revenue).
+Use `native.wheresimplified` to narrow candidates (e.g. specific city, category). Use `native.orderby` with `desc: true` (the default is ascending) + `native.limit` for top-N by a metric (e.g. top 50 by revenue).
 
 **Success**: Output contains only the candidate subset relevant to the analysis. Reducing candidates early prevents combinatorial explosion downstream.
 
@@ -40,8 +40,8 @@ Choose the catchment method based on the use case:
 
 | Method | Component | When to use | Key params |
 |--------|-----------|-------------|------------|
-| Isochrones | `native.isolines` | Site selection, retail — realistic road-network areas | `mode`: car/walk; `type`: time/distance; `range`: seconds or meters |
-| Buffers | `native.buffer` | Billboard coverage, proximity — simple geometric circles | `distance`: meters |
+| Isochrones | `native.isolines` | Site selection, retail — realistic road-network areas | `mode`: options follow the account's LDS provider (TomTom has no `walk`); read them from `read_workflow_components` or `carto workflows components get native.isolines`; `type`: `time` or `distance`; `range`: one value per node, seconds for `time` (10 min = 600), meters for `distance`. The polygon replaces the point column, as `geom` |
+| Buffers | `native.buffer` | Billboard coverage, proximity — simple geometric circles | `distance` + `units` (`Meters` default, or `Miles`). Adds the circle as `<geo>_buffer` (e.g. `geom_buffer`) and keeps the point column |
 
 **Isochrones vs Buffers**: Isochrones follow the road network and produce realistic catchment shapes but require a CARTO LDS API call. Buffers are purely geometric circles — simpler and faster, suitable for proximity analysis or billboard coverage.
 
@@ -49,15 +49,17 @@ Choose the catchment method based on the use case:
 
 ### Step 4: Convert Catchment to Spatial Index
 
-Use `native.h3polyfill` or `native.quadbinpolyfill` to tessellate catchment polygons into grid cells. The resolution must match the enrichment dataset you plan to use.
+Use `native.h3polyfill` or `native.quadbinpolyfill` to tessellate catchment polygons into grid cells. Set `geo` to the catchment polygon: `geom` after `native.isolines`, `<geo>_buffer` after `native.buffer`; polyfilling the point column gives one cell per location. Leave `aggregate` false (default) so the location id is kept. The cell column is `h3` or `quadbin`; geometry columns are dropped.
+
+Size cells so each catchment holds many of them: walk catchments (5-15 min, ~0.5-5 km²) at H3 9 (≈ 0.11 km²) or 10 (≈ 0.015 km²); 10-30 min drives at H3 8 (≈ 0.74 km²) or 7 (≈ 5.2 km²). Quadbin cells are ≈ 40075/2^z km wide at the equator: z16-17 for walk, z14-15 for drive. Never leave `native.quadbinpolyfill` at its default 12 (≈ 10 km cells). Match the enrichment table's resolution only when you join on the cell column (Step 5).
 
 **Success**: Output contains one row per grid cell per location, with both the spatial index column and the location identifier preserved.
 
 ### Step 5: Enrich with Data
 
-Join grid cells with a spatial features dataset or use `native.h3enrich`:
-- **JOIN approach**: `native.joinv2` or `native.spatialjoin` with a pre-indexed enrichment table
-- **Enrich approach**: `native.h3enrich` to pull variables from CARTO's Data Observatory
+Join grid cells with a spatial features dataset or use an enrich component:
+- **JOIN approach**: `native.joinv2` on the cell column (`h3` = `h3`) against an enrichment table indexed at the same resolution. Not `native.spatialjoin`: it joins geometry columns only, and polyfilled cells carry no geometry.
+- **Enrich approach**: `native.h3enrich` (H3) or `native.quadbinenrich` (Quadbin), with any table that has a geometry column or a Data Observatory subscription as `source`, at any grid resolution. `variables` = `col,method` pairs; output columns are `<col>_<method>` (e.g. `population_sum`).
 
 **Success**: Each grid cell row has enrichment variables (e.g. population, income, foot traffic) attached.
 
@@ -65,13 +67,15 @@ Join grid cells with a spatial features dataset or use `native.h3enrich`:
 
 Use `native.groupby` to collapse grid-cell rows back to one row per location:
 - **Group by**: the location identifier column
-- **Aggregation**: `population,sum,income,avg` (comma-separated column,method pairs)
+- **Aggregation**: `<col>,<method>` pairs using the names the previous node produced, e.g. `population_sum,sum,income_avg,avg` after h3enrich. Outputs get the method as a suffix (`population_sum_sum`, `income_avg_avg`).
 
-**Success**: Output has one row per candidate location with aggregated enrichment metrics.
+The output has no geometry: `native.joinv2` it back to the candidate table on the location id before scoring or saving, so the result can be mapped.
+
+**Success**: Output has one row per candidate location with aggregated enrichment metrics and its geometry.
 
 ### Step 7: Score and Rank
 
-Three-part pattern (see `carto-composite-scoring` for the full method): **normalize** each variable to [0,1] with `native.normalize`; **composite score** via `native.selectexpression`, e.g. `normalized_population * 0.4 + normalized_income * 0.3 + normalized_traffic * 0.3`; **rank** with `native.orderby` (descending) + `native.limit` (top N).
+Three-part pattern (see `carto-composite-scoring` for the full method): **normalize** each variable with its own `native.normalize` node (one `column` per node; it adds `<column>_norm`); **composite score** via `native.selectexpression` (`column` = `score`, `expression` e.g. `population_sum_sum_norm * 0.4 + income_avg_avg_norm * 0.3 + traffic_sum_sum_norm * 0.3`); **rank** with `native.orderby` (`desc: true`) + `native.limit` (top N).
 
 **Success**: A ranked list of candidate locations with a composite score and the contributing normalized variables.
 
@@ -85,14 +89,14 @@ Use `native.saveastable` to persist the ranked results.
 
 ## Gotchas
 
-- **Provider casing & SQL dialect.** This skill uses lowercase column names (`geom`, `population`, `income`, `normalized_population`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, unquoted identifiers surface UPPERCASE — reference them as `GEOM`, `POPULATION`, `INCOME`, `NORMALIZED_POPULATION`. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
-- Isochrone and route components call CARTO's LDS API — they require a valid connection with API access enabled. Buffers do not.
+- **Provider casing & SQL dialect.** This skill uses lowercase column names (`geom`, `h3`, `population_sum`, `score`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, unquoted identifiers surface UPPERCASE — reference them as `GEOM`, `H3`, `POPULATION_SUM`, `SCORE`. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
+- **Provider limits.** PostgreSQL has no `native.isolines`, `native.h3enrich` or `native.quadbinenrich`: use `native.buffer` and the JOIN approach. Redshift has no H3 polyfill: use `native.quadbinpolyfill`.
+- Isolines call CARTO LDS through the Analytics Toolbox; the workflow's token gets LDS access automatically, with no connection setting to enable. Each successful isoline uses one unit of the account's LDS isolines quota, so a run spends input rows x isolines nodes. Filter candidates first and tell the user the expected count before running. Buffers use no quota.
 - Cross Join for distance matrices can explode with many locations x many grid cells. Filter and limit candidates first (Step 2) to keep the pipeline manageable.
-- H3 resolution must match the enrichment dataset resolution. Check the enrichment table's index column before choosing resolution.
-- Buffer distance is in **meters**. Isoline range is in **seconds** (for `type=time`) or **meters** (for `type=distance`).
-- The `native.commercialhotspots` component expects `variablecolumns` as a Python-style list string (`['col1', 'col2']`) and `weights` as comma-separated values — inconsistent with other components.
+- Buffer `distance` is in `units` (Meters by default). Isoline `range` is in **seconds** (for `type=time`) or **meters** (for `type=distance`).
+- `native.commercialhotspots` (BigQuery, Snowflake, Databricks only) has no `variablecolumns` input: `weights` carries the variables, as a JSON-encoded string of `[column, weight, reverse]` triples, e.g. `[["population_sum", 0.7, false], ["h3_distance_min", 0.3, false]]`. `indexcol` must be named `h3`, `quadbin`, `index` or `geoid`. On Databricks cluster connections also set `kernel` and `clustertype` (`hotspots`, `coldspots` or `all`): that path has no defaults and the run fails without them.
 - When aggregating enrichment back to locations (Step 6), ensure the GROUP BY uses the **location identifier**, not the grid cell index. Grouping by the grid cell produces per-cell results instead of per-location.
-- When using `native.h3distance` for competitor proximity, the output is grid-based. Join it back to the location table to get per-location distance metrics.
+- `native.h3distance` compares two H3 columns of the same row. For each cell's distance to its nearest competitor: `native.h3frompoint` on competitors, `native.crossjoin` with the grid (competitor cell becomes `h3_joined`; on Databricks cluster connections `native.crossjoin` prefixes columns with `l_` / `r_` instead, e.g. `r_h3`), `native.h3distance` (`h3`, `h3_joined`), then `native.groupby` `h3_distance,min` by `h3`. Join that back to the grid or the locations.
 
 ---
 
@@ -116,7 +120,7 @@ These files are working examples in this skill directory:
 |---------|-----|
 | Retail site selection | Isochrones (walk/drive) -> H3 polyfill -> enrich with demographics -> score by population + income |
 | Billboard/OOH placement | Buffers -> H3 polyfill -> enrich with audience/traffic -> normalize + weighted score -> top-N |
-| Commercial hotspot detection | H3 grid -> `native.h3distance` for competitor proximity -> `native.commercialhotspots` with weights and p-value threshold |
-| Drive-time coverage analysis | Isochrones (car, multiple ranges) -> union -> dissolve to find total coverage area |
-| Walk-time catchment comparison | Isochrones (walk, 5/10/15 min) -> enrich each band -> compare population captured per band |
+| Commercial hotspot detection | H3 grid -> enrich demand -> min hop distance to competitors (h3frompoint -> crossjoin -> h3distance -> groupby min) -> `native.commercialhotspots` (weights JSON triples, kring, pvaluethresh); BigQuery, Snowflake, Databricks only |
+| Drive-time coverage analysis | One `native.isolines` node per range (car) -> `native.selectexpression` adds a `band` column to each -> `native.unionall` -> `native.groupby` `geom,combine` by `band` (output `geom_union`; dissolves on BigQuery, Databricks and Oracle, only collects on Snowflake and Redshift) |
+| Walk-time catchment comparison | One `native.isolines` node per band (walk, type time, range 300 / 600 / 900) -> enrich each band -> compare population captured per band |
 | Franchise territory planning | Isochrones per candidate -> check overlap -> filter non-overlapping set -> score remaining |

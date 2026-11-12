@@ -10,6 +10,8 @@ Builds CARTO Workflows that model spatially varying relationships between a depe
 
 **Prerequisites**: Load `carto-create-workflow` for the development process, JSON structure, and validation commands — it covers both access paths (the MCP server's workflow tools such as `create_workflow`, `validate_workflow`, and `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
 
+**Availability**: `native.gwr` exists only on BigQuery, Snowflake and Databricks SQL warehouse connections, not on PostgreSQL, Redshift, Oracle or Databricks cluster connections. On Databricks it supports H3 only, not Quadbin.
+
 ---
 
 ## Instructions
@@ -22,13 +24,13 @@ Source Data -> (Filter) -> Spatial Indexing (H3/Quadbin) -> Aggregation (depende
 
 ### Step 1: Load Source Data
 
-Use `native.gettablebyname`. The input table must contain at least one numeric dependent variable and one or more numeric independent (predictor) variables.
+Use `native.gettablebyname` (`source`: the table FQN). Its output handle is `out`, not `result`. The input table must contain at least one numeric dependent variable and one or more numeric independent (predictor) variables.
 
 **Success**: Node outputs a table with the necessary numeric columns.
 
 ### Step 2: Filter (if needed)
 
-Use `native.wheresimplified` or `native.where` to narrow the dataset (e.g. remove nulls from key columns, filter by category or date range).
+Use `native.where` with an `expression` such as `price IS NOT NULL AND bedrooms IS NOT NULL` to drop nulls, or to filter by category or date range. `native.wheresimplified` (`column`, `operator`, `value`) only compares one column to a value. Both emit `match` (kept rows) and `unmatch`: connect `match`.
 
 **Success**: Output contains only rows with valid, non-null values for the dependent and all independent variables.
 
@@ -36,8 +38,10 @@ Use `native.wheresimplified` or `native.where` to narrow the dataset (e.g. remov
 
 If the data is not already indexed, convert point geometries to spatial index cells:
 
-- `native.h3frompoint` for H3
-- `native.quadbinfromgeopoint` for Quadbin
+- `native.h3frompoint` for H3 (adds column `h3`)
+- `native.quadbinfrompoint` for Quadbin (adds column `quadbin`)
+
+Set `resolution` explicitly: `native.h3frompoint` defaults to 8 and `native.quadbinfrompoint` to 12 (~10 km cells).
 
 If the data already contains an H3 or Quadbin column (common for pre-aggregated datasets), skip this step.
 
@@ -45,9 +49,11 @@ If the data already contains an H3 or Quadbin column (common for pre-aggregated 
 
 | Resolution | Cell size | Use case |
 |------------|-----------|----------|
-| H3 res 7 | ~5 km edge | City-level relationships |
-| H3 res 8 | ~2 km edge | Neighborhood-level |
-| H3 res 9 | ~500m edge | Street-level (needs dense data) |
+| H3 res 7 | ~1.4 km edge, ~5.2 km² | City-level relationships |
+| H3 res 8 | ~0.53 km edge, ~0.74 km² | Neighborhood-level |
+| H3 res 9 | ~0.20 km edge, ~0.11 km² | Street-level (needs dense data) |
+
+Quadbin cells are ~2.4 km wide at resolution 14, ~0.6 km at 16 and ~0.3 km at 17 at the equator, smaller toward the poles.
 
 **Success**: Every row has a spatial index column (e.g. `h3`).
 
@@ -55,8 +61,10 @@ If the data already contains an H3 or Quadbin column (common for pre-aggregated 
 
 Use `native.groupby` to produce one row per cell with aggregated values for the dependent and all independent variables:
 
-- **Group by**: the spatial index column (`h3`)
-- **Aggregation**: `price,avg,bedrooms,avg,bathrooms,avg` (adapt to the actual columns)
+- **Group by** (`groupby`): `["h3"]`
+- **Aggregation** (`columns`): `"price,avg,bedrooms,avg,bathrooms,avg"` (adapt to the actual columns)
+
+Output columns are suffixed with the method: `price_avg`, `bedrooms_avg`, `bathrooms_avg`. Use these names in the GWR `label_column` and `features_columns`.
 
 The dependent variable should be aggregated with `avg` or `sum` depending on what makes sense. Independent variables are typically averaged.
 
@@ -64,16 +72,18 @@ The dependent variable should be aggregated with `avg` or `sum` depending on wha
 
 ### Step 5: Run GWR
 
-Use `native.gwr` with:
+Use `native.gwr`. Connect the incoming edge to `targetHandle: "input_table"` (not `source`); the output handle is `result`.
 
-| Input | Description | Default |
-|-------|-------------|---------|
-| `index_column` | Column with H3/Quadbin indexes | `h3` |
-| `label_column` | Target / dependent variable to model (must be numeric) | - |
-| `features_columns` | Predictor / independent variable columns (array of strings) | - |
-| `kernel_function` | Weighting function for neighbors | `gaussian` |
-| `kring_distance` | K-ring size (neighborhood radius in hops) | `3` |
-| `fit_intercept` | Whether to fit an intercept term | `true` |
+Always set every input below on the node. The component does not fill defaults for `kring_distance`, `kernel_function` or `fit_intercept`: an omitted one compiles to `undefined` in the SQL and the run fails.
+
+| Input | Value |
+|-------|-------|
+| `index_column` | The H3/Quadbin column, e.g. `h3` (required) |
+| `label_column` | Numeric target, e.g. `price_avg` (required) |
+| `features_columns` | Array of predictor columns, e.g. `["bedrooms_avg", "bathrooms_avg"]` (required) |
+| `kernel_function` | `gaussian` (recommended; the component default is `uniform`) |
+| `kring_distance` | `3` |
+| `fit_intercept` | `true` |
 
 **Kernel options**: `gaussian` (recommended -- smooth distance decay), `uniform`, `triangular`, `quadratic`, `quartic`.
 
@@ -82,7 +92,7 @@ Use `native.gwr` with:
 - Too large (5+): over-smoothed, approaches global regression.
 - Start with `3` as a balanced default.
 
-**Success**: Output contains per-cell columns: `index`, `intercept`, one coefficient column per independent variable, `r_squared`, and `residual`. (See the Provider casing note in Gotchas — Snowflake surfaces these UPPERCASE.)
+**Success**: Output has one row per cell: the index column (same name as `index_column`), one `<feature>_coef_estimate` column per feature, and `intercept` when `fit_intercept` is true. (See the Provider casing note in Gotchas — Snowflake surfaces these UPPERCASE.)
 
 ### Step 6: Save
 
@@ -96,24 +106,23 @@ Use `native.saveastable` to persist results. The spatial index column is directl
 
 | Column | Meaning |
 |--------|---------|
-| `index` | Spatial index cell ID (H3 or Quadbin) |
-| `intercept` | Local intercept term |
-| `<variable_name>` | Local coefficient for each independent variable |
-| `r_squared` | Local model fit (0-1) -- higher = better local explanation |
-| `residual` | Difference between observed and predicted value |
+| `<index_column>` | Spatial index cell ID, same name as the input index column (e.g. `h3`) |
+| `intercept` | Local intercept term (only when `fit_intercept` is true) |
+| `<feature>_coef_estimate` | Local coefficient for each feature, e.g. `bedrooms_avg_coef_estimate` |
+
+GWR outputs no per-cell R² or residual column.
 
 ---
 
 ## Gotchas
 
-- **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks / Postgres / Redshift convention). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `INDEX`, `PRICE`, `R_SQUARED`, `INTERCEPT`, etc. in expressions. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
+- **Provider casing & SQL dialect.** This skill documents columns in lowercase (BigQuery / Databricks). On Snowflake, unquoted identifiers surface UPPERCASE — reference `H3`, `PRICE_AVG`, `BEDROOMS_AVG_COEF_ESTIMATE`, `INTERCEPT`, etc. in expressions. See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - The GWR component requires the Analytics Toolbox. Offline validation (`validate_workflow` over MCP, or `carto workflows validate`) can't resolve the AT location — confirm it with the CLI-only `carto workflows verify-remote --connection <conn>` before running.
 - The dependent variable must be continuous and numeric. Categorical targets need a different approach (e.g. classification).
 - Cells with null values in ANY variable (dependent or independent) will be excluded from the model. Pre-filter or impute nulls before running GWR.
 - Multicollinearity between independent variables degrades results. If two predictors are highly correlated (e.g. `bedrooms` and `total_rooms`), drop one or combine them. Check correlation before including multiple similar variables.
-- `r_squared` per cell indicates local model fit. Very low values across many cells suggest important predictors are missing from the model.
 - The `features_columns` input is an array of column names (e.g. `["bedrooms", "bathrooms"]`), not a comma-separated string.
-- The output column is named `index`, not the original spatial index column name. If joining back to original data, rename it with `native.renamecolumn`.
+- The output keeps the input index column's name (e.g. `h3`) and has only that column, `intercept` and the `_coef_estimate` columns. To compare with the original values, join it back to the GWR input on that column with `native.join`; the secondary table's columns get a `_joined` suffix.
 - Sparse data at high resolutions leads to unreliable coefficients. Ensure enough cells have data for all variables before choosing a high resolution.
 
 ---
@@ -136,7 +145,6 @@ Use `native.saveastable` to persist results. The spatial index column is directl
 | Variant | How |
 |---------|-----|
 | Pre-aggregated data (already one row per cell) | Skip Steps 3-4, go directly to GWR |
-| Enrich with Data Observatory | Add `native.enrichgrid` before GWR to include sociodemographic predictors |
+| Enrich with Data Observatory | Add `native.h3enrich` (or `native.quadbinenrich`) before GWR: `target` = your grid, `source` = the Data Observatory table, `target_col` / `source_col` = the index columns, `variables` = e.g. `"population,sum"`. New columns are named `<column>_<method>` (e.g. `population_sum`) |
 | Coefficient comparison | Save results, then use Builder to style map by each coefficient column separately |
-| Filter by model fit | Add `native.where` after GWR to keep only cells with `r_squared > 0.5` (or another threshold) |
-| Combine with hotspot analysis | Run GWR first, then use residuals as input to Getis-Ord to find clusters of under/over-prediction |
+| Combine with hotspot analysis | Join the GWR output (main) to the GWR input (secondary) on the index column, compute the residual with `native.selectexpression` (e.g. `price_avg_joined - (intercept + bedrooms_avg_coef_estimate * bedrooms_avg_joined + bathrooms_avg_coef_estimate * bathrooms_avg_joined)`), then run `native.getisord` on it to find clusters of under/over-prediction |

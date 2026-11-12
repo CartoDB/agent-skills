@@ -324,14 +324,6 @@
             "value": 8
           },
           {
-            "name": "includecols",
-            "type": "Boolean",
-            "title": "Keep input table columns",
-            "default": false,
-            "description": "Keep input table columns",
-            "value": true
-          },
-          {
             "name": "optimizationcol",
             "value": "h3"
           }
