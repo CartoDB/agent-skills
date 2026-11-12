@@ -25,11 +25,13 @@ Source Table (with address column) -> Geocode -> (Filter successful) -> Save
 
 ### Step 1: Load Source Data
 
-Use `native.gettablebyname`. The input table must contain a column with address strings (e.g. `address`, `full_address`, `location`).
+Use a `ReadTable` source node (output handle `out`); use `native.gettablebyname` only when the table name comes from a workflow variable. The input table must contain a column with address strings (e.g. `address`, `full_address`, `location`).
 
 **Success**: Node outputs a table with at least one text column containing address data.
 
 ### Step 2: Geocode
+
+`native.geocode` is not available on PostgreSQL: tell the user table geocoding needs a BigQuery, Snowflake, Redshift, Databricks or Oracle connection; if the table has latitude/longitude columns, `native.geogpoint` builds the points instead. On Oracle, `native.oracle_geocode` uses Oracle's own geocoder instead of LDS (fetch its inputs with `components get` / `read_workflow_components`).
 
 Use `native.geocode` with:
 
@@ -37,13 +39,13 @@ Use `native.geocode` with:
 |-------|-------------|----------|
 | `source` | Table with address data | Yes |
 | `address` | Column containing the address string | Yes |
-| `country` | Country filter to improve accuracy (e.g. `"United States"`, `"United Kingdom"`) | No, but strongly recommended |
+| `country` | One country for the whole table, picked from the component's English country names (e.g. `"United States"`, `"Spain"`, `"Viet Nam"`), not an ISO code or a column. For a table spanning several countries, leave it empty and include the country in the address string | No, but strongly recommended |
 
 The address column can contain full addresses (`"123 Main St, Springfield, IL 60001"`) or composite values built from multiple columns (concatenate street + city + postal code in a prior `native.selectexpression` step).
 
 **Two output handles**: The geocode component produces two separate outputs:
-- **`match`**: Rows where geocoding succeeded -- a `geom` column with point geometry is added, plus a `CARTO_GEOCODE_METADATA` JSON column with quality info (confidence score, match type).
-- **`unmatch`**: Rows where geocoding failed -- `geom` is NULL.
+- **`match`**: Rows with a non-NULL `geom` (point). A `carto_geocode_metadata` column (a JSON string) holds the geocoder's result: address parts plus a quality field that depends on the organization's geocoding provider (`relevance` on Mapbox, `extra.confidence` on HERE, `matchConfidence` on TomTom bulk jobs, only `matchType` on the CARTO geocoder). A row in `match` is not proof of a good match.
+- **`unmatch`**: Rows where geocoding failed -- `geom` is NULL; the metadata can carry an `error` key.
 
 Connect downstream nodes to the correct handle based on your needs.
 
@@ -52,7 +54,7 @@ Connect downstream nodes to the correct handle based on your needs.
 ### Step 3: Filter or Review Results (optional)
 
 For the **match** output:
-- Optionally filter by confidence using the metadata column (e.g. extract confidence from `CARTO_GEOCODE_METADATA` via `native.selectexpression`).
+- To keep only good matches, read a sample of `match` after a run (MCP `run_workflow method=results`, or `carto workflows run output <id> <node>`) to see which quality field the metadata carries, then add a `native.where` on `match` that extracts it in the warehouse's dialect (e.g. BigQuery `CAST(JSON_VALUE(carto_geocode_metadata, '$.relevance') AS FLOAT64) >= 0.8`). If the metadata has no score (CARTO geocoder), filter on `matchType` instead.
 
 For the **unmatch** output:
 - Save to a separate table for review and manual correction.
@@ -70,8 +72,8 @@ Use `native.saveastable` to persist the geocoded output — the `geom` column ho
 
 The workflow component wraps the CARTO Analytics Toolbox function `GEOCODE_TABLE`, which:
 - Adds a `geom` column with point geometry to each row
-- Adds a `CARTO_GEOCODE_METADATA` JSON column with quality information (confidence, match type)
-- Uses CARTO Location Data Services (LDS) -- each geocoded row consumes LDS quota
+- Adds a `carto_geocode_metadata` JSON-string column with the provider's result (see Step 2)
+- Uses CARTO Location Data Services (LDS): every row sent consumes LDS quota, on most providers including rows that end up in `unmatch`. A cached re-run skips the node and is not billed again; running with no cache (MCP `run_workflow` `noCache: true`, CLI `carto workflows run --no-cache`) geocodes and bills every row again. Tell the user how many rows will be geocoded before running a large table.
 
 Check available quota by querying the Analytics Toolbox `LDS_QUOTA_INFO()` function. The fully-qualified name is provider-specific (BigQuery: `` `carto-un.carto`.LDS_QUOTA_INFO() ``; Snowflake: `CARTO.CARTO.LDS_QUOTA_INFO()`; Databricks: stored procedure in the dedicated AT schema). Load `carto-create-workflow` and consult `references/providers/<provider>.md` for the AT path on your warehouse.
 
@@ -79,10 +81,10 @@ Check available quota by querying the Analytics Toolbox `LDS_QUOTA_INFO()` funct
 
 ## Gotchas
 
-- **Two output handles: `match` and `unmatch`.** Don't connect to the wrong one -- `match` has geometries, `unmatch` has NULLs. Connecting the `unmatch` handle to a spatial operation will fail.
+- **Two output handles: `match` and `unmatch`.** Don't connect to the wrong one -- `match` has geometries, `unmatch` has NULL `geom`. A spatial node on `unmatch` does not fail; it returns NULL or empty results.
 - **Country filter is strongly recommended.** Without it, ambiguous addresses may resolve to the wrong country (e.g. "Springfield" exists in 30+ US states and in other countries). The country parameter improves both accuracy and speed.
 - **Address formatting matters.** Well-formatted addresses produce better results: `"123 Main St, Springfield, IL 60001"` works better than `"123 main street springfield"`. Include city, state/region, and postal code when available.
-- **Provider casing & SQL dialect.** Examples in this skill use lowercase column names (BigQuery / Databricks / Postgres / Redshift convention); on Snowflake unquoted identifiers surface UPPERCASE (e.g. `CARTO_GEOCODE_METADATA`, `GEOM`). When writing dialect-specific SQL or referencing the AT path, see `carto-create-workflow/references/providers/<provider>.md`.
+- **Provider casing & SQL dialect.** Examples in this skill use lowercase column names (BigQuery / Databricks / Redshift); on Snowflake and Oracle unquoted identifiers surface UPPERCASE (e.g. `CARTO_GEOCODE_METADATA`, `GEOM`). When writing dialect-specific SQL or referencing the AT path, see `carto-create-workflow/references/providers/<provider>.md`.
 - **For large tables, consider batching.** Geocoding hundreds of thousands of rows in a single run can exhaust quota or time out. Split into batches if needed.
 - **Failed geocodes deserve review.** The `unmatch` output is not just noise -- it often reveals data quality issues (missing postal codes, abbreviated city names, non-standard formatting) that can be fixed and re-geocoded.
 
@@ -108,4 +110,4 @@ Academy tutorials and workflow templates covering geocoding:
 | Geocode + spatial join | Chain: Geocode -> match -> Spatial Join (e.g. point-in-polygon to assign regions) |
 | Geocode + enrichment | Chain: Geocode -> match -> Buffer/Isochrone -> Enrich (add demographics around each geocoded point) |
 | Capture failures for re-processing | Connect both `match` and `unmatch` handles to separate `native.saveastable` nodes |
-| Filter by confidence | After geocode, use `native.selectexpression` to extract confidence from the metadata JSON, then filter |
+| Filter by quality | `native.where` on the `match` output, extracting the provider's quality field from `carto_geocode_metadata` |
