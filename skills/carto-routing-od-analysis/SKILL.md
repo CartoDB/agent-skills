@@ -6,7 +6,7 @@ license: MIT
 
 # Routing and Origin-Destination Analysis
 
-Computes routes, travel time/distance matrices, and isoline catchment areas (driving and walking modes), plus OD flow pattern analysis via spatial indexing. Two access paths, by scale:
+Computes routes, travel time/distance matrices, and isoline catchment areas (driving, walking and other modes), plus OD flow pattern analysis via spatial indexing. Two access paths, by scale:
 
 - **Single / ad-hoc (MCP-first)**: for one route, one location's isolines, or a small OD matrix, the CARTO MCP tools `route`, `calculate_isolines`, and `calculate_od_matrix` answer directly (each also has a `capabilities` operation to list supported modes/range types). No workflow needed. These run on any MCP host, including sandboxed chat hosts where the CLI can't. Prefer them for interactive requests.
 - **Table-scale / repeatable**: for computing over a whole table or a reusable pipeline, use the Workflow patterns below. Load `carto-create-workflow` for the development process, JSON structure, and validation — it covers both paths (MCP `create_workflow` / `validate_workflow` / `run_workflow` when attached; the `carto workflows` CLI otherwise; routing signals in `carto-basics/references/access-paths.md`).
@@ -22,8 +22,10 @@ Three main workflow patterns exist. Choose based on the use case:
 | Pattern | Component | Use when |
 |---------|-----------|----------|
 | Isoline/Isochrone | `native.isolines` | You need catchment polygons around locations (e.g. "everywhere reachable within 10 min") |
-| OD Matrix | `native.routesodmatrix` | You need travel time/distance between every origin-destination pair (analytics, no geometry) |
-| Route Creation | `native.routes` | You need actual route line geometries between OD pairs (visualization, detailed path) |
+| OD Matrix | `native.createroutingmatrix` | You need travel time/distance between every origin-destination pair (analytics, no geometry) |
+| Route Creation | `native.createroutes` | You need actual route line geometries between OD pairs (visualization, detailed path) |
+
+None of these exist on PostgreSQL connections: there, use the ad-hoc MCP tools above for small requests, or offer `native.buffer` catchments or Pattern D. Create Routing Matrix is also missing on Databricks SQL warehouse connections. Modes and extra options depend on the org's LDS provider: read them with `carto workflows components get <name> --connection <conn> --json` (MCP: `read_workflow_components method=get`) before filling the node, and use the `mode` values exactly as listed.
 
 ---
 
@@ -46,18 +48,18 @@ Use `native.isolines` with:
 
 | Input | Description | Example |
 |-------|-------------|---------|
-| `mode` | Travel mode | `car` or `walk` |
-| `range_type` | What the range measures | `time` or `distance` |
+| `mode` | Travel mode, lowercase. Allowed values depend on the org's isolines provider (TomTom has no `walk`); read them with `components get` | `car` or `walk` |
+| `type` | What the range measures | `time` or `distance` |
 | `range` | Threshold value | Seconds for time (e.g. `600` = 10 min), meters for distance (e.g. `5000` = 5 km) |
 
-**Success**: Each input point has an associated polygon geometry representing the reachable area.
+**Success**: Each input row gets its reachable-area polygon in `geom`. The input geometry column is dropped (kept as `orig_geom` on recent Analytics Toolbox versions) and `carto_isoline_metadata` holds per-row provider errors.
 
 #### Step A3: Post-Processing (optional)
 
 Common follow-ups after isoline generation:
 - **Polyfill + Enrich**: Convert isoline polygons to H3 with `native.h3polyfill`, then enrich with demographics or POI data (see trade-area-analysis skill).
 - **Overlap analysis**: Use `native.spatialjoin` to find which isolines overlap, identifying areas served by multiple locations.
-- **Coverage union**: Use `native.dissolve` to merge all isoline polygons into a single coverage footprint.
+- **Coverage union**: Use `native.summarize` with `geom,combine` (output `geom_union`) to merge all isolines into one footprint, or `native.groupby` with `geom,combine` to merge per group. On Snowflake `combine` collects the polygons rather than dissolving them. `native.summarize` is not available on Oracle.
 
 #### Step A4: Save
 
@@ -82,23 +84,23 @@ Use two `native.gettablebyname` nodes -- one for origins, one for destinations. 
 
 #### Step B2: Compute OD Matrix
 
-Use `native.routesodmatrix` with:
+Use `native.createroutingmatrix` with:
 
 | Input | Description |
 |-------|-------------|
-| `mode` | `car` or `walk` |
-| Origins input | Connected from the origins table node |
-| Destinations input | Connected from the destinations table node |
+| `originstable` / `destinationstable` | Table inputs; the edges' target handles use these names |
+| `originsgeomcolumn` / `destinationsgeomcolumn` | Point geometry column in each table (required) |
+| `mode` | An option `components get` lists for this org; it varies by routing provider (e.g. `Car`, `Pedestrian`, `Driving`, `Walking`) |
 
-**Output columns**: `origin_id`, `destination_id`, `duration_s`, `distance_m`.
+**Output columns**: every origin column prefixed `origin_` (e.g. `origin_store_id`, `origin_geom`), every destination column prefixed `destination_`, plus `route_duration` (seconds), `route_distance` (meters) and `carto_routing_matrix_metadata` (per-pair provider errors).
 
 **Success**: One row per origin-destination pair with travel time and distance.
 
 #### Step B3: Filter or Aggregate (optional)
 
 Common post-processing:
-- **Nearest destination**: Use `native.groupby` to find the minimum `duration_s` per origin, then join back to get the nearest destination.
-- **Threshold filter**: Use `native.where` to keep only pairs within a time/distance limit (e.g. `duration_s < 1800` for 30-min threshold).
+- **Nearest destination**: Use `native.groupby` grouped by the origin id (`origin_<id>`) with `route_duration,min` (output `route_duration_min`), then join back on origin id and duration to get the nearest destination.
+- **Threshold filter**: Use `native.where` to keep only pairs within a limit (e.g. `route_duration < 1800` for 30 minutes, or `route_distance < 5000` for 5 km).
 - **Accessibility score**: Count destinations reachable within a threshold per origin using `native.groupby`.
 
 #### Step B4: Save
@@ -111,26 +113,25 @@ Use `native.saveastable`, then validate and upload (MCP `create_workflow` or `ca
 
 Pipeline:
 ```
-Origins Table -> ┐
-                 ├-> Routes -> Save
-Destinations Table -> ┘
+Origins + Destinations -> Cross Join (or Join on a pairing key) -> Create Routes -> Save
 ```
 
-#### Step C1: Load Origins and Destinations
+#### Step C1: Load and Pair Origins and Destinations
 
-Same as Pattern B -- two `native.gettablebyname` nodes with point geometries.
+Load both tables with `native.gettablebyname`. Create Routes reads one table where each row holds an origin and a destination point, so pair them with `native.crossjoin` (every pair) or `native.joinv2` on a pairing key. After a cross join the destination geometry is `<col>_joined`.
 
 #### Step C2: Compute Routes
 
-Use `native.routes` with:
+Use `native.createroutes` with:
 
 | Input | Description |
 |-------|-------------|
-| `mode` | `car` or `walk` |
-| Origins input | Connected from the origins table node |
-| Destinations input | Connected from the destinations table node |
+| `source` | Table with one origin-destination pair per row (target handle `source`) |
+| `origin` / `destination` | The two point geometry columns of that table (must differ) |
+| `newcol` | Name of the route column (default `geom`) |
+| `mode` | An option `components get` lists for this org; it varies by routing provider (e.g. `Car`, `Pedestrian`, `Driving`, `Walking`) |
 
-**Output**: One route line geometry per OD pair (with `duration_s`, `distance_m`), visualizable on a map.
+**Output**: One route line per row in `newcol` (default `geom`) plus `carto_routing_metadata`, the provider's response as a JSON string. There are no duration or distance columns; use Create Routing Matrix when you need them.
 
 #### Step C3: Save
 
@@ -153,11 +154,9 @@ Use `native.gettablebyname`. The table should have both origin and destination c
 
 #### Step D2: Index Origins and Destinations to H3
 
-Use `native.selectexpression` to compute H3 cells for both origin and destination points:
-- Origin H3: derive from pickup coordinates
-- Destination H3: derive from dropoff coordinates
+If the table has coordinates, build each point with `native.geogpoint` (`lat`, `lon`; output column `geom`), renaming `geom` with `native.renamecolumn` before building the second one.
 
-Alternatively, if the data has separate geometry columns, use `native.h3frompoint` for each.
+Run `native.h3frompoint` on the origin geometry and rename `h3` to `origin_h3` with `native.renamecolumn`, then run it on the destination geometry and rename `h3` to `destination_h3`. Each call writes a column named `h3`, so skipping the rename fails on a duplicate column. `native.h3frompoint` is not available on Redshift; use `native.quadbinfrompoint` there (it writes `quadbin`, same renaming).
 
 #### Step D3: Aggregate Flows
 
@@ -175,15 +174,15 @@ Use `native.saveastable`.
 
 ## Gotchas
 
-- **Provider casing & SQL dialect.** This skill uses lowercase column names (`origin_id`, `destination_id`, `duration_s`, `distance_m`, `origin_h3`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, reference these UPPERCASE (`ORIGIN_ID`, `DURATION_S`, ...). See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
+- **Provider casing & SQL dialect.** This skill uses lowercase column names (`route_duration`, `route_distance`, `origin_<col>`, `destination_<col>`, `origin_h3`, etc.) — BigQuery / Databricks / Postgres / Redshift convention. On Snowflake, reference these UPPERCASE (`ROUTE_DURATION`, `ORIGIN_H3`, ...). See `carto-create-workflow/references/providers/<provider>.md` for casing rules and SQL dialect equivalents.
 - Isolines and routing components consume **LDS (Location Data Services) quota**. Check available quota with `LDS_QUOTA_INFO` before bulk operations. Buffers (`native.buffer`) do not consume LDS quota and are a free alternative for simple circular catchments.
 - OD matrices grow **quadratically**: N origins x M destinations = N*M rows. Filter or sample inputs to keep the matrix manageable. For 1000 origins x 1000 destinations, you get 1 million rows.
 - **Walking mode** has a much shorter practical range than driving. Walking isolines beyond 20-30 minutes or OD matrices beyond a few kilometers produce unreliable or empty results.
 - **Route geometries can be large**. For pure analytics (time/distance only), prefer the OD matrix (Pattern B) over full routes (Pattern C) to reduce data volume.
-- **Time-of-day** affects driving results due to congestion. Specify `departure_time` if the component supports it; otherwise results reflect typical/average conditions.
+- **Time of day** affects driving results. The departure-time input is provider-prefixed (`here_departure_time`, `tomtom_departure_time`, `traveltime_departure_time`, format `YYYY-MM-DDThh:mm:ss`) and only exists on Isolines and Create Routing Matrix; read the exact name with `components get`. Otherwise results reflect typical conditions.
 - **Isoline polygons may overlap** for nearby locations. If enriching afterwards, polyfill to a spatial index and deduplicate cells to avoid double-counting.
 - For **OD flow visualization** (Pattern D), use H3 cell center points rather than raw coordinates for cleaner aggregation and visualization. A coarser resolution (e.g. H3 res 7-8) produces more meaningful flow patterns than fine resolutions.
-- The LDS routing components require a **connection with LDS API access enabled**. Validation may fail if the connection lacks this permission.
+- **LDS access and quota are checked when the workflow runs.** If the org has no LDS quota or provider for the service, the run fails on the isolines or routing node: report that node and its error to the user.
 
 ---
 
@@ -204,9 +203,9 @@ Use `native.saveastable`.
 
 | Variant | How |
 |---------|-----|
-| Service area coverage | Isolines (car, multiple ranges e.g. 5/10/15 min) -> union -> measure total population covered |
-| Nearest facility | OD matrix -> group by origin -> min(duration_s) -> join back to get nearest destination ID |
+| Service area coverage | One Isolines node per range (`range` takes one value, e.g. `300`, `600`, `900` seconds) -> merge each with `native.summarize` `geom,combine` -> measure population covered |
+| Nearest facility | OD matrix -> group by origin id -> `route_duration,min` -> join back to get the nearest destination id |
 | Accessibility scoring | OD matrix -> filter by threshold -> count destinations per origin -> score by reachable count |
-| Fleet route planning | Routes between depot and delivery points -> aggregate total distance/time per route |
+| Fleet route planning | Create Routing Matrix between depot and delivery points for `route_duration` / `route_distance`; Create Routes only for the line geometries (one route per row, it does not order stops) |
 | Commute flow analysis | Trip data -> H3 origin + H3 destination -> group by OD pair -> count -> visualize top flows |
 | Multi-modal comparison | Run isolines twice (car + walk) -> compare coverage polygons -> identify transit-dependent areas |
