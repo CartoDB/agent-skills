@@ -57,7 +57,7 @@ Use `native.groupby` to produce one row per cell with a numeric value:
 - **Group by**: the spatial index column (`h3`)
 - **Aggregation**: `h3,count` (or `value_col,sum` / `value_col,avg`)
 
-On the polyfill path, cells with no points can come back NULL instead of 0 (always when you join the grid to the counts yourself). Add a new column with `native.selectexpression` (`column`: e.g. `value`; `expression`: `COALESCE(<count column>, 0)`, e.g. `COALESCE(h3_count, 0)`) and use that new column as `valuecol`. Pick a new name: the component appends the column to all existing ones.
+On the polyfill path, cells with no points can come back NULL instead of 0 (always when you join the grid to the counts yourself). Add a new column with `native.selectexpression` (`column`: e.g. `value`; `expression`: `COALESCE(<count column>, 0)`, e.g. `COALESCE(store_id_count, 0)` after counting `store_id` with `native.h3enrich`) and use that new column as `valuecol`. Pick a new name: the component appends the column to all existing ones.
 
 **Success**: Output has exactly one row per unique cell with a count/sum column — no gaps.
 

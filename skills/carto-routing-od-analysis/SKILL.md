@@ -59,7 +59,7 @@ Use `native.isolines` with:
 Common follow-ups after isoline generation:
 - **Polyfill + Enrich**: Convert isoline polygons to H3 with `native.h3polyfill`, then enrich with demographics or POI data (see trade-area-analysis skill).
 - **Overlap analysis**: Use `native.spatialjoin` to find which isolines overlap, identifying areas served by multiple locations.
-- **Coverage union**: Use `native.summarize` with `geom,combine` (output `geom_union`) to merge all isolines into one footprint, or `native.groupby` with `geom,combine` to merge per group. On Snowflake `combine` collects the polygons rather than dissolving them. `native.summarize` is not available on Oracle.
+- **Coverage union**: Use `native.summarize` with `geom,combine` (output `geom_union`) to merge all isolines into one footprint, or `native.groupby` with `geom,combine` to merge per group. On Snowflake and Redshift `combine` collects the polygons rather than dissolving them. `native.summarize` is not available on Oracle.
 
 #### Step A4: Save
 
@@ -118,7 +118,7 @@ Origins + Destinations -> Cross Join (or Join on a pairing key) -> Create Routes
 
 #### Step C1: Load and Pair Origins and Destinations
 
-Load both tables with `native.gettablebyname`. Create Routes reads one table where each row holds an origin and a destination point, so pair them with `native.crossjoin` (every pair) or `native.joinv2` on a pairing key. After a cross join the destination geometry is `<col>_joined`.
+Load both tables with `native.gettablebyname`. Create Routes reads one table where each row holds an origin and a destination point, so pair them with `native.crossjoin` (every pair) or `native.joinv2` on a pairing key. After a cross join the destination geometry is `<col>_joined`, or `r_<col>` on Databricks cluster connections, where `native.crossjoin` prefixes columns with `l_` / `r_`.
 
 #### Step C2: Compute Routes
 

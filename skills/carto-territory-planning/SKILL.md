@@ -100,7 +100,7 @@ Load candidates with a second `native.gettablebyname`. If candidates need filter
 
 Location-Allocation needs one row per candidate and demand point with a cost:
 - **Travel time or road distance**: `native.createroutingmatrix` (origins = candidates, destinations = demand points). It returns `route_duration` in seconds and `route_distance` in meters, prefixes the input columns with `origin_` / `destination_`, and consumes LDS quota for every pair.
-- **Straight-line distance**: `native.crossjoin` (candidates as `maintable`, demand as `secondarytable`; secondary columns get the suffix `_joined`), then `native.selectexpression` with `ST_DISTANCE(<candidate geom>, <demand geom>_joined)` (meters for geography columns).
+- **Straight-line distance**: `native.crossjoin` (candidates as `maintable`, demand as `secondarytable`; secondary columns get the suffix `_joined`, or every column gets an `l_` / `r_` prefix on Databricks cluster connections), then `native.selectexpression` with `ST_DISTANCE(<candidate geom>, <demand geom>_joined)` (meters for geography columns).
 
 Then add `territoryplanning.costs` (target handle `costs_table`): `facilities_column`, `dpoints_column`, `cost_column`. The ids must be the same ones given to the two preparation nodes.
 

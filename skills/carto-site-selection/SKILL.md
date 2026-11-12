@@ -61,7 +61,7 @@ If candidates are continuous polygons (catchments / districts) rather than a gri
 `native.h3distance` compares two H3 columns of the same row; it does not search another table. For each candidate cell's hop distance to the nearest existing location:
 
 1. `native.h3frompoint` on the existing locations, at the grid's resolution (adds `h3`).
-2. `native.crossjoin`: `maintable` = candidate grid, `secondarytable` = location cells. Secondary columns get a `_joined` suffix, so the location cell is `h3_joined`. It yields cells x locations rows, so filter the grid first.
+2. `native.crossjoin`: `maintable` = candidate grid, `secondarytable` = location cells. Secondary columns get a `_joined` suffix, so the location cell is `h3_joined`. On Databricks cluster connections `native.crossjoin` prefixes every column with `l_` / `r_` instead (e.g. `l_h3`, `r_h3`). It yields cells x locations rows, so filter the grid first.
 3. `native.h3distance`: `h3_1` = `h3`, `h3_2` = `h3_joined` (adds `h3_distance`).
 4. `native.groupby`: `columns` = `h3_distance,min`, `groupby` = `h3` (gives `h3_distance_min`).
 5. `native.joinv2` back to the enriched grid on `h3`, then `native.where` on `h3_distance_min` to drop cells too close (cannibalization risk) or too far (logistics cost). It is a hop count, not metric distance (see Gotchas).
@@ -158,7 +158,7 @@ For demand-driven site selection (e.g. "where is unmet demand highest?") on BigQ
 
 1. Build an H3 grid over the study area and enrich it with the demand variables (Pattern A Steps 2-3). The cell column must be named `h3`, `quadbin`, `index` or `geoid`.
 2. To favour underserved cells, add the minimum hop distance to existing locations first (Pattern A Step 4 chain) and include it in `weights`.
-3. Run `native.commercialhotspots` with `indexcol` = the cell column, `weights` (see Note), `kring` (default 3) and `pvaluethresh` (default 0.05). Cells above `pvaluethresh` are already dropped, so no filter node is needed.
+3. Run `native.commercialhotspots` with `indexcol` = the cell column, `weights` (see Note), `kring` (default 3) and `pvaluethresh` (default 0.05). Cells above `pvaluethresh` are already dropped, so no filter node is needed. On Databricks cluster connections also set `kernel` and `clustertype` (`hotspots`, `coldspots` or `all`): that path has no defaults and the run fails without them.
 4. The output holds only the cell column (renamed `index` on BigQuery), `combined_gi` and `p_value`. Join it back to the enriched grid on the cell column to keep the other variables.
 
 **Note**: there is no `variablecolumns` input. `weights` is a JSON-encoded string of `[column, weight, reverse]` triples, e.g. `[["population_sum", 0.7, false], ["h3_distance_min", 0.3, false]]`. Weights are normalized to sum to 1; `reverse: true` flips a variable where lower is better.
