@@ -65,7 +65,7 @@ Optional YAML that describes the map's data to the agent (entities, measures, re
 - **Always:** map camera, layer control, filter inspection, marker drop.
 - **`capabilities.querySources: true`** unlocks `add_source`, `remove_source`, `execute_query`.
 - **Widget-gated:** `get_*_widget` / `filter_*_widget` appear only when a matching widget (formula / category / pie / histogram / timeseries / range) exists in the configuration.
-- **SQL-parameter-gated:** `set_sql_parameter_*` appear only when a matching parameter kind exists.
+- **Control-gated:** `get_control_*` and `set_control_*` appear only when a control of a matching type exists. A source-bound control (`SourceCategory`, `SourceDateRange`) gets the `set_control_*` tools only when source-linked controls are enabled for the organization.
 - **Workflow-gated:** `async_workflow_job_*` / `add_source_from_workflows` activate only when `config.tools[]` is non-empty.
 
 > **Implication for authoring.** To give the agent a capability, change the *map shape* — not `agent.config`. "Answer 'top 10 by score'" → include a formula or category widget. "Free-form SQL" → `capabilities.querySources: true`, only when the user asks for it and never on a public map. Don't try to enable tools individually.

@@ -116,7 +116,7 @@ A `query`-typed dataset binned to H3 with `aggregationExp` summing two metrics p
 
 ## C. Parameterized query (SQL parameters) — let users filter live
 
-Three examples: a single DateRange parameter, a multi-parameter map (Category + DateRange) with a timeseries widget, then a single-select Category parameter. Author with the `{{paramName}}` shape — the CLI auto-derives `queryTemplate`, the provider-native `source`, and `queryParameters` from the connection's `provider_id`.
+Four examples: a single DateRange parameter, a multi-parameter map (Category + DateRange) with a timeseries widget, a single-select Category parameter, then controls wired to source columns with no SQL. For placeholder controls, author with the `{{paramName}}` shape: the CLI auto-derives `queryTemplate`, the provider-native `source`, and `queryParameters` from the connection's `provider_id`.
 
 **C.1 — single DateRange parameter:**
 
@@ -243,6 +243,47 @@ Rules enforced for `selectionMode: "single"`: `item.value` must contain exactly 
          "item": {"value": ["West"], "sqlName": "region"},
          "selectionMode": "single",
          "defaultValue": "West"}
+      ]
+    }
+  }
+}
+```
+
+**C.4, controls wired to source columns (`SourceCategory` + `SourceDateRange`):**
+
+Use this wiring when a control only narrows a `table` or `query` dataset by a text or date column: the dataset has no `{{placeholder}}`, and nothing on the dataset changes. Each control names its dataset in `binding`, the same `"$ref:<name>"` a layer uses as `dataId`. The date control opens on the last 30 days ending on the last day with data, stored as that rule, so the map keeps opening on recent data without being republished. Builder applies these controls only for organizations with source-linked controls on (see the flag note in [`sql-parameters.md`](sql-parameters.md)).
+
+```json
+{
+  "title": "Crashes: filter by state and date",
+  "datasets": [{
+    "$ref": "crashes",
+    "type": "table",
+    "source": "proj.ds.crashes",
+    "connectionId": "<connection-id>",
+    "geoColumn": "geom",
+    "columns": ["state", "crash_ts", "geom"],
+    "format": "tilejson",
+    "label": "Crashes"
+  }],
+  "keplerMapConfig": {
+    "version": "v1",
+    "config": {
+      "mapState": {"latitude": 40, "longitude": -100, "zoom": 4, "pitch": 0, "bearing": 0},
+      "basemapConfig": {"styleId": "positron"},
+      "mapStyle": {"styleType": "positron"},
+      "mapSettings": {"sqlParameterControls": true},
+      "visState": {
+        "layers": [{"id":"crashes","type":"tileset","config":{"dataId":"$ref:crashes","label":"Crashes","color":[241,92,23],"isVisible":true,"hidden":false,"columns":{},"textLabel":[{"size":12,"color":[44,48,50],"field":null,"anchor":"start","offset":[0,0],"alignment":"center","outlineColor":[255,255,255]}],"visConfig":{"filled":true,"stroked":false,"opacity":0.8,"radius":4,"radiusRange":[0,50],"thickness":1,"sizeRange":[0,10],"heightRange":[0,500],"elevationScale":5,"colorRange":{"name":"Global Warming","type":"sequential","category":"Uber","colors":["#5A1846","#900C3F","#C70039","#E3611C","#F1920E","#FFC300"]}}},"visualChannels":{"colorField":null,"colorScale":"quantize","sizeField":null,"sizeScale":"linear","radiusField":null,"radiusScale":"linear","heightField":null,"heightScale":"linear","strokeColorField":null,"strokeColorScale":"quantize"}}],
+        "filters": []
+      },
+      "sqlParameters": [
+        {"id": "c-state", "name": "State", "type": "SourceCategory",
+         "binding": {"datasetId": "$ref:crashes", "column": "state"},
+         "selectionMode": "multi", "orderBy": "frequency_desc"},
+        {"id": "c-date", "name": "Crash date", "type": "SourceDateRange",
+         "binding": {"datasetId": "$ref:crashes", "column": "crash_ts"},
+         "default": {"kind": "relative", "direction": "last", "count": 30, "unit": "day", "anchor": "data"}}
       ]
     }
   }
