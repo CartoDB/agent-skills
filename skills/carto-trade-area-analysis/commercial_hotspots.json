@@ -1083,7 +1083,7 @@
       "id": "869db82d-ecae-400f-b074-10f1ec059cf9",
       "data": {
         "name": "native.commercialhotspots",
-        "version": "1",
+        "version": "2",
         "inputs": [
           {
             "name": "source",
@@ -1102,28 +1102,20 @@
             "value": "h3"
           },
           {
-            "name": "variablecolumns",
-            "type": "Column",
-            "parent": "source",
-            "title": "Input variables",
-            "description": "The columns containing the variables to take into account when computing the combined Gi* statistic",
-            "multiple": true,
-            "optional": false,
-            "value": [
-              "h3_distance_min",
-              "population_sum_joined"
-            ]
-          },
-          {
             "name": "weights",
-            "type": "String",
+            "type": "ColumnNumber",
+            "parent": "source",
             "title": "Weights for the weighted average",
             "description": "The weights associated with each of the variables. These weights can take any value but will be normalized to sum up to 1",
-            "optional": true,
-            "allowExpressions": false,
-            "placeholder": "value1, ..., valueN",
-            "default": "",
-            "value": "0.3, 0.7"
+            "excludedColumns": [
+              "geoid",
+              "h3",
+              "quadbin",
+              "index"
+            ],
+            "enableReverse": true,
+            "noDefault": true,
+            "value": "[[\"h3_distance_min\",0.3,false],[\"population_sum_joined\",0.7,false]]"
           },
           {
             "name": "kring",
