@@ -20,7 +20,7 @@ Symptom→fix table for common authoring mistakes, antipatterns to avoid emittin
 ## Antipatterns to avoid emitting
 
 1. **Writing a full `keplerMapConfig` from scratch without starting from an example.** The schema is large, Kepler's defaults are strict, and you'll spend more time debugging than if you'd duplicated a similar map.
-2. **Partial nested PATCH of `keplerMapConfig`.** Wholesale-replaced — partial input wipes layers / widgets / sqlParameters / viewport. See [`updates.md`](updates.md) *"Partial updates — merge vs. wholesale-replace"* for the read-modify-write pattern.
+2. **Partial nested PATCH of `keplerMapConfig`.** Wholesale-replaced — partial input wipes layers / widgets / sqlParameters / viewport. See [`updates.md`](updates.md) *"Partial updates — merge vs. wholesale-replace"* for `keplerChanges` (send only the edits) and the read-modify-write pattern.
 3. **Inventing colorRange hex lists.** Copy from a real map configuration. The legend uses the `name` + `category` fields to style itself.
 4. **Using `label` as an identity key.** Builder allows duplicate labels; the server id is the only stable handle. The CLI matches by id.
 5. **Treating `/publish` as a validator.** It isn't. The verify step that runs on every create/update is the validator — read its `warnings[]`.

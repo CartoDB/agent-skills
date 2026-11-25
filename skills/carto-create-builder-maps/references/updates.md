@@ -1,8 +1,8 @@
 # Updates & lifecycle
 
-CRUD operations for an existing map (read → modify → write), the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), and the validation levers available pre-create. For starting-from-scratch JSON templates, see `examples.md`.
+CRUD operations for an existing map (read → modify → write), the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), targeted edits with `keplerChanges`, and the validation levers available pre-create. For starting-from-scratch JSON templates, see `examples.md`.
 
-> Recipes are shown as `carto maps` commands; on MCP substitute `read_maps get` + `read_maps list_datasets` (read — `get` returns the stored record, with no datasets and `privacy` as a string), `update_map` (update / update_dataset / publish), `create_map` (create), `delete` (kind=map). The merge/wipe rules and validation levers below hold on both paths — `update_map` replaces `keplerMapConfig` wholesale exactly as the CLI does.
+> Recipes are shown as `carto maps` commands; on MCP substitute `read_maps get` + `read_maps list_datasets` (read — `get` returns the stored record, with no datasets and `privacy` as a string), `update_map` (update / update_dataset / publish), `create_map` (create), `delete` (kind=map). The merge/wipe rules and validation levers below hold on both paths — `update_map` replaces `keplerMapConfig` wholesale exactly as the CLI does. To change part of it without resending it, send `keplerChanges` (see *Change part of the map config* below).
 
 ## Recipes
 
@@ -114,7 +114,7 @@ On MCP, the same applies to `update_map`: send `{ "agent": { "config": { "model"
 
 When a change doesn't touch `keplerMapConfig` — a title, description, sharing or agent change — leave `keplerMapConfig` out entirely: the other top-level fields merge on their own. Resending a 5 KB config for a title change only adds ways to fail.
 
-**The headline:** **most top-level configuration fields accept partial updates, but `keplerMapConfig` is replaced wholesale.** Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport from the server — read the current configuration, modify, and resend the full tree.
+**The headline:** **most top-level configuration fields accept partial updates, but `keplerMapConfig` is replaced wholesale.** Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport from the server. To change part of it, send only the edits with `keplerChanges`; to rebuild it, read the current configuration, modify, and resend the full tree.
 
 | Top-level field on `carto maps update <id>` | Merge behaviour |
 |---|---|
@@ -125,9 +125,73 @@ When a change doesn't touch `keplerMapConfig` — a title, description, sharing 
 | `privacy` | **Replaces sharing ✗** — applied via a separate endpoint (POST /privacy). Omit it to keep the current sharing. Any block you send rewrites it: a `policies` array (preferred) becomes the full grant list, `{"policies": []}` or `{"privacy": "private"}` revokes every share and public link. Send one form, not both; a block with both is rejected. The first share publishes the map, and making it private unpublishes it. |
 | `agent` | Partial ✓ — merged over the stored agent key by key, inside `capabilities` and `introduction` too; omitted keys keep their value, `""` / `[]` clear one. |
 | `datasets` | Partial ✓ by default (merge mode). `--datasets-mode replace` flips to "delete any dataset not mentioned". |
-| **`keplerMapConfig`** | **WHOLESALE-REPLACE ✗** — the entire object gets persisted as-is. Agents treating this as partial will wipe server state. |
+| **`keplerMapConfig`** | **WHOLESALE-REPLACE ✗** — the entire object gets persisted as-is. Agents treating this as partial will wipe server state. To edit part of it, leave it out and send `keplerChanges`. |
 
-**Canonical pattern when you need to change anything inside `keplerMapConfig`** (basemap, layers, widgets, viewport, sqlParameters, popups, legend settings, etc.):
+### Change part of the map config: `keplerChanges`
+
+For a small change to a map that already exists (an opacity, a color, a widget title, one more widget, a popup field), send only the edits. The server reads the stored `keplerMapConfig`, applies the edits in order, and saves the result through the same validation and wipe guard as a whole config. Everything you don't name goes back as stored, including `popupSettings`, `legendSettings`, `mapSettings` and `layerGrouping`, which a hand-rebuilt config loses without a warning. On a large map it is also much faster than resending the whole config, which is slow and can time out.
+
+On MCP, `update_map` with method `update`. Leave `bundle.keplerMapConfig` out; `bundle` itself is optional:
+
+```json
+{
+  "method": "update",
+  "id": "<map-id>",
+  "keplerChanges": [
+    { "path": "config.visState.layers[id=<layer-id>].config.visConfig.opacity", "value": 0.5 },
+    { "path": "config.visState.layers[id=<layer-id>].config", "merge": { "label": "Stores 2026", "isVisible": true } },
+    { "path": "config.widgets[-]", "value": { "id": "w-total", "type": "formula", "title": "Total revenue", "column": "revenue", "operation": "sum", "formatter": "DECIMAL_CURRENCY", "dataSource": "<dataset-id>", "global": false } }
+  ]
+}
+```
+
+On the CLI, `--changes` takes the same array, inline or as a file path. The bundle becomes optional and must not carry `keplerMapConfig`; pass it as the positional argument or `--file`, because stdin is not read with `--changes`:
+
+```sh
+carto maps update <map-id> --changes '[{"path":"config.visState.layers[id=<layer-id>].config.visConfig.opacity","value":0.5}]' --json
+carto maps update <map-id> '{"title":"Retail 2026"}' --changes ./edits.json --json
+```
+
+> `--changes` ships in the CLI release after 0.15.0. `carto maps update --help` lists it when your CLI has it. On an older CLI, upgrade or use read-modify-write below.
+
+**Each item is one of three:**
+
+| Item | What it does |
+|---|---|
+| `{ "path", "value" }` | Sets the key at `path`, or adds it. On an object it replaces the whole object and drops every key you didn't send. |
+| `{ "path", "merge": { ... } }` | Sets some keys of an existing object and keeps the rest. One level deep: an object inside `merge` replaces that key whole. |
+| `{ "path", "remove": true }` | Removes the key or the array element. |
+
+**Paths:**
+
+- Dot-separated keys from the `keplerMapConfig` root. Every path starts with `config`.
+- An array element is addressed by its id, `[id=...]`, or by position, `[n]`. Prefer ids: positions shift after a remove in the same call.
+- `[-]` as the last segment appends `value` to the array.
+- A key that holds a dot goes in quotes: `config.popupSettings.layers["a.b"]`.
+- In `layerGrouping` a layer entry is matched by its `layerId`. `popupSettings.layers` and `legendSettings.layers` are keyed by layer id.
+
+**What is refused, and what is not:**
+
+- An `[id=...]` that matches nothing, or more than one element, is refused, and the error lists the ids that are there. Read the ids from the map (`read_maps get` / `carto maps get <id> --json`) instead of guessing them.
+- An element found by `[id=...]` keeps that id. To replace it with a different one, remove it and append the new one.
+- Appending an element whose id the list already has is refused.
+- Every segment before the last must exist. The exception is an append to `config.widgets`, `config.sqlParameters` or `config.layerGrouping`, which creates the list when the map doesn't have it yet.
+- Removing a layer, widget or SQL parameter still needs `allowKeplerReplace` / `--allow-kepler-replace`, the same as with a whole config.
+- **A misspelt key at the end of a path is not caught: it is saved as a new key.** Take field names from the schema (`validate_map` method `schema` / `carto maps schema <section>`), never from memory.
+- At most 200 changes per call.
+
+**A new layer needs two changes:** append it to `config.visState.layers`, and append `{ "type": "layer", "layerId": "<new-layer-id>" }` to `config.layerGrouping`. `[-]` puts it last in the tree, which is the bottom of the stack. To place it anywhere else, set `config.layerGrouping` with `value`, the whole tree in the new order.
+
+**Which way to send a change:**
+
+| Change | Send |
+|---|---|
+| Part of the map config on an existing map: a style, a widget, a popup, a SQL parameter, the viewport | `keplerChanges` / `--changes` |
+| Title, description, tags, agent, sharing | A partial bundle with no `keplerMapConfig` |
+| A dataset's SQL, columns or aggregation | `update_map` method `update_dataset` / `carto maps datasets update` |
+| A rebuild of most of the config, or a copy of another map | The whole config, read-modify-write below |
+
+**Whole-config pattern, for a rebuild of `keplerMapConfig`** (or on a CLI that doesn't have `--changes` yet):
 
 ```bash
 # Read → modify → write the full configuration

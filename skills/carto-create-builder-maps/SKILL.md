@@ -49,7 +49,7 @@ Field shapes, enum values, palette catalogues, and AI-tool catalogues are served
 - [`references/agent-config.md`](references/agent-config.md) — Agent on a map (opt-in). Organization-status check, model selection, MCP / core tool catalogues, capability-driven activation.
 
 **Operate / unstick**
-- [`references/updates.md`](references/updates.md) — CRUD lifecycle: recipes, the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), `--datasets-mode`, publish chaining, validation levers.
+- [`references/updates.md`](references/updates.md) — CRUD lifecycle: recipes, the partial-vs-wholesale `keplerMapConfig` rule (the #1 destructive footgun), targeted edits with `keplerChanges` / `--changes`, `--datasets-mode`, publish chaining, validation levers.
 - [`references/troubleshooting.md`](references/troubleshooting.md) — symptom → fix table, antipatterns to avoid emitting, escape-hatches when stuck, visual verification via `carto maps screenshot`.
 
 **Promote / copy across orgs — read when migrating maps between profiles**
@@ -223,7 +223,7 @@ Verify what actually renders — Tier-1 and the source/render checks can't catch
 
 ### `keplerMapConfig` is wholesale-replace, not partial-merge
 
-Most top-level fields on an update accept partial patches: `title`, `description`, `tags`, `collaborative`, `agent`, `datasets`. **`keplerMapConfig` does not.** Nor is `privacy` a safe partial patch: any privacy block rewrites the map's sharing, and `{"policies": []}` or `{"privacy": "private"}` revokes every share and unpublishes the map (see [`updates.md`](references/updates.md)). Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport. To change anything inside `keplerMapConfig`, use the read-modify-write cycle: read the full config (`read_maps get` / `carto maps get <id> --json`), edit, send it back (`update_map` / `carto maps update <id>`). Both paths reject wipe-causing partial updates pre-flight; see [`updates.md`](references/updates.md) for the full merge matrix.
+Most top-level fields on an update accept partial patches: `title`, `description`, `tags`, `collaborative`, `agent`, `datasets`. **`keplerMapConfig` does not.** Nor is `privacy` a safe partial patch: any privacy block rewrites the map's sharing, and `{"policies": []}` or `{"privacy": "private"}` revokes every share and unpublishes the map (see [`updates.md`](references/updates.md)). Sending `{keplerMapConfig: {config: {basemapConfig: {...}}}}` as a "partial update" wipes layers / widgets / sqlParameters / viewport. To change part of it on an existing map, leave `keplerMapConfig` out and send only the edits as `keplerChanges` (`update_map`) / `--changes` (`carto maps update`, CLI releases after 0.15.0): a list of `{ path, value | merge | remove }` such as `config.visState.layers[id=<layer-id>].config.visConfig.opacity`. The rest of the config goes back as stored, and a large map doesn't have to be resent. To rebuild it, use the read-modify-write cycle: read the full config (`read_maps get` / `carto maps get <id> --json`), edit, send it back (`update_map` / `carto maps update <id>`). Both paths reject wipe-causing partial updates pre-flight; see [`updates.md`](references/updates.md) for the full merge matrix.
 
 ### Don't fabricate a map id from a title
 
@@ -249,7 +249,7 @@ If they say *"show me the JSON"* / *"I'll write it myself"* / *"what's the schem
 | I want to… | Do this |
 |---|---|
 | Create a map from a natural-language request (the common path) | Elicit the required inputs (Phase 1), emit a configuration with just those → `create_map` / `carto maps create < map.json` |
-| Edit an existing map — add a dataset, update a layer's style, change privacy, rename, swap basemap | `update_map` / `carto maps update <id> < partial.json` (partial PATCH; unmentioned fields preserved — except `keplerMapConfig`, wholesale-replaced) |
+| Edit an existing map — add a dataset, update a layer's style, change privacy, rename, swap basemap | `update_map` / `carto maps update <id> < partial.json` (partial PATCH; unmentioned fields preserved — except `keplerMapConfig`, wholesale-replaced unless edited with `keplerChanges` / `--changes`) |
 | Duplicate an existing map | Read the config (`read_maps get` + `read_maps list_datasets` / `carto maps get <id> --json`), edit, create it fresh |
 
 > Render + sources + agent checks run automatically on every create / update. Most surface as warnings, but a source that fails with a `detail` and a new dataset the tile server rejects block the write — no separate "validate it will render" step needed.
