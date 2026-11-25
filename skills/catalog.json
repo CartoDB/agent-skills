@@ -167,6 +167,13 @@
       "dependencies": ["carto-explore-datawarehouse", "carto-query-datawarehouse", "carto-create-workflow"],
       "description": "Computes new rasters from existing ones in CARTO with raster algebra, pixel-by-pixel expressions over one or more RaQuet rasters, using the Analytics Toolbox RASTER_ALGEBRA procedure or the Raster Algebra Workflows component (BigQuery, Snowflake). Triggers when the user wants to subtract, add, compare, combine, threshold or mask rasters, compute band math or spectral indices (NDVI, NDWI, NBR...), change detection or before/after deltas (e.g. signal coverage gained by a new site), map algebra, a raster calculator, or operations between two raster sources and their bands.",
       "path": "skills/carto-raster-algebra"
+    },
+    {
+      "name": "carto-raster-operations",
+      "layer": "use-case",
+      "dependencies": ["carto-explore-datawarehouse", "carto-query-datawarehouse", "carto-create-workflow"],
+      "description": "Transforms RaQuet rasters in CARTO with named raster operations, using the Analytics Toolbox procedures RASTER_CLIP, RASTER_MASK, RASTER_FILTER, RASTER_MERGE, RASTER_RECLASSIFY, RASTER_SET_NODATA, RASTER_REPLACE_NODATA, RASTER_SELECT_BANDS, RASTER_STACK and RASTER_VECTORIZE, or the matching Raster Operations Workflows components (BigQuery, Snowflake). Triggers when the user wants to clip a raster to a polygon or area of interest, mask it with another raster, filter or threshold pixel values, merge or mosaic rasters, reclassify values into classes, set or fill nodata, select or stack bands, or convert a raster into polygons (vectorize / polygonize). For arbitrary pixel expressions, band math or spectral indices, use carto-raster-algebra instead.",
+      "path": "skills/carto-raster-operations"
     }
   ]
 }
