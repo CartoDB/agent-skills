@@ -28,8 +28,9 @@ Which skills ship via which harness.
 | `carto-geocoding` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-composite-scoring` | use-case | ✅ | ✅ | ✅ | ✅ |
 | `carto-raster-algebra` | use-case | ✅ | ✅ | ✅ | ✅ |
+| `carto-raster-operations` | use-case | ✅ | ✅ | ✅ | ✅ |
 
-All 24 skills are available identically across every harness. See [`skills/catalog.json`](../skills/catalog.json) for the source of truth.
+All 25 skills are available identically across every harness. See [`skills/catalog.json`](../skills/catalog.json) for the source of truth.
 
 ## Per-harness install
 
@@ -40,7 +41,7 @@ All 24 skills are available identically across every harness. See [`skills/catal
 /plugin install carto-skills@carto-agent-skills
 ```
 
-All 24 skills (4 utility + 8 platform + 12 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
+All 25 skills (4 utility + 8 platform + 13 use-case patterns) ship as one bundle. Manifest: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) registers the plugin; the plugin manifest at [`plugins/carto-skills-claude/.claude-plugin/plugin.json`](../plugins/carto-skills-claude/.claude-plugin/plugin.json) enumerates the skills.
 
 ### Skills CLI
 
@@ -105,6 +106,7 @@ The zips are **not** committed to the repo. `master` is the release: every merge
 | `carto-composite-scoring` | use-case | [carto-composite-scoring.zip](https://github.com/CartoDB/agent-skills/releases/latest/download/carto-composite-scoring.zip) | `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`, `carto-create-workflow` |
 | `carto-arcgis-migration` | use-case | [carto-arcgis-migration.zip](https://github.com/CartoDB/agent-skills/releases/latest/download/carto-arcgis-migration.zip) | — |
 | `carto-raster-algebra` | use-case | [carto-raster-algebra.zip](https://github.com/CartoDB/agent-skills/releases/latest/download/carto-raster-algebra.zip) | `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`, `carto-explore-datawarehouse`, `carto-create-workflow` |
+| `carto-raster-operations` | use-case | [carto-raster-operations.zip](https://github.com/CartoDB/agent-skills/releases/latest/download/carto-raster-operations.zip) | `carto-basics`, `carto-connect-datawarehouse`, `carto-query-datawarehouse`, `carto-explore-datawarehouse`, `carto-create-workflow` |
 
 ## Source of truth
 
