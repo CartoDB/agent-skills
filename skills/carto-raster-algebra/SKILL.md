@@ -15,6 +15,8 @@ Providers: BigQuery (including CARTO Data Warehouse) and Snowflake only. Minimum
 
 **Prerequisites**: `carto-explore-datawarehouse` to find the rasters; `carto-query-datawarehouse` to run SQL (the `CALL` creates a table, so use the async/job path); `carto-create-workflow` to build a workflow.
 
+For operations that are not pixel math (clip, mask, filter, merge, reclassify, select or stack bands, vectorize, nodata handling), use `carto-raster-operations`.
+
 | Reference | Contents |
 |---|---|
 | [references/expressions.md](references/expressions.md) | Full syntax, output names, nodata rules, recipes, common errors |
